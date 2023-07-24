@@ -1,0 +1,45 @@
+
+server:
+  error:
+    whitelabel:
+      enabled: false
+  port: 8080
+  servlet:
+    encoding:
+      charset: utf-8
+      force: true
+logging:
+  level:
+    '[com.fastcampus.minischeduler]': DEBUG
+    '[org.hibernate.type]': TRACE
+    org:
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
+
+spring:
+  datasource:
+    username: root
+    password: root1234
+    url: jdbc:mysql://localhost:3306/minischeduler
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        ddl-auto: true
+        format_sql: true
+    database: mysql
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+  devtools:
+    livereload:
+      enabled: true
+  thymeleaf:
+    prefix: classpath:templates
+    suffix: .html
+    mode: HTML
+    check-template-location: true
+    cache: false
