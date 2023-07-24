@@ -53,6 +53,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+
         // 1. CSRF 해제
         http.csrf().disable(); // postman 접근해야 함!! - CSR 할때!!
 

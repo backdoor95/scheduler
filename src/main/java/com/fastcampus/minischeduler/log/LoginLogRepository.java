@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.user.log;
+package com.fastcampus.minischeduler.log;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

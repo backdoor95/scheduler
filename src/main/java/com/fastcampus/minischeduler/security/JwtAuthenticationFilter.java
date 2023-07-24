@@ -32,9 +32,9 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             FilterChain chain
     ) throws IOException, ServletException {
 
-        String prefixJwt = request.getHeader(JwtTokenProvider.HEADER);
+        String prefixJwt = request.getHeader(JwtTokenProvider.HEADER); // 헤더에서 토큰 받아오기
 
-        if (prefixJwt == null) {
+        if (prefixJwt == null) { // 토큰이 없는 경우
             chain.doFilter(request, response);
             return;
         }
@@ -44,9 +44,11 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         try {
             DecodedJWT decodedJWT = JwtTokenProvider.verify(jwt);
             Long id = decodedJWT.getClaim("id").asLong();
+            String roles = decodedJWT.getClaim("role").asString();
 
             User user = User.builder()
                             .id(id)
+                            .roles(roles)
                             .build();
 
             MyUserDetails myUserDetails = new MyUserDetails(user);

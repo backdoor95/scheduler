@@ -18,10 +18,9 @@ public class MyUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(
-                        () -> new Exception401("인증되지 않았습니다")
-                );
+        User user = userRepository.findByUsername(username).orElseThrow(
+                () -> new Exception401("인증되지 않았습니다")
+        );
 
         return new MyUserDetails(user);
     }
