@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.entity;
+package com.fastcampus.minischeduler.scheduler;
 
 import com.fastcampus.minischeduler.user.User;
 import lombok.Builder;
@@ -21,6 +21,7 @@ public class Scheduler {
     private User user;
 
     @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
     private Category category;
 
     @Column(nullable = false)

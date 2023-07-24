@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.entity;
+package com.fastcampus.minischeduler.scheduler;
 
 public enum Category {
     ANNUAL_LEAVE, DUTY
