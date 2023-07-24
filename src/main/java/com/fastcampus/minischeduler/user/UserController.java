@@ -1,9 +1,7 @@
 package com.fastcampus.minischeduler.user;
 
-import com.fastcampus.minischeduler.user.UserRequest;
+import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.security.JwtTokenProvider;
-import com.fastcampus.minischeduler.user.UserService;
-import com.fastcampus.minischeduler.user.log.LoginLog;
 import com.fastcampus.minischeduler.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,8 +28,7 @@ public class UserController {
     ) {
         if(errors.hasErrors()) return null;
 
-        return ResponseEntity
-                .ok(ApiUtils.success(userService.signup(joinDTO)));
+        return ResponseEntity.ok(ApiUtils.success(userService.signup(joinDTO)));
     }
 
     @PostMapping("/login")
@@ -40,14 +36,13 @@ public class UserController {
             @RequestBody
             @Valid
             UserRequest.LoginDTO loginDTO,
-            HttpServletRequest request,
             Errors errors
     ) {
         if(errors.hasErrors()) return null;
 
-        return ResponseEntity
-                .ok()
-                .header(JwtTokenProvider.HEADER, userService.signin(loginDTO, request))
+        return ResponseEntity.ok()
+                .header(JwtTokenProvider.HEADER, userService.signin(loginDTO))
                 .body(ApiUtils.success(null));
     }
+
 }

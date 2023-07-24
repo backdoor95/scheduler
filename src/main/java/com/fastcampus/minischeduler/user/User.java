@@ -28,6 +28,8 @@ public class User {
     @Column(nullable = false, length = 20)
     private String email;
 
+    private String roles;
+
     @Column(nullable = false, length = 20)
     private String fullName;
 
@@ -47,7 +49,7 @@ public class User {
 
     @PreUpdate
     protected void onUpdate() {
-        this.latestLogin = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @Builder
@@ -56,6 +58,7 @@ public class User {
             String username,
             String password,
             String email,
+            String roles,
             String fullName,
             LocalDateTime createdAt
     ) {
@@ -63,6 +66,7 @@ public class User {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.roles = roles;
         this.fullName = fullName;
         this.createdAt = createdAt;
     }
