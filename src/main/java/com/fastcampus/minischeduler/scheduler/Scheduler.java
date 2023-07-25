@@ -76,4 +76,12 @@ public class Scheduler {
         this.createdAt = createdAt;
 
     }
+
+    public void update(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description){
+        this.scheduleStart = scheduleStart;
+        this.scheduleEnd = scheduleEnd;
+        this.title = title;
+        this.description = description;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
