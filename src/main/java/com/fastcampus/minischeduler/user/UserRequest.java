@@ -13,12 +13,12 @@ public class UserRequest {
     @Getter
     public static class LoginDTO {
 
-        @Pattern(
-                regexp = "^[a-zA-Z0-9]{4,20}$",
-                message = "영문/숫자 4~20자 이내로 입력해주세요"
-        )
         @NotEmpty
-        private String username;
+        @Pattern(
+                regexp = "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
+                message = "이메일 형식으로 작성해주세요"
+        )
+        private String email;
 
         @NotEmpty
         @Size(min = 4, max = 20)
@@ -29,23 +29,16 @@ public class UserRequest {
     @Getter
     public static class JoinDTO {
 
-        @Pattern(
-                regexp = "^[a-zA-Z0-9]{4,20}$",
-                message = "영문/숫자 4~20자 이내로 입력해주세요"
-        )
-        @NotEmpty
-        private String username;
-
-        @NotEmpty
-        @Size(min = 4, max = 20)
-        private String password;
-
         @NotEmpty
         @Pattern(
                 regexp = "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
                 message = "이메일 형식으로 작성해주세요"
         )
         private String email;
+
+        @NotEmpty
+        @Size(min = 4, max = 20)
+        private String password;
 
         @NotEmpty
         @Pattern(
@@ -56,9 +49,8 @@ public class UserRequest {
 
         public User toEntity() {
             return User.builder()
-                    .username(username)
-                    .password(password)
                     .email(email)
+                    .password(password)
                     .fullName(fullName)
                     .build();
         }

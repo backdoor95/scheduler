@@ -20,14 +20,13 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 20)
-    private String username;
+    private String email;
 
     @Column(nullable = false, length = 120)
     private String password;
 
-    @Column(nullable = false, length = 20)
-    private String email;
-
+    private Integer sizeOfTicket;
+    private String profileImage;
     private String roles;
 
     @Column(nullable = false, length = 20)
@@ -36,8 +35,6 @@ public class User {
     @Column(nullable = false)
     @CreatedDate
     private LocalDateTime createdAt;
-
-    private LocalDateTime latestLogin;
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
@@ -55,17 +52,19 @@ public class User {
     @Builder
     public User(
             Long id,
-            String username,
             String password,
             String email,
+            Integer sizeOfTicket,
+            String profileImage,
             String roles,
             String fullName,
             LocalDateTime createdAt
     ) {
         this.id = id;
-        this.username = username;
         this.password = password;
         this.email = email;
+        this.sizeOfTicket = sizeOfTicket;
+        this.profileImage = profileImage;
         this.roles = roles;
         this.fullName = fullName;
         this.createdAt = createdAt;

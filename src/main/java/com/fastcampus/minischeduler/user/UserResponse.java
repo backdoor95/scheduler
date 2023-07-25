@@ -9,12 +9,12 @@ public class UserResponse {
     @Getter
     public static class JoinDTO {
         private Long id;
-        private String username;
+        private String email;
         private String fullName;
 
         public JoinDTO(User user) {
             this.id = user.getId();
-            this.username = user.getUsername();
+            this.email = user.getEmail();
             this.fullName = user.getFullName();
         }
     }

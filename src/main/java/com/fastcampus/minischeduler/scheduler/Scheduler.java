@@ -4,6 +4,8 @@ import com.fastcampus.minischeduler.user.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,23 +27,52 @@ public class Scheduler {
     private Category category;
 
     @Column(nullable = false)
-    private LocalDateTime date;
+    private LocalDateTime scheduleStart;
 
     @Column(nullable = false)
+    private LocalDateTime scheduleEnd;
+
+    private String title;
+    private String description;
+    private boolean confirm;
+
+    @Column(nullable = false)
+    @CreatedDate
     private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 
     @Builder
     public Scheduler(
             Long id,
             User user,
             Category category,
-            LocalDateTime date,
+            LocalDateTime scheduleStart,
+            LocalDateTime scheduleEnd,
+            String title,
+            String description,
+            boolean confirm,
             LocalDateTime createdAt
     ) {
         this.id = id;
         this.user = user;
         this.category = category;
-        this.date = date;
+        this.scheduleStart = scheduleStart;
+        this.scheduleEnd = scheduleEnd;
+        this.title = title;
+        this.description = description;
+        this.confirm = confirm;
         this.createdAt = createdAt;
 
     }

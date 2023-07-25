@@ -16,9 +16,9 @@ public class MyUserDetailsService implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username).orElseThrow(
+        User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new Exception401("인증되지 않았습니다")
         );
 
