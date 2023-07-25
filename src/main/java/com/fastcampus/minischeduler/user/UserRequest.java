@@ -52,6 +52,7 @@ public class UserRequest {
                     .email(email)
                     .password(password)
                     .fullName(fullName)
+                    .role("USER")
                     .build();
         }
     }

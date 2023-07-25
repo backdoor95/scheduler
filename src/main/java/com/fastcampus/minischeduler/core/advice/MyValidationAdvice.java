@@ -1,6 +1,6 @@
-package com.fastcampus.minischeduler.errors;
+package com.fastcampus.minischeduler.core.advice;
 
-import com.fastcampus.minischeduler.errors.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception400;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -10,7 +10,7 @@ import org.springframework.validation.Errors;
 
 @Aspect
 @Component
-public class MyValidationHandler {
+public class MyValidationAdvice {
     @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
     public void postMapping() {
     }

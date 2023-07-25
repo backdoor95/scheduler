@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.utils;
+package com.fastcampus.minischeduler.core.utils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

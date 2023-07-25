@@ -1,6 +1,7 @@
-package com.fastcampus.minischeduler.errors.exception;
+package com.fastcampus.minischeduler.core.exception;
 
-import com.fastcampus.minischeduler.utils.ApiUtils;
+import com.fastcampus.minischeduler.core.dto.ResponseDTO;
+import com.fastcampus.minischeduler.core.utils.ApiUtils;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -12,8 +13,8 @@ public class Exception500 extends RuntimeException {
     }
 
 
-    public ApiUtils.ApiResult<?> body() {
-        return ApiUtils.error(getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseDTO<?> body(){
+        return new ResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR, "serverError", getMessage());
     }
 
     public HttpStatus status(){
