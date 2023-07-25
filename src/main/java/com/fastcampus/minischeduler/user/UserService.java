@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +29,8 @@ public class UserService {
     @Transactional
     public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) {
         // 중복 계정 검사
-        if (userRepository.findByUsername(joinDTO.getUsername()).isPresent())
-            throw new Exception400("username", "이미 존재하는 아이디입니다.");
+        if (userRepository.findByEmail(joinDTO.getEmail()).isPresent())
+            throw new Exception400("username", "이미 존재하는 이메일입니다.");
 
         // 회원 가입
         joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
@@ -46,7 +45,7 @@ public class UserService {
             Authentication authentication =
                     authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(
-                                    loginDTO.getUsername(),
+                                    loginDTO.getEmail(),
                                     loginDTO.getPassword()
                             )
                     );
