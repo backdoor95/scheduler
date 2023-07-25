@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.utils;
+package com.fastcampus.minischeduler.core.utils;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
