@@ -1,7 +1,7 @@
-package com.fastcampus.minischeduler.errors;
+package com.fastcampus.minischeduler.core.advice;
 
-import com.fastcampus.minischeduler.errors.exception.*;
-import com.fastcampus.minischeduler.utils.ApiUtils;
+import com.fastcampus.minischeduler.core.exception.*;
+import com.fastcampus.minischeduler.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @Slf4j
 @RequiredArgsConstructor
 @RestControllerAdvice
-public class MyExceptionHandler {
+public class MyExceptionAdvice {
 
     @ExceptionHandler(Exception400.class)
     public ResponseEntity<?> badRequest(Exception400 e){

@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.security;
 
-
 import com.fastcampus.minischeduler.errors.exception.Exception401;
 import com.fastcampus.minischeduler.errors.exception.Exception403;
 import com.fastcampus.minischeduler.utils.FilterResponseUtils;
@@ -13,8 +12,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.factory.PasswordEncoderFactories;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -26,9 +24,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
-
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    BCryptPasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -92,8 +89,9 @@ public class SecurityConfig {
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests(
                 authorize -> authorize.antMatchers("/account/**").authenticated()
-                        .antMatchers("/admin/**")
-                        .access("hasRole('ADMIN')")
+                        .antMatchers("/user/**")
+                        .access("hasRole('ADMIN') or hasRole('USER')")
+                        .antMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().permitAll()
         );
 

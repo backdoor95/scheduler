@@ -1,7 +1,7 @@
 package com.fastcampus.minischeduler.utils;
 
-import com.fastcampus.minischeduler.errors.exception.Exception401;
-import com.fastcampus.minischeduler.errors.exception.Exception403;
+import com.fastcampus.minischeduler.core.exception.Exception401;
+import com.fastcampus.minischeduler.core.exception.Exception403;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.servlet.http.HttpServletResponse;
