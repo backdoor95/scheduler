@@ -1,6 +1,6 @@
-package com.fastcampus.minischeduler.security;
+package com.fastcampus.minischeduler.core.auth.session;
 
-import com.fastcampus.minischeduler.errors.exception.Exception401;
+import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.security;
+package com.fastcampus.minischeduler.core.auth.jwt;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -24,7 +24,7 @@ public class JwtTokenProvider {
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", user.getId())
-                .withClaim("role", user.getRoles())
+                .withClaim("role", user.getRole())
                 .sign(Algorithm.HMAC512(SECRET));
 
         return TOKEN_PREFIX + jwt;

@@ -1,6 +1,7 @@
-package com.fastcampus.minischeduler.errors.exception;
+package com.fastcampus.minischeduler.core.exception;
 
-import com.fastcampus.minischeduler.utils.ApiUtils;
+import com.fastcampus.minischeduler.core.dto.ResponseDTO;
+import com.fastcampus.minischeduler.core.dto.ValidDTO;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -17,8 +18,9 @@ public class Exception400 extends RuntimeException {
         this.value = value;
     }
 
-    public ApiUtils.ApiResult<?> body(){
-        return ApiUtils.error(getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseDTO<?> body(){
+        ValidDTO validDTO = new ValidDTO(key, value);
+        return new ResponseDTO<>(HttpStatus.BAD_REQUEST, "badRequest", validDTO);
     }
 
     public HttpStatus status(){
