@@ -1,8 +1,10 @@
 package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
@@ -13,15 +15,15 @@ public class UserRequest {
     @Getter
     public static class LoginDTO {
 
-        @NotEmpty
+        @NotBlank(message = "이메일을 입력해주세요")
         @Pattern(
                 regexp = "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
                 message = "이메일 형식으로 작성해주세요"
         )
         private String email;
 
-        @NotEmpty
-        @Size(min = 4, max = 20)
+        @NotBlank(message = "비밀번호를 입력해주세요")
+        @Size(min = 8, max = 20)
         private String password;
     }
 
@@ -29,22 +31,22 @@ public class UserRequest {
     @Getter
     public static class JoinDTO {
 
-        @NotEmpty
+        @NotBlank(message = "이메일을 입력해주세요")
         @Pattern(
                 regexp = "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
                 message = "이메일 형식으로 작성해주세요"
         )
         private String email;
 
-        @NotEmpty
-        @Size(min = 4, max = 20)
+        @NotBlank(message = "비밀번호를 입력해주세요")
+        @Size(min = 8, max = 20, message = "8~20자 이내로 입력해주세요")
         @Pattern(
-                regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*\\W){8,20}$",
-                message = "영문, 숫자, 특수문자 조합 8~20자 이내로 입력해주세요."
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,20}$",
+                message = "영문, 숫자, 특수문자 조합 8~20자 이내로 입력해주세요"
         )
         private String password;
 
-        @NotEmpty
+        @NotBlank(message = "이름을 입력해주세요")
         @Pattern(
                 regexp = "^[a-zA-Z가-힣]{1,20}$",
                 message = "한글/영문 1~20자 이내로 작성해주세요"
