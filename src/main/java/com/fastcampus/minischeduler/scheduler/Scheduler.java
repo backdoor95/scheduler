@@ -1,10 +1,7 @@
 package com.fastcampus.minischeduler.scheduler;
 
 import com.fastcampus.minischeduler.user.User;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
@@ -13,10 +10,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 @Getter
 @Entity(name = "scheduler_tb")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table
+@AllArgsConstructor
+@Builder
 public class Scheduler {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +42,8 @@ public class Scheduler {
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
-    private boolean confirm;
+    @Builder.Default
+    private boolean confirm = false;
 
     @Column(nullable = false)
     @CreatedDate

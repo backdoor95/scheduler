@@ -17,12 +17,12 @@ public class SchedulerDto {
     private LocalDateTime scheduleEnd;
     private String title;
     private String description;
-    private Boolean confirm;
+    private boolean confirm;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
-    public SchedulerDto(Long id, User user, Category category, LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description, Boolean confirm, LocalDateTime createdAt, LocalDateTime updatedAt){
+    public SchedulerDto(Long id, User user, Category category, LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description, LocalDateTime createdAt, LocalDateTime updatedAt){
         this.id = id;
         this.user=user;
         this.category = category;
@@ -30,7 +30,6 @@ public class SchedulerDto {
         this.scheduleEnd = scheduleEnd;
         this.title = title;
         this.description = description;
-        this.confirm = confirm;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

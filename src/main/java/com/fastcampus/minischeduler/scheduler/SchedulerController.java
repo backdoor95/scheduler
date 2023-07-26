@@ -63,4 +63,10 @@ public class SchedulerController {
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
+    @GetMapping("/searchScheduler")
+    public ResponseEntity<List<SchedulerDto>> searchScheduler(@RequestParam String keyword){
+        System.out.println("controller이다"+keyword);
+        List<SchedulerDto> schedulerDtoListFindByFullname = schedulerService.getSchedulerByFullname(keyword);
+        return ResponseEntity.ok(schedulerDtoListFindByFullname);
+    }
 }

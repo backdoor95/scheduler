@@ -52,7 +52,6 @@ public class SchedulerService {
                 .scheduleEnd(schedulerDto.getScheduleEnd())
                 .title(schedulerDto.getTitle())
                 .description(schedulerDto.getDescription())
-                .confirm(false)
                 .build();
         Scheduler saveScheduler = schedulerRepository.save(scheduler);
         return SchedulerDto.builder()
@@ -63,7 +62,6 @@ public class SchedulerService {
                 .scheduleEnd(saveScheduler.getScheduleEnd())
                 .title(saveScheduler.getTitle())
                 .description(saveScheduler.getDescription())
-                .confirm(saveScheduler.isConfirm())
                 .createdAt(saveScheduler.getCreatedAt())
                 .updatedAt(saveScheduler.getUpdatedAt())
                 .build();
@@ -90,6 +88,27 @@ public class SchedulerService {
     }
 
     @Transactional
+    public List<SchedulerDto> getSchedulerByFullname(String keyword){
+        List<Scheduler> schedulers = schedulerRepository.findByUserFullName(keyword);
+        List<SchedulerDto> schedulerDtoList = new ArrayList<>();
+        for(Scheduler scheduler : schedulers){
+            SchedulerDto schedulerDto = SchedulerDto.builder()
+                    .id(scheduler.getId())
+                    .user(scheduler.getUser())
+                    .category(scheduler.getCategory())
+                    .scheduleStart(scheduler.getScheduleStart())
+                    .scheduleEnd(scheduler.getScheduleEnd())
+                    .title(scheduler.getTitle())
+                    .description(scheduler.getDescription())
+                    .createdAt(scheduler.getCreatedAt())
+                    .updatedAt(scheduler.getUpdatedAt())
+                    .build();
+            schedulerDtoList.add(schedulerDto);
+        }
+        return schedulerDtoList;
+    }
+
+    @Transactional
     public SchedulerDto getSchedulerById(Long id){
         Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
         return SchedulerDto.builder()
@@ -100,7 +119,6 @@ public class SchedulerService {
                 .scheduleEnd(scheduler.getScheduleEnd())
                 .title(scheduler.getTitle())
                 .description(scheduler.getDescription())
-                .confirm(scheduler.isConfirm())
                 .createdAt(scheduler.getCreatedAt())
                 .updatedAt(scheduler.getUpdatedAt())
                 .build();
