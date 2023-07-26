@@ -38,6 +38,10 @@ public class UserRequest {
 
         @NotEmpty
         @Size(min = 4, max = 20)
+        @Pattern(
+                regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*\\W){8,20}$",
+                message = "영문, 숫자, 특수문자 조합 8~20자 이내로 입력해주세요."
+        )
         private String password;
 
         @NotEmpty
