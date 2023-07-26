@@ -1,7 +1,12 @@
 package com.fastcampus.minischeduler.scheduler;
 
-import com.fastcampus.minischeduler.security.JwtTokenProvider;
+
+import com.auth0.jwt.exceptions.SignatureVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
+import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,15 +21,39 @@ public class SchedulerController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/schedulerList")
-    public ResponseEntity<List<SchedulerDto>> schedulerList(){
-        List<SchedulerDto> schedulerDtoList = schedulerService.getSchedulerList();
+    public ResponseEntity<List<SchedulerDto>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token){
+        try{
+            DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
+            List<SchedulerDto> schedulerDtoList = schedulerService.getSchedulerList();
 
-        return ResponseEntity.ok(schedulerDtoList);
+            return ResponseEntity.ok(schedulerDtoList);
+        }catch (SignatureVerificationException | TokenExpiredException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+
     }
 
     @PostMapping("/createScheduler")
-    public ResponseEntity<SchedulerDto> createSceduler(@RequestBody SchedulerDto schedulerDto, @RequestHeader(JwtTokenProvider.HEADER) String token){
+    public ResponseEntity<SchedulerDto> createScheduler(@RequestBody SchedulerDto schedulerDto, @RequestHeader(JwtTokenProvider.HEADER) String token){
         SchedulerDto saveScheduler = schedulerService.createScheduler(schedulerDto, token);
         return ResponseEntity.ok(saveScheduler);
+    }
+
+    @PostMapping("/updateScheduler/{id}")
+    public ResponseEntity<SchedulerDto> updateScheduler(@PathVariable Long id, @RequestBody SchedulerDto schedulerDto, @RequestHeader(JwtTokenProvider.HEADER) String token){
+        //스케줄 조회
+        SchedulerDto Schedulerdto = schedulerService.getSchedulerById(id);
+        //로그인한 사용자 id조회
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        // 스케줄 작성자 id와 로그인한 사용자 id비교
+        if(!Schedulerdto.getUser().getId().equals(loginUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
+
+        Long updateId = schedulerService.update(id, schedulerDto);
+        SchedulerDto updateScheduler = schedulerService.getSchedulerById(updateId);
+
+        return ResponseEntity.ok(updateScheduler);
     }
 }

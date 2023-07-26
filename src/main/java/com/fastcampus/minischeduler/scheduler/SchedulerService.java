@@ -1,6 +1,6 @@
 package com.fastcampus.minischeduler.scheduler;
 
-import com.fastcampus.minischeduler.security.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +66,30 @@ public class SchedulerService {
                 .confirm(saveScheduler.isConfirm())
                 .createdAt(saveScheduler.getCreatedAt())
                 .updatedAt(saveScheduler.getUpdatedAt())
+                .build();
+    }
+
+    @Transactional
+    public Long update(Long id, SchedulerDto schedulerDto){
+        Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다"));
+        scheduler.update(schedulerDto.getScheduleStart(), schedulerDto.getScheduleEnd(), schedulerDto.getTitle(), schedulerDto.getDescription());
+        return id;
+    }
+
+    @Transactional
+    public SchedulerDto getSchedulerById(Long id){
+        Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+        return SchedulerDto.builder()
+                .id(scheduler.getId())
+                .user(scheduler.getUser())
+                .category(scheduler.getCategory())
+                .scheduleStart(scheduler.getScheduleStart())
+                .scheduleEnd(scheduler.getScheduleEnd())
+                .title(scheduler.getTitle())
+                .description(scheduler.getDescription())
+                .confirm(scheduler.isConfirm())
+                .createdAt(scheduler.getCreatedAt())
+                .updatedAt(scheduler.getUpdatedAt())
                 .build();
     }
 }

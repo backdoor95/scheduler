@@ -17,7 +17,7 @@ public class SchedulerDto {
     private LocalDateTime scheduleEnd;
     private String title;
     private String description;
-    private boolean confirm;
+    private Boolean confirm;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
