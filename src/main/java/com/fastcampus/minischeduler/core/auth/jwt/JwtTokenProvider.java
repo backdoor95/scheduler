@@ -39,4 +39,10 @@ public class JwtTokenProvider {
         return decodedJWT;
     }
 
+    public Long getUserIdFromToken(String token) {
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
+                .build()
+                .verify(token.replace(TOKEN_PREFIX, ""));
+        return decodedJWT.getClaim("id").asLong();
+    }
 }

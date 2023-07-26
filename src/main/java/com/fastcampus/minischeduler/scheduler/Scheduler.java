@@ -1,10 +1,7 @@
 package com.fastcampus.minischeduler.scheduler;
 
 import com.fastcampus.minischeduler.user.User;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
@@ -13,10 +10,13 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
 @Getter
 @Entity(name = "scheduler_tb")
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table
+@AllArgsConstructor
+@Builder
 public class Scheduler {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,7 +42,8 @@ public class Scheduler {
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
-    private boolean confirm;
+    @Builder.Default
+    private boolean confirm = false;
 
     @Column(nullable = false)
     @CreatedDate
@@ -84,4 +85,15 @@ public class Scheduler {
         this.createdAt = createdAt;
 
     }
+
+    // 이 메서드는 직접 실행하는 로직은 없지만 JPA의 영속성 컨텍스트로 인해 자동으로 실행된다
+    // 영속성 컨텍스트에 포함된 Entity 객체의 값이 변경되면 트랜잭션이 종료(commit)되는 시점이 update쿼리 실행 -> 더티 체킹
+    public void update(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description){
+        this.scheduleStart = scheduleStart;
+        this.scheduleEnd = scheduleEnd;
+        this.title = title;
+        this.description = description;
+        onUpdate();
+    }
+
 }
