@@ -1,8 +1,8 @@
 package com.fastcampus.minischeduler.core.config;
 
+import com.fastcampus.minischeduler.core.auth.jwt.JwtAuthenticationFilter;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception403;
-import com.fastcampus.minischeduler.core.auth.jwt.JwtAuthenticationFilter;
 import com.fastcampus.minischeduler.core.utils.FilterResponseUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
+@EnableWebSecurity
 public class SecurityConfig {
 
     @Bean
@@ -112,4 +114,5 @@ public class SecurityConfig {
 
         return source;
     }
+
 }
