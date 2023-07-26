@@ -1,9 +1,9 @@
 package com.fastcampus.minischeduler.user;
 
-import com.fastcampus.minischeduler.errors.exception.Exception400;
-import com.fastcampus.minischeduler.errors.exception.Exception401;
-import com.fastcampus.minischeduler.security.JwtTokenProvider;
-import com.fastcampus.minischeduler.security.MyUserDetails;
+import com.fastcampus.minischeduler.core.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception401;
+import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
 import lombok.RequiredArgsConstructor;

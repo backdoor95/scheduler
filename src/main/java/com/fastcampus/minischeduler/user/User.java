@@ -1,8 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -12,7 +10,9 @@ import java.time.LocalDateTime;
 @Getter
 @Table(name = "user_tb")
 @Entity
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class User {
 
     @Id
@@ -27,7 +27,9 @@ public class User {
 
     private Integer sizeOfTicket;
     private String profileImage;
-    private String roles;
+
+    @Builder.Default
+    private String role = "USER";
 
     @Column(nullable = false, length = 20)
     private String fullName;
@@ -56,7 +58,7 @@ public class User {
             String email,
             Integer sizeOfTicket,
             String profileImage,
-            String roles,
+            String role,
             String fullName,
             LocalDateTime createdAt
     ) {
@@ -65,7 +67,7 @@ public class User {
         this.email = email;
         this.sizeOfTicket = sizeOfTicket;
         this.profileImage = profileImage;
-        this.roles = roles;
+        this.role = role;
         this.fullName = fullName;
         this.createdAt = createdAt;
     }

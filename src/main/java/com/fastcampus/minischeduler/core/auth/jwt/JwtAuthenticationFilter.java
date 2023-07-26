@@ -1,9 +1,9 @@
-package com.fastcampus.minischeduler.security;
-
+package com.fastcampus.minischeduler.core.auth.jwt;
 
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,9 +32,9 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
             FilterChain chain
     ) throws IOException, ServletException {
 
-        String prefixJwt = request.getHeader(JwtTokenProvider.HEADER); // 헤더에서 토큰 받아오기
+        String prefixJwt = request.getHeader(JwtTokenProvider.HEADER);
 
-        if (prefixJwt == null) { // 토큰이 없는 경우
+        if (prefixJwt == null) {
             chain.doFilter(request, response);
             return;
         }
@@ -42,14 +42,15 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
         String jwt = prefixJwt.replace(JwtTokenProvider.TOKEN_PREFIX, "");
 
         try {
+            System.out.println("디버그 : 토큰 있음");
             DecodedJWT decodedJWT = JwtTokenProvider.verify(jwt);
             Long id = decodedJWT.getClaim("id").asLong();
-            String roles = decodedJWT.getClaim("role").asString();
+            String role = decodedJWT.getClaim("role").asString();
 
             User user = User.builder()
-                            .id(id)
-                            .roles(roles)
-                            .build();
+                    .id(id)
+                    .role(role)
+                    .build();
 
             MyUserDetails myUserDetails = new MyUserDetails(user);
             Authentication authentication =
@@ -59,7 +60,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
                             myUserDetails.getAuthorities()
                     );
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.debug("DEBUG -- 인증 객체 생성");
+            System.out.println("디버그 : 인증 객체 생성");
         } catch (SignatureVerificationException sve) {
             log.error("토큰 검증 실패");
         } catch (TokenExpiredException tee) {
