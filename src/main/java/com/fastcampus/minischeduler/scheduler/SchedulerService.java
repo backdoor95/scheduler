@@ -4,8 +4,6 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.security.SecurityUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +13,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SchedulerService {
+
     private final SchedulerRepository schedulerRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -23,7 +22,8 @@ public class SchedulerService {
     public List<SchedulerDto> getSchedulerList(){
         List<Scheduler> schedulers = schedulerRepository.findAll();
         List<SchedulerDto> schedulerDtoList = new ArrayList<>();
-        for(Scheduler scheduler : schedulers){
+
+        for(Scheduler scheduler : schedulers) {
             SchedulerDto schedulerDto = SchedulerDto.builder()
                     .id(scheduler.getId())
                     .user(scheduler.getUser())

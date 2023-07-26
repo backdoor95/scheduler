@@ -41,14 +41,19 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    private LocalDateTime latestLogin; // 업데이트 메서드 필요
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
-    @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    protected void onUpdateLatestLogin() {
+        this.latestLogin = LocalDateTime.now();
     }
 
     @Builder

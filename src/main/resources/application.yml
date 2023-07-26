@@ -30,7 +30,6 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        ddl-auto: true
         format_sql: true
     database: mysql
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
