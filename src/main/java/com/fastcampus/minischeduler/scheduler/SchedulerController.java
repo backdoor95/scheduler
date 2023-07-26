@@ -56,4 +56,11 @@ public class SchedulerController {
 
         return ResponseEntity.ok(updateScheduler);
     }
+
+    @PostMapping("/deleteScheduler/{id}")
+    public ResponseEntity<String> deleteScheduler(@PathVariable Long id, @RequestHeader(JwtTokenProvider.HEADER) String token){
+        schedulerService.delete(id, token);
+        return ResponseEntity.ok("스케줄 삭제 완료");
+    }
+
 }

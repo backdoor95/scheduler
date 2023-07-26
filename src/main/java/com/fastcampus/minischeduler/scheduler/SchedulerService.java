@@ -77,6 +77,19 @@ public class SchedulerService {
     }
 
     @Transactional
+    public Long delete(Long id, String token){
+       SchedulerDto schedulerDto = getSchedulerById(id);
+       Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+       if(!schedulerDto.getUser().getId().equals(loginUserId)){
+           throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+       }
+
+       schedulerRepository.deleteById(id);
+       return id;
+    }
+
+    @Transactional
     public SchedulerDto getSchedulerById(Long id){
         Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
         return SchedulerDto.builder()
