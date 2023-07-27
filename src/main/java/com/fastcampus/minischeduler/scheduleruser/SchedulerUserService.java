@@ -40,7 +40,6 @@ public class SchedulerUserService {
             schedulerUserDtoList.add(schedulerUserDto);
         }
         return schedulerUserDtoList;
-
     }
 
     @Transactional
@@ -71,7 +70,6 @@ public class SchedulerUserService {
                 .progress(saveSchedulerUser.getProgress())
                 .createdAt(saveSchedulerUser.getCreatedAt())
                 .build();
-
     }
 
     /**
@@ -87,8 +85,7 @@ public class SchedulerUserService {
      * 사용자 티켓수 감소
      */
     public void decreaseUserTicket(User user){
-        int ticket = user.getSizeOfTicket() - 1;
-        user.setSizeOfTicket(ticket);
+        user.setSizeOfTicket(user.getSizeOfTicket() - 1);
         userRepository.save(user);
     }
 }

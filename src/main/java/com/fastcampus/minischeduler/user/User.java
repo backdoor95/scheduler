@@ -44,7 +44,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private LocalDateTime latestLogin; // 업데이트 메서드 필요
+    private LocalDateTime latestLogin;
 
     @PrePersist
     protected void onCreate() {
@@ -80,7 +80,7 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public void setSizeOfTicket(Integer sizeOfTicket){
+    public void setSizeOfTicket(Integer sizeOfTicket) {
         this.sizeOfTicket = sizeOfTicket;
     }
 }
