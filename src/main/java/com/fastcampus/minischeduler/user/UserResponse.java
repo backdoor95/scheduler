@@ -11,11 +11,13 @@ public class UserResponse {
         private Long id;
         private String email;
         private String fullName;
+        private Role role;
 
         public JoinDTO(User user) {
             this.id = user.getId();
             this.email = user.getEmail();
             this.fullName = user.getFullName();
+            this.role = user.getRole();
         }
     }
 
@@ -24,7 +26,7 @@ public class UserResponse {
         private Long id;
         private String email;
         private String fullName;
-        private String role;
+        private Role role;
 
         public DetailOutDTO(User user) {
             this.id = user.getId();

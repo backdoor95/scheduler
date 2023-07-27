@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 @Entity(name = "scheduler_admin_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Builder
 public class SchedulerAdmin { // 기획사 일정
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

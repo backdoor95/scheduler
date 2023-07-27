@@ -1,11 +1,12 @@
 package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 
-import javax.management.relation.Role;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 public class UserRequest {
 
@@ -59,7 +60,7 @@ public class UserRequest {
                     .email(email)
                     .password(password)
                     .fullName(fullName)
-                    .role("User")
+                    .role(role)
                     .build();
         }
     }

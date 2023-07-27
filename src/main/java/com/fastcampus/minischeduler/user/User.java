@@ -27,10 +27,12 @@ public class User {
 
     @Builder.Default
     private Integer sizeOfTicket = 12;
+
     private String profileImage;
 
-    @Builder.Default
-    private String role = "USER";
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private Role role;
 
     @Column(nullable = false, length = 20)
     private String fullName;
@@ -64,7 +66,7 @@ public class User {
             String email,
             Integer sizeOfTicket,
             String profileImage,
-            String role,
+            Role role,
             String fullName,
             LocalDateTime createdAt
     ) {
