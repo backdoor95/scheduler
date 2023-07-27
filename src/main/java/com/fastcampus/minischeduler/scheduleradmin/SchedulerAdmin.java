@@ -12,11 +12,10 @@ import java.time.LocalDateTime;
 
 
 @Getter
-@Entity(name = "scheduler_tb")
+@Entity(name = "scheduler_admin_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table
 @AllArgsConstructor
-@Builder
 public class SchedulerAdmin { // 기획사 일정
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
