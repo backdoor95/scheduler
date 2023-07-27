@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.scheduleruser;
 
-import com.fastcampus.minischeduler.scheduleradmin.Progress;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.user.User;
 import lombok.*;
@@ -13,9 +12,9 @@ import java.time.LocalDateTime;
 
 
 @Getter
-@Entity(name = "scheduler_tb")
+@Entity(name = "scheduler_user_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table
+@AllArgsConstructor
 @Builder
 public class SchedulerUser {
     @Id
@@ -58,6 +57,5 @@ public class SchedulerUser {
         this.scheduleStart = scheduleStart;
         this.progress = progress;
         this.createdAt = createdAt;
-
     }
 }
