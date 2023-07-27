@@ -60,4 +60,15 @@ public class SchedulerUserController {
         schedulerUserService.cancel(id, token);
         return ResponseEntity.ok("티켓팅 취소 완료");
     }
+
+    @GetMapping("/schedule")
+    public ResponseEntity<Map<String, Object>> searchSchedulerList(@RequestParam String keyword, @RequestHeader(JwtTokenProvider.HEADER) String token) {
+        List<SchedulerAdminDto> schedulerAdminDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
+        List<SchedulerUserDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("schedulerAdmin", schedulerAdminDtoListFindByFullname);
+        response.put("schedulerUser", schedulerUserDtoList);
+        return ResponseEntity.ok(response);
+    }
 }
