@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
+
 import javax.validation.Valid;
 
 @RestController
@@ -16,6 +17,7 @@ import javax.validation.Valid;
 public class UserController {
 
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @MyErrorLog
     @MyLog
@@ -72,4 +74,25 @@ public class UserController {
 
         return null;
     }
+
+    @GetMapping("/getUserInfo")
+    public ResponseEntity<?> getUserInfo(
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ){
+        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        UserResponse.UserInfoDTO userInfoDTO = userService.getUserInfo(userId);
+        return ResponseEntity.ok(userInfoDTO);
+    }
+
+//    @PostMapping("/updateUserInfo/{id}")
+//    public ResponseEntity<?> updateUserInfo(
+//            @RequestHeader(JwtTokenProvider.HEADER) String token,
+//            @PathVariable Long id
+//    ){
+//
+//    }
+
+
+
+
 }

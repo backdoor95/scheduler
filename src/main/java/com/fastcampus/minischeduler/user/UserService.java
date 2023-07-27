@@ -25,6 +25,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) {
@@ -69,5 +70,27 @@ public class UserService {
             throw new Exception401("인증되지 않았습니다.");
         }
     }
+
+    @Transactional
+    public UserResponse.UserInfoDTO getUserInfo(Long userId) {
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        return new UserResponse.UserInfoDTO(userPS);
+    }
+
+    @Transactional
+    public User updateUserInfo(Long userId, UserResponse.){
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+
+
+
+
+
+    }
+
+
+
 
 }
