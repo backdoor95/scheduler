@@ -13,7 +13,6 @@ public class SchedulerDto {
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private User user;
 
-    private Category category;
     private LocalDateTime scheduleStart;
     private LocalDateTime scheduleEnd;
     private String title;
@@ -26,7 +25,6 @@ public class SchedulerDto {
     public SchedulerDto(
 
             User user,
-            Category category,
             LocalDateTime scheduleStart,
             LocalDateTime scheduleEnd,
             String title,
@@ -35,7 +33,6 @@ public class SchedulerDto {
             LocalDateTime updatedAt
     ){
         this.user = user;
-        this.category = category;
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;
         this.title = title;

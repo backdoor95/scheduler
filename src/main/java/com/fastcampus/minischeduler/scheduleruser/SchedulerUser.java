@@ -13,10 +13,10 @@ import java.time.LocalDateTime;
 
 
 @Getter
-@Entity(name = "scheduler_tb")
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Entity(name = "scheduler_user_tb")
 @Table
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SchedulerUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,16 +45,17 @@ public class SchedulerUser {
         this.createdAt = LocalDateTime.now();
     }
 
-    @Builder
     public SchedulerUser(
             Long id,
             User user,
+            SchedulerAdmin schedulerAdmin,
             LocalDateTime scheduleStart,
             Progress progress,
             LocalDateTime createdAt
     ) {
         this.id = id;
         this.user = user;
+        this.schedulerAdmin = schedulerAdmin;
         this.scheduleStart = scheduleStart;
         this.progress = progress;
         this.createdAt = createdAt;
