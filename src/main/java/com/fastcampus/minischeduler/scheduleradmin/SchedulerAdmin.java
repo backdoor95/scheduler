@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -20,6 +21,7 @@ public class SchedulerAdmin { // 기획사 일정
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;

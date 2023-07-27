@@ -79,4 +79,8 @@ public class User {
         this.fullName = fullName;
         this.createdAt = createdAt;
     }
+
+    public void setSizeOfTicket(Integer sizeOfTicket){
+        this.sizeOfTicket = sizeOfTicket;
+    }
 }
