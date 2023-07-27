@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.scheduler;
+package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
@@ -55,7 +55,7 @@ public class SchedulerController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
         }
 
-        Long updateId = schedulerService.update(id, schedulerDto);
+        Long updateId = schedulerService.updateScheduler(id, schedulerDto);
         SchedulerDto updateScheduler = schedulerService.getSchedulerById(updateId);
 
         return ResponseEntity.ok(updateScheduler);
