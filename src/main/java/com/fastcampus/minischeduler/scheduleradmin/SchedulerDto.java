@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.scheduler;
+package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -9,8 +9,6 @@ import java.time.LocalDateTime;
 
 @Data
 public class SchedulerDto {
-
-    private Long id;
 
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private User user;
@@ -26,7 +24,7 @@ public class SchedulerDto {
 
     @Builder
     public SchedulerDto(
-            Long id,
+
             User user,
             Category category,
             LocalDateTime scheduleStart,
@@ -36,8 +34,7 @@ public class SchedulerDto {
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ){
-        this.id = id;
-        this.user=user;
+        this.user = user;
         this.category = category;
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;

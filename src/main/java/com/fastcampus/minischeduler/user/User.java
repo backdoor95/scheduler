@@ -25,7 +25,8 @@ public class User {
     @Column(nullable = false, length = 120)
     private String password;
 
-    private Integer sizeOfTicket;
+    @Builder.Default
+    private Integer sizeOfTicket = 12;
     private String profileImage;
 
     @Builder.Default

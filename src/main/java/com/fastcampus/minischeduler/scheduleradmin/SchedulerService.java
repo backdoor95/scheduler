@@ -1,6 +1,7 @@
-package com.fastcampus.minischeduler.scheduler;
+package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +19,17 @@ public class SchedulerService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * 전체 일정 목록을 출력합니다.
+     * @return
+     */
     @Transactional
     public List<SchedulerDto> getSchedulerList(){
-        List<Scheduler> schedulers = schedulerRepository.findAll();
+        List<SchedulerUser> schedulers = schedulerRepository.findAll();
         List<SchedulerDto> schedulerDtoList = new ArrayList<>();
 
-        for(Scheduler scheduler : schedulers) {
+        for(SchedulerUser scheduler : schedulers) {
             SchedulerDto schedulerDto = SchedulerDto.builder()
-                    .id(scheduler.getId())
                     .user(scheduler.getUser())
                     .category(scheduler.getCategory())
                     .scheduleStart(scheduler.getScheduleStart())
@@ -40,12 +44,22 @@ public class SchedulerService {
         return schedulerDtoList;
     }
 
+    /**
+     * 일정을 등록합니다.
+     * @param schedulerDto
+     * @param token
+     * @return
+     */
     @Transactional
-    public SchedulerDto createScheduler(SchedulerDto schedulerDto, String token){
+    public SchedulerDto createScheduler(
+            SchedulerDto schedulerDto,
+            String token
+    ){
+
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        Scheduler scheduler = Scheduler.builder()
+        SchedulerUser scheduler = SchedulerUser.builder()
                 .user(user)
                 .category(Category.ANNUAL_LEAVE)
                 .scheduleStart(schedulerDto.getScheduleStart())
@@ -53,9 +67,8 @@ public class SchedulerService {
                 .title(schedulerDto.getTitle())
                 .description(schedulerDto.getDescription())
                 .build();
-        Scheduler saveScheduler = schedulerRepository.save(scheduler);
+        SchedulerUser saveScheduler = schedulerRepository.save(scheduler);
         return SchedulerDto.builder()
-                .id(saveScheduler.getId())
                 .user(saveScheduler.getUser())
                 .category(saveScheduler.getCategory())
                 .scheduleStart(saveScheduler.getScheduleStart())
@@ -67,13 +80,32 @@ public class SchedulerService {
                 .build();
     }
 
+    /**
+     * 일정을 수정합니다.
+     * @param id
+     * @param schedulerDto
+     * @return
+     */
     @Transactional
-    public Long update(Long id, SchedulerDto schedulerDto){
-        Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다"));
-        scheduler.update(schedulerDto.getScheduleStart(), schedulerDto.getScheduleEnd(), schedulerDto.getTitle(), schedulerDto.getDescription());
+    public Long updateScheduler(Long id, SchedulerDto schedulerDto){
+        SchedulerUser scheduler = schedulerRepository.findById(id).orElseThrow(
+                ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
+        );
+        scheduler.update(
+                schedulerDto.getScheduleStart(),
+                schedulerDto.getScheduleEnd(),
+                schedulerDto.getTitle(),
+                schedulerDto.getDescription()
+        );
         return id;
     }
 
+    /**
+     * 일정을 삭제합니다.
+     * @param id
+     * @param token
+     * @return
+     */
     @Transactional
     public Long delete(Long id, String token){
        SchedulerDto schedulerDto = getSchedulerById(id);
@@ -87,13 +119,19 @@ public class SchedulerService {
        return id;
     }
 
+    /**
+     * 사용자 별 일정을 출력합니다.
+     * @param keyword
+     * @return
+     */
     @Transactional
     public List<SchedulerDto> getSchedulerByFullname(String keyword){
-        List<Scheduler> schedulers = schedulerRepository.findByUserFullName(keyword);
+
+        List<SchedulerUser> schedulers = schedulerRepository.findByUserFullName(keyword);
         List<SchedulerDto> schedulerDtoList = new ArrayList<>();
-        for(Scheduler scheduler : schedulers){
+
+        for(SchedulerUser scheduler : schedulers){
             SchedulerDto schedulerDto = SchedulerDto.builder()
-                    .id(scheduler.getId())
                     .user(scheduler.getUser())
                     .category(scheduler.getCategory())
                     .scheduleStart(scheduler.getScheduleStart())
@@ -105,14 +143,23 @@ public class SchedulerService {
                     .build();
             schedulerDtoList.add(schedulerDto);
         }
+
         return schedulerDtoList;
     }
 
+    /**
+     * 사용자 id로 일정을 검색합니다.
+     * @param id
+     * @return
+     */
     @Transactional
     public SchedulerDto getSchedulerById(Long id){
-        Scheduler scheduler = schedulerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        SchedulerUser scheduler = schedulerRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
+        );
+
         return SchedulerDto.builder()
-                .id(scheduler.getId())
                 .user(scheduler.getUser())
                 .category(scheduler.getCategory())
                 .scheduleStart(scheduler.getScheduleStart())

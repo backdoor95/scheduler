@@ -1,4 +1,4 @@
-package com.fastcampus.minischeduler.scheduler;
+package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
 import lombok.*;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Table
 @AllArgsConstructor
 @Builder
-public class Scheduler {
+public class SchedulerAdmin { // 기획사 일정
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,13 +27,8 @@ public class Scheduler {
     private User user;
 
     @Column(nullable = false)
-    @Enumerated(value = EnumType.STRING)
-    private Category category;
-
-    @Column(nullable = false)
     private LocalDateTime scheduleStart;
 
-    @Column(nullable = false)
     private LocalDateTime scheduleEnd;
 
     @Column(length = 20)
@@ -42,8 +37,7 @@ public class Scheduler {
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
-    @Builder.Default
-    private boolean confirm = false;
+    private String image;
 
     @Column(nullable = false)
     @CreatedDate
@@ -63,25 +57,23 @@ public class Scheduler {
     }
 
     @Builder
-    public Scheduler(
+    public SchedulerAdmin(
             Long id,
             User user,
-            Category category,
             LocalDateTime scheduleStart,
             LocalDateTime scheduleEnd,
+            String image,
             String title,
             String description,
-            boolean confirm,
             LocalDateTime createdAt
     ) {
         this.id = id;
         this.user = user;
-        this.category = category;
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;
+        this.image = image;
         this.title = title;
         this.description = description;
-        this.confirm = confirm;
         this.createdAt = createdAt;
 
     }
