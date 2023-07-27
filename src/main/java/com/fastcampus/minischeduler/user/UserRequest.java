@@ -59,18 +59,14 @@ public class UserRequest {
 
     @Setter
     @Getter
-    public static class UserInfoDTO {
+    public static class UpdateUserInfoDTO {
 
-        @NotEmpty
-        @Pattern(
-                regexp = "^[\\w._%+-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$",
-                message = "이메일 형식으로 작성해주세요"
-        )
-        private String email;
 
         @NotEmpty
         @Size(min = 4, max = 20)
         private String password;
+
+        private String profileImage;
 
         @NotEmpty
         @Pattern(
@@ -79,14 +75,7 @@ public class UserRequest {
         )
         private String fullName;
 
-        public User toEntity() {
-            return User.builder()
-                    .email(email)
-                    .password(password)
-                    .fullName(fullName)
-                    .role("USER")
-                    .build();
-        }
+
     }
 
 

@@ -39,7 +39,7 @@ public class UserResponse {
 
     @Setter
     @Getter
-    public static class UserInfoDTO {
+    public static class GetUserInfoDTO {
 
         private String email;
         private String fullName;
@@ -48,7 +48,7 @@ public class UserResponse {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public UserInfoDTO(User user) {
+        public GetUserInfoDTO(User user) {
             this.email = user.getEmail();
             this.fullName = user.getFullName();
             this.sizeOfTicket = user.getSizeOfTicket();

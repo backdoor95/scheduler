@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 
 import javax.validation.Valid;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
@@ -80,17 +81,31 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
-        UserResponse.UserInfoDTO userInfoDTO = userService.getUserInfo(userId);
-        return ResponseEntity.ok(userInfoDTO);
+        UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
+        return ResponseEntity.ok(getUserInfoDTO);
     }
 
-//    @PostMapping("/updateUserInfo/{id}")
-//    public ResponseEntity<?> updateUserInfo(
-//            @RequestHeader(JwtTokenProvider.HEADER) String token,
-//            @PathVariable Long id
-//    ){
-//
-//    }
+    @PostMapping("/updateUserInfo/{id}")
+    public ResponseEntity<?> updateUserInfo(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestBody
+            @Valid
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
+            Errors errors
+    ){
+        if(errors.hasErrors()) return null;
+
+
+        User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
+                .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
+        // user 객체를 이용한 작업 수행
+
+
+        return ResponseEntity.ok()
+                .body(userPS);
+
+    }
 
 
 
