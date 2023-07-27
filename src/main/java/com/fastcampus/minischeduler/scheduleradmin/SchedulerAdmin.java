@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -14,13 +15,13 @@ import java.time.LocalDateTime;
 @Getter
 @Entity(name = "scheduler_admin_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Table
 @AllArgsConstructor
 public class SchedulerAdmin { // 기획사 일정
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
@@ -79,11 +80,12 @@ public class SchedulerAdmin { // 기획사 일정
 
     // 이 메서드는 직접 실행하는 로직은 없지만 JPA의 영속성 컨텍스트로 인해 자동으로 실행된다
     // 영속성 컨텍스트에 포함된 Entity 객체의 값이 변경되면 트랜잭션이 종료(commit)되는 시점이 update쿼리 실행 -> 더티 체킹
-    public void update(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description){
+    public void update(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description, String image){
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;
         this.title = title;
         this.description = description;
+        this.image = image;
         onUpdate();
     }
 

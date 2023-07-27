@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class SchedulerDto {
+public class SchedulerAdminDto {
 
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private User user;
@@ -17,18 +17,18 @@ public class SchedulerDto {
     private LocalDateTime scheduleEnd;
     private String title;
     private String description;
-    private boolean confirm;
+    private String image;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @Builder
-    public SchedulerDto(
-
+    public SchedulerAdminDto(
             User user,
             LocalDateTime scheduleStart,
             LocalDateTime scheduleEnd,
             String title,
             String description,
+            String image,
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ){
@@ -37,6 +37,7 @@ public class SchedulerDto {
         this.scheduleEnd = scheduleEnd;
         this.title = title;
         this.description = description;
+        this.image = image;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

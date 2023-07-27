@@ -13,50 +13,50 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-public class SchedulerController {
+public class SchedulerAdminController {
 
-    private final SchedulerService schedulerService;
+    private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/schedulerList")
-    public ResponseEntity<List<SchedulerDto>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
+    public ResponseEntity<List<SchedulerAdminDto>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
         try {
             DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
-            List<SchedulerDto> schedulerDtoList = schedulerService.getSchedulerList();
+            List<SchedulerAdminDto> schedulerAdminDtoList = schedulerAdminService.getSchedulerList();
 
-            return ResponseEntity.ok(schedulerDtoList);
+            return ResponseEntity.ok(schedulerAdminDtoList);
         } catch (SignatureVerificationException | TokenExpiredException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
     @PostMapping("/createScheduler")
-    public ResponseEntity<SchedulerDto> createScheduler(
-            @RequestBody SchedulerDto schedulerDto, // TODO: request DTO가 필요한가
+    public ResponseEntity<SchedulerAdminDto> createScheduler(
+            @RequestBody SchedulerAdminDto schedulerAdminDto, // TODO: request DTO가 필요한가
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
 
-        return ResponseEntity.ok(schedulerService.createScheduler(schedulerDto, token));
+        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminDto, token));
     }
 
     @PostMapping("/updateScheduler/{id}")
-    public ResponseEntity<SchedulerDto> updateScheduler(
+    public ResponseEntity<SchedulerAdminDto> updateScheduler(
             @PathVariable Long id,
-            @RequestBody SchedulerDto schedulerDto,
+            @RequestBody SchedulerAdminDto schedulerAdminDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         //스케줄 조회
-        SchedulerDto Schedulerdto = schedulerService.getSchedulerById(id);
+        SchedulerAdminDto schedulerdto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
-        if(!Schedulerdto.getUser().getId().equals(loginUserId)){
+        if(!schedulerdto.getUser().getId().equals(loginUserId)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
         }
 
-        Long updateId = schedulerService.updateScheduler(id, schedulerDto);
-        SchedulerDto updateScheduler = schedulerService.getSchedulerById(updateId);
+        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminDto);
+        SchedulerAdminDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
 
         return ResponseEntity.ok(updateScheduler);
     }
@@ -67,17 +67,15 @@ public class SchedulerController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
 
-        schedulerService.delete(id, token);
+        schedulerAdminService.delete(id, token);
 
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
     @GetMapping("/searchScheduler")
-    public ResponseEntity<List<SchedulerDto>> searchScheduler(@RequestParam String keyword){
+    public ResponseEntity<List<SchedulerAdminDto>> searchScheduler(@RequestParam String keyword){
+        List<SchedulerAdminDto> schedulerAdminDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
 
-        System.out.println("controller이다" + keyword);
-        List<SchedulerDto> schedulerDtoListFindByFullname = schedulerService.getSchedulerByFullname(keyword);
-
-        return ResponseEntity.ok(schedulerDtoListFindByFullname);
+        return ResponseEntity.ok(schedulerAdminDtoListFindByFullname);
     }
 }
