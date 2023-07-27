@@ -28,8 +28,8 @@ public class SchedulerUserController {
         List<SchedulerUserDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdminDtoList", schedulerAdminDtoList);
-        response.put("schedulerUserDtoList", schedulerUserDtoList);
+        response.put("schedulerAdmin", schedulerAdminDtoList);
+        response.put("schedulerUser", schedulerUserDtoList);
         return ResponseEntity.ok(response);
     }
 
@@ -50,5 +50,14 @@ public class SchedulerUserController {
             //1개 미만이면 권한없음상태
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
+    }
+
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<String> cancelScheduler(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ){
+        schedulerUserService.cancel(id, token);
+        return ResponseEntity.ok("티켓팅 취소 완료");
     }
 }

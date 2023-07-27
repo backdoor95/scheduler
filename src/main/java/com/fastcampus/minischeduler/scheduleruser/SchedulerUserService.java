@@ -52,8 +52,10 @@ public class SchedulerUserService {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        decreaseUserTicket(user);
-
+        //유저의 티켓수 1차감
+        int ticket = user.getSizeOfTicket() - 1;
+        user.setSizeOfTicket(ticket);
+        userRepository.save(user);
         SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(schedulerAdminId)
                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
 
@@ -83,12 +85,34 @@ public class SchedulerUserService {
         return user.getSizeOfTicket();
     }
 
-    /**
-     * 사용자 티켓수 감소
-     */
-    public void decreaseUserTicket(User user){
-        int ticket = user.getSizeOfTicket() - 1;
+    public Long cancel(Long id, String token) {
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        User user = userRepository.findById(loginUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        SchedulerUserDto schedulerUserDto = getSchedulerById(id);
+        if(!schedulerUserDto.getUser().getId().equals(loginUserId)){
+            throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+        }
+        //삭제하면 티켓수를 다시 되돌려줌
+        int ticket = user.getSizeOfTicket() + 1;
         user.setSizeOfTicket(ticket);
         userRepository.save(user);
+        schedulerUserRepository.deleteById(id);
+        return id;
     }
+
+    private SchedulerUserDto getSchedulerById(Long id) {
+        SchedulerUser schedulerUser = schedulerUserRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("해당 티켓팅은 존재하지 않습니다.")
+        );
+        return SchedulerUserDto.builder()
+                .user(schedulerUser.getUser())
+                .schedulerAdmin(schedulerUser.getSchedulerAdmin())
+                .scheduleStart(schedulerUser.getScheduleStart())
+                .progress(schedulerUser.getProgress())
+                .createdAt(schedulerUser.getCreatedAt())
+                .build();
+    }
+
+
 }
