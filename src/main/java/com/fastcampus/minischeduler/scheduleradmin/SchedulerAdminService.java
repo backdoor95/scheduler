@@ -83,9 +83,8 @@ public class SchedulerAdminService {
 
     /**
      * 일정을 수정합니다.
-     * @param id
-     * @param schedulerAdminResponseDto
-     * @return
+     * @param id, schedulerAdminRequestDto
+     * @return id
      */
     @Transactional
     public Long updateScheduler(Long id, SchedulerAdminRequestDto schedulerAdminRequestDto){
@@ -122,7 +121,6 @@ public class SchedulerAdminService {
        List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
        if(!schedulerUsers.isEmpty()){
            for(SchedulerUser schedulerUser : schedulerUsers){
-               System.out.println("user가 있다");
                User user = schedulerUser.getUser();
                int ticket = user.getSizeOfTicket();
                user.setSizeOfTicket(ticket+1);
