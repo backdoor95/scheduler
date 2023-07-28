@@ -56,7 +56,7 @@ public class UserResponse {
             this.fullName = user.getFullName();
             this.leftTicket = user.getSizeOfTicket();
             this.usedTicket = 12-user.getSizeOfTicket();
-            this.profileImage = user.getProfileImage();
+            //this.profileImage = user.getProfileImage();
             this.createdAt = user.getCreatedAt();
             this.updatedAt = user.getUpdatedAt();
         }
