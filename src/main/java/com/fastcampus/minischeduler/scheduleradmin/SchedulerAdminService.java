@@ -1,7 +1,6 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
-import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +23,12 @@ public class SchedulerAdminService {
      * @return
      */
     @Transactional
-    public List<SchedulerAdminDto> getSchedulerList(){
+    public List<SchedulerAdminResponseDto> getSchedulerList(){
         List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
-        List<SchedulerAdminDto> schedulerAdminDtoList = new ArrayList<>();
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin scheduler : schedulers) {
-            SchedulerAdminDto schedulerAdminDto = SchedulerAdminDto.builder()
+            SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
                     .user(scheduler.getUser())
                     .scheduleStart(scheduler.getScheduleStart())
                     .scheduleEnd(scheduler.getScheduleEnd())
@@ -39,20 +38,20 @@ public class SchedulerAdminService {
                     .createdAt(scheduler.getCreatedAt())
                     .updatedAt(scheduler.getUpdatedAt())
                     .build();
-            schedulerAdminDtoList.add(schedulerAdminDto);
+            schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
-        return schedulerAdminDtoList;
+        return schedulerAdminResponseDtoList;
     }
 
     /**
      * 일정을 등록합니다.
-     * @param schedulerAdminDto
+     * @param schedulerAdminRequestDto
      * @param token
      * @return
      */
     @Transactional
-    public SchedulerAdminDto createScheduler(
-            SchedulerAdminDto schedulerAdminDto,
+    public SchedulerAdminResponseDto createScheduler(
+            SchedulerAdminRequestDto schedulerAdminRequestDto,
             String token
     ){
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -60,14 +59,14 @@ public class SchedulerAdminService {
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
-                .scheduleStart(schedulerAdminDto.getScheduleStart())
-                .scheduleEnd(schedulerAdminDto.getScheduleEnd())
-                .title(schedulerAdminDto.getTitle())
-                .description(schedulerAdminDto.getDescription())
-                .image(schedulerAdminDto.getImage())
+                .scheduleStart(schedulerAdminRequestDto.getScheduleStart())
+                .scheduleEnd(schedulerAdminRequestDto.getScheduleEnd())
+                .title(schedulerAdminRequestDto.getTitle())
+                .description(schedulerAdminRequestDto.getDescription())
+                .image(schedulerAdminRequestDto.getImage())
                 .build();
         SchedulerAdmin saveScheduler = schedulerAdminRepository.save(scheduler);
-        return SchedulerAdminDto.builder()
+        return SchedulerAdminResponseDto.builder()
                 .user(saveScheduler.getUser())
                 .scheduleStart(saveScheduler.getScheduleStart())
                 .scheduleEnd(saveScheduler.getScheduleEnd())
@@ -82,20 +81,20 @@ public class SchedulerAdminService {
     /**
      * 일정을 수정합니다.
      * @param id
-     * @param schedulerAdminDto
+     * @param schedulerAdminResponseDto
      * @return
      */
     @Transactional
-    public Long updateScheduler(Long id, SchedulerAdminDto schedulerAdminDto){
+    public Long updateScheduler(Long id, SchedulerAdminRequestDto schedulerAdminRequestDto){
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
         );
         scheduler.update(
-                schedulerAdminDto.getScheduleStart(),
-                schedulerAdminDto.getScheduleEnd(),
-                schedulerAdminDto.getTitle(),
-                schedulerAdminDto.getDescription(),
-                schedulerAdminDto.getImage()
+                schedulerAdminRequestDto.getScheduleStart(),
+                schedulerAdminRequestDto.getScheduleEnd(),
+                schedulerAdminRequestDto.getTitle(),
+                schedulerAdminRequestDto.getDescription(),
+                schedulerAdminRequestDto.getImage()
         );
         return id;
     }
@@ -108,10 +107,10 @@ public class SchedulerAdminService {
      */
     @Transactional
     public Long delete(Long id, String token){
-       SchedulerAdminDto schedulerAdminDto = getSchedulerById(id);
+       SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-       if(!schedulerAdminDto.getUser().getId().equals(loginUserId)){
+       if(!schedulerAdminResponseDto.getUser().getId().equals(loginUserId)){
            throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
        }
 
@@ -125,13 +124,13 @@ public class SchedulerAdminService {
      * @return
      */
     @Transactional
-    public List<SchedulerAdminDto> getSchedulerByFullname(String keyword){
+    public List<SchedulerAdminResponseDto> getSchedulerByFullname(String keyword){
 
-        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullName(keyword);
-        List<SchedulerAdminDto> schedulerAdminDtoList = new ArrayList<>();
+        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(keyword);
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin scheduler : schedulers){
-            SchedulerAdminDto schedulerAdminDto = SchedulerAdminDto.builder()
+            SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
                     .user(scheduler.getUser())
                     .scheduleStart(scheduler.getScheduleStart())
                     .scheduleEnd(scheduler.getScheduleEnd())
@@ -141,10 +140,10 @@ public class SchedulerAdminService {
                     .createdAt(scheduler.getCreatedAt())
                     .updatedAt(scheduler.getUpdatedAt())
                     .build();
-            schedulerAdminDtoList.add(schedulerAdminDto);
+            schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
 
-        return schedulerAdminDtoList;
+        return schedulerAdminResponseDtoList;
     }
 
     /**
@@ -153,13 +152,13 @@ public class SchedulerAdminService {
      * @return
      */
     @Transactional
-    public SchedulerAdminDto getSchedulerById(Long id){
+    public SchedulerAdminResponseDto getSchedulerById(Long id){
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
         );
 
-        return SchedulerAdminDto.builder()
+        return SchedulerAdminResponseDto.builder()
                 .user(scheduler.getUser())
                 .scheduleStart(scheduler.getScheduleStart())
                 .scheduleEnd(scheduler.getScheduleEnd())
@@ -171,6 +170,42 @@ public class SchedulerAdminService {
                 .build();
     }
 
+    /**
+     * 사용자 id로 일정을 검색합니다.
+     * @param id
+     * @return
+     */
+    public SchedulerAdmin getSchedulerAdminById(Long id) {
+        return schedulerAdminRepository.findById(id).orElse(null);
+    }
+
+    /**
+     * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
+     * @param token
+     * @return
+     */
+    public List<SchedulerAdminResponseDto> getSchedulerListById(String token) {
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        User user = userRepository.findById(loginUserId)
+                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        List<SchedulerAdmin> schedulerAdmins = schedulerAdminRepository.findByUser(user);
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
+        for(SchedulerAdmin schedulerAdmin : schedulerAdmins){
+            SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
+                    .user(schedulerAdmin.getUser())
+                    .scheduleStart(schedulerAdmin.getScheduleStart())
+                    .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                    .title(schedulerAdmin.getTitle())
+                    .description(schedulerAdmin.getDescription())
+                    .image(schedulerAdmin.getImage())
+                    .createdAt(schedulerAdmin.getCreatedAt())
+                    .updatedAt(schedulerAdmin.getUpdatedAt())
+                    .build();
+            schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
+        }
+        return schedulerAdminResponseDtoList;
+    }
+  
 //    public List<SchedulerAdminResponse.scheduleDTO> getAdminScheduleDetail(Long id) {
 //
 //        return schedulerAdminRepository.findAdminScheduleDetailById(id);
