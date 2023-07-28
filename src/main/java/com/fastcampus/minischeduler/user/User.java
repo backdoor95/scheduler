@@ -25,12 +25,12 @@ public class User {
     @Column(nullable = false, length = 120)
     private String password;
 
-
-    private Integer sizeOfTicket;
-    private String profileImage;
-
     @Builder.Default
-    private String role = "USER";
+    private Integer sizeOfTicket = 12;
+
+    @Column(nullable = false)
+    @Enumerated(value = EnumType.STRING)
+    private Role role;
 
     @Column(nullable = false, length = 20)
     private String fullName;
@@ -42,14 +42,19 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    private LocalDateTime latestLogin; // 업데이트 메서드 필요
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
-    @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    protected void onUpdateLatestLogin() {
+        this.latestLogin = LocalDateTime.now();
     }
 
     @Builder
@@ -59,7 +64,7 @@ public class User {
             String email,
             Integer sizeOfTicket,
             String profileImage,
-            String role,
+            Role role,
             String fullName,
             LocalDateTime createdAt
     ) {
@@ -71,5 +76,9 @@ public class User {
         this.role = role;
         this.fullName = fullName;
         this.createdAt = createdAt;
+    }
+
+    public void setSizeOfTicket(Integer sizeOfTicket){
+        this.sizeOfTicket = sizeOfTicket;
     }
 }

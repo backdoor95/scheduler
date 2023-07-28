@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     int updateUserInfo(
             @Param("password") String password,
             @Param("profileImage") String profileImage,
-            @Param("id") Long id);
-
+            @Param("id") Long id
+    );
 
 }

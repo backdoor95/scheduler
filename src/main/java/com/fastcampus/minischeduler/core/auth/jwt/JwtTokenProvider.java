@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    public static final Long EXP = 1000L * 60 * 60 * 48; // 48시간 - 테스트 하기 편함.
+    public static final Long EXP = 1000L * 60 * 60 * 24; // 24시간
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
     public static final String SECRET = "MySecretKey";
@@ -24,7 +24,7 @@ public class JwtTokenProvider {
                 .withSubject(user.getEmail())
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", user.getId())
-                .withClaim("role", user.getRole())
+                .withClaim("role", user.getRole().name())
                 .sign(Algorithm.HMAC512(SECRET));
 
         return TOKEN_PREFIX + jwt;
@@ -45,5 +45,4 @@ public class JwtTokenProvider {
                 .verify(token.replace(TOKEN_PREFIX, ""));
         return decodedJWT.getClaim("id").asLong();
     }
-
 }

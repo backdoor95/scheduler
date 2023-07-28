@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 
 application.yml
+README.md
 ### STS ###
 .apt_generated
 .classpath

@@ -4,6 +4,7 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
+import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -49,7 +50,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
             User user = User.builder()
                     .id(id)
-                    .role(role)
+                    .role(Role.valueOf(role))
                     .build();
 
             MyUserDetails myUserDetails = new MyUserDetails(user);

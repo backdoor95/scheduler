@@ -28,20 +28,28 @@ public class UserService {
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
 
-
+    /**
+     * 회원가입 메서드입니다.
+     * Controller에서 유효성 검사가 완료된 DTO를 받아 비밀번호를 BCrypt 인코딩 후 사용자 정보 테이블(user_tb)에 저장합니다.
+     * @param joinDTO
+     * @return
+     */
     @Transactional
     public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) {
-        // 중복 계정 검사
-        if (userRepository.findByEmail(joinDTO.getEmail()).isPresent())
-            throw new Exception400("username", "이미 존재하는 이메일입니다.");
 
-        // 회원 가입
+        // 비밀번호 인코딩
         joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
+        // 회원 가입
         User userPS = userRepository.save(joinDTO.toEntity());
 
         return new UserResponse.JoinDTO(userPS);
     }
 
+    /**
+     *
+     * @param loginDTO
+     * @return
+     */
     @Transactional(readOnly = false)
     public String signin(UserRequest.LoginDTO loginDTO) {
         try{
@@ -52,19 +60,21 @@ public class UserService {
                                     loginDTO.getPassword()
                             )
                     );
+
             MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
             User loginUser = myUserDetails.getUser();
 
             // 최종 로그인 날짜 기록
-            loginUser.onUpdate();
+            loginUser.onUpdateLatestLogin();
 
             // 로그 테이블 기록
-            LoginLog loginLog = LoginLog.builder()
-                    .userId(loginUser.getId())
-                    .userAgent(httpServletRequest.getHeader("User-Agent"))
-                    .clientIP(httpServletRequest.getRemoteAddr())
-                    .build();
-            loginLogRepository.save(loginLog);
+            loginLogRepository.save(
+                    LoginLog.builder()
+                            .userId(loginUser.getId())
+                            .userAgent(httpServletRequest.getHeader("User-Agent"))
+                            .clientIP(httpServletRequest.getRemoteAddr())
+                            .build()
+            );
 
             return JwtTokenProvider.create(loginUser);
         } catch (Exception e) {
