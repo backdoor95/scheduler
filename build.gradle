@@ -31,9 +31,12 @@ dependencies {
     implementation group: 'com.auth0', name: 'java-jwt', version: '4.3.0'
 
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-// https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2
     implementation group: 'org.springframework.security.oauth', name: 'spring-security-oauth2', version: '2.4.2.RELEASE'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // 엑셀 다운로드
+    implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'        // HSSFWorkbook 사용가능
+    implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'  // XSSFWorkbook 사용가능
 
     compileOnly 'org.projectlombok:lombok'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
