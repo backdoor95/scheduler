@@ -34,6 +34,7 @@ public class SchedulerUser {
 
     @Enumerated(value = EnumType.STRING)
     @Builder.Default
+    @Enumerated(value = EnumType.STRING)
     private Progress progress = Progress.WAITING;
 
     @Column(nullable = false)

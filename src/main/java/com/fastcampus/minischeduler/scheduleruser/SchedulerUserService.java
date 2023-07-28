@@ -46,7 +46,6 @@ public class SchedulerUserService {
             schedulerUserDtoList.add(schedulerUserDto);
         }
         return schedulerUserDtoList;
-
     }
 
     /**
@@ -136,6 +135,12 @@ public class SchedulerUserService {
         //삭제하면 티켓수를 다시 되돌려줌
         int ticket = user.getSizeOfTicket() + 1;
         user.setSizeOfTicket(ticket);
+        userRepository.save(user);
+        schedulerUserRepository.deleteById(id);
+    }
+
+    public void decreaseUserTicket(User user){
+        user.setSizeOfTicket(user.getSizeOfTicket() - 1);
         userRepository.save(user);
         schedulerUserRepository.deleteById(id);
     }

@@ -219,4 +219,9 @@ public class SchedulerAdminService {
         }
         return schedulerAdminResponseDtoList;
     }
+  
+//    public List<SchedulerAdminResponse.scheduleDTO> getAdminScheduleDetail(Long id) {
+//
+//        return schedulerAdminRepository.findAdminScheduleDetailById(id);
+//    }
 }
