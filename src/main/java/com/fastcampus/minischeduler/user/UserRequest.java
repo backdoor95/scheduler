@@ -52,6 +52,8 @@ public class UserRequest {
         )
         private String fullName;
 
+        private static final Integer TICKET_INIT = 12;
+
         @NotNull(message = "기획사 또는 팬을 선택해주세요")
         private Role role;
 
@@ -60,8 +62,23 @@ public class UserRequest {
                     .email(email)
                     .password(password)
                     .fullName(fullName)
+                    .sizeOfTicket(TICKET_INIT)
                     .role(role)
                     .build();
         }
     }
+
+    @Setter
+    @Getter
+    public static class UpdateUserInfoDTO {
+
+        @NotEmpty
+        @Size(min = 4, max = 20)
+        private String password;
+        private String profileImage;
+
+    }
+
+
+
 }

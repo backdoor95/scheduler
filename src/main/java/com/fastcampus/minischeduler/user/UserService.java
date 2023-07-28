@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -80,5 +82,28 @@ public class UserService {
             throw new Exception401("인증되지 않았습니다.");
         }
     }
+
+    @Transactional
+    public UserResponse.GetUserInfoDTO getUserInfo(Long userId) {
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        return new UserResponse.GetUserInfoDTO(userPS);
+    }
+
+    @Transactional
+    public Optional<User> updateUserInfo(UserRequest.UpdateUserInfoDTO updateUserInfoDTO
+                               , Long userId) throws DataAccessException{
+
+        userRepository.updateUserInfo(
+                passwordEncoder.encode(updateUserInfoDTO.getPassword()),
+                updateUserInfoDTO.getProfileImage(),
+                userId
+                );
+        return userRepository.findById(userId);
+
+    }
+
+
+
 
 }
