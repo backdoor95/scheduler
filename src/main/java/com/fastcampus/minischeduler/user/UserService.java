@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.user;
 
-import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -81,4 +81,7 @@ public class UserService {
         }
     }
 
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 }

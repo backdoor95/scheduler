@@ -170,4 +170,9 @@ public class SchedulerAdminService {
                 .updatedAt(scheduler.getUpdatedAt())
                 .build();
     }
+
+//    public List<SchedulerAdminResponse.scheduleDTO> getAdminScheduleDetail(Long id) {
+//
+//        return schedulerAdminRepository.findAdminScheduleDetailById(id);
+//    }
 }
