@@ -12,56 +12,53 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequestMapping("/admin")
 @RequiredArgsConstructor
 public class SchedulerAdminController {
 
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @GetMapping("/schedulerList")
-    public ResponseEntity<List<SchedulerAdminDto>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
+    /**
+     * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
+     */
+    @GetMapping("/scheduleAll")
+    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
         try {
             DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
-            List<SchedulerAdminDto> schedulerAdminDtoList = schedulerAdminService.getSchedulerList();
+            List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
 
-            return ResponseEntity.ok(schedulerAdminDtoList);
+            return ResponseEntity.ok(schedulerAdminResponseDtoList);
         } catch (SignatureVerificationException | TokenExpiredException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
-    @PostMapping("/createScheduler")
-    public ResponseEntity<SchedulerAdminDto> createScheduler(
-            @RequestBody SchedulerAdminDto schedulerAdminDto, // TODO: request DTO가 필요한가
+    /**
+     * 공연 등록/취소 페이지 : 로그인한 기획사가 등록한 일정만 나옴
+     */
+    @GetMapping("/schedule")
+    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerById(
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
-
-        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminDto, token));
+        return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token));
     }
 
-    @PostMapping("/updateScheduler/{id}")
-    public ResponseEntity<SchedulerAdminDto> updateScheduler(
-            @PathVariable Long id,
-            @RequestBody SchedulerAdminDto schedulerAdminDto,
+    /**
+     * 공연 등록 : 기획사가 공연을 등록함
+     */
+    @PostMapping("/schedule/create")
+    public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
+            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto , // TODO: request DTO가 필요한가
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
-        //스케줄 조회
-        SchedulerAdminDto schedulerdto = schedulerAdminService.getSchedulerById(id);
-        //로그인한 사용자 id조회
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-        // 스케줄 작성자 id와 로그인한 사용자 id비교
-        if(!schedulerdto.getUser().getId().equals(loginUserId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-        }
-
-        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminDto);
-        SchedulerAdminDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
-
-        return ResponseEntity.ok(updateScheduler);
+        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token));
     }
 
-    @PostMapping("/deleteScheduler/{id}")
+    /**
+     * 공연 일정 삭제 : 공연을 삭제함
+     */
+    @PostMapping("/schedule/delete/{id}")
     public ResponseEntity<String> deleteScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
@@ -72,10 +69,40 @@ public class SchedulerAdminController {
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
-    @GetMapping("/searchScheduler")
-    public ResponseEntity<List<SchedulerAdminDto>> searchScheduler(@RequestParam String keyword){
-        List<SchedulerAdminDto> schedulerAdminDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
+    /**
+     * 공연 일정 수정 : 공연 일정을 업데이트함
+     */
+    @PostMapping("/schedule/update/{id}")
+    public ResponseEntity<SchedulerAdminResponseDto> updateScheduler(
+            @PathVariable Long id,
+            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ){
+        //스케줄 조회
+        SchedulerAdminResponseDto schedulerdto = schedulerAdminService.getSchedulerById(id);
+        //로그인한 사용자 id조회
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-        return ResponseEntity.ok(schedulerAdminDtoListFindByFullname);
+        // 스케줄 작성자 id와 로그인한 사용자 id비교
+        if(!schedulerdto.getUser().getId().equals(loginUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
+
+        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto);
+        SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
+
+        return ResponseEntity.ok(updateScheduler);
     }
+
+    /**
+     *  공연 기획사별 검색 : 공연 기획사별로 검색가능
+     */
+    @GetMapping("/schedule/search")
+    public ResponseEntity<List<SchedulerAdminResponseDto>> searchScheduler(@RequestParam String keyword){
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
+
+        return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFullname);
+    }
+
+
 }

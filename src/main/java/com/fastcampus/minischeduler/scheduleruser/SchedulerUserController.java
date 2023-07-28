@@ -1,10 +1,9 @@
 package com.fastcampus.minischeduler.scheduleruser;
 
-import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
-import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminDto;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,26 +15,57 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/user")
 @RequiredArgsConstructor
 public class SchedulerUserController {
     private final SchedulerUserService schedulerUserService;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @GetMapping("/schedulerUserList")
+    /**
+     * 전체 일정 조회(메인) : 모든 기획사의 일정과 본인이 신청한 일정이 나옴
+     */
+    @GetMapping("/schedule")
     public ResponseEntity<Map<String, Object>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
-        List<SchedulerAdminDto> schedulerAdminDtoList = schedulerAdminService.getSchedulerList();
-        List<SchedulerUserDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
+        List<SchedulerUserResponseDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminDtoList);
+        response.put("schedulerAdmin", schedulerAdminResponseDtoList);
         response.put("schedulerUser", schedulerUserDtoList);
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/createUserScheduler")
-    public ResponseEntity<SchedulerUserDto> createUserScheduler(
-            @RequestBody SchedulerUserDto schedulerUserDto,
+    /**
+     * 기획사 검색: 기획사의 이름으로 검색. 검색 내용과 본인의 스케줄이 나옴
+     * 정확히 일치하지 않더라도 keyword가 fullname에 포함되어있으면 출력
+     */
+    @GetMapping("/schedule/search")
+    public ResponseEntity<Map<String, Object>> searchSchedulerList(@RequestParam String keyword, @RequestHeader(JwtTokenProvider.HEADER) String token) {
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
+        List<SchedulerUserResponseDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullname);
+        response.put("schedulerUser", schedulerUserDtoList);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 공연 상세보기 : 공연의 정보를 상세하게 봄
+     */
+    @GetMapping("/schedule/{id}")
+    public SchedulerAdmin scheduleDetail(@PathVariable Long id){
+        return schedulerAdminService.getSchedulerAdminById(id);
+    }
+
+    /**
+     * 티켓팅 등록 : Admin이 등록한 공연 id로 공연을 찾아 user의 schedule을 등록함
+     * 한달에 한번만 등록 가능 + 티켓의 수가 1개 이상이여야 함
+     */
+    @PostMapping("/schedule/create")
+    public ResponseEntity<SchedulerUserResponseDto> createUserScheduler(
+            @RequestBody SchedulerUserRequestDto schedulerUserDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam Long schedulerAdminId
     ){
@@ -43,32 +73,26 @@ public class SchedulerUserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
-        if(userTicketCount > 1){
+        if(userTicketCount > 1 && !schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())){
             return ResponseEntity.ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, token));
         }
         else {
             //1개 미만이면 권한없음상태
+            System.out.println("권한없음");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
         }
+
     }
 
-    @PostMapping("/cancel/{id}")
+    /**
+     * 티켓팅 취소 : 사용자가 티케팅 내역을 취소시 티켓을 다시 1개 되돌려줌
+     */
+    @PostMapping("/schedule/cancel/{id}")
     public ResponseEntity<String> cancelScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         schedulerUserService.cancel(id, token);
         return ResponseEntity.ok("티켓팅 취소 완료");
-    }
-
-    @GetMapping("/schedule")
-    public ResponseEntity<Map<String, Object>> searchSchedulerList(@RequestParam String keyword, @RequestHeader(JwtTokenProvider.HEADER) String token) {
-        List<SchedulerAdminDto> schedulerAdminDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
-        List<SchedulerUserDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminDtoListFindByFullname);
-        response.put("schedulerUser", schedulerUserDtoList);
-        return ResponseEntity.ok(response);
     }
 }

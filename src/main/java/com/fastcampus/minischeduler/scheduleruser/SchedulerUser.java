@@ -32,6 +32,7 @@ public class SchedulerUser {
     @Column(nullable = false)
     private LocalDateTime scheduleStart;
 
+    @Enumerated(value = EnumType.STRING)
     @Builder.Default
     private Progress progress = Progress.WAITING;
 
