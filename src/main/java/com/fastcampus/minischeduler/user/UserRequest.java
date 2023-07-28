@@ -47,11 +47,14 @@ public class UserRequest {
         )
         private String fullName;
 
+        private static final Integer TICKET_INIT = 12;
+
         public User toEntity() {
             return User.builder()
                     .email(email)
                     .password(password)
                     .fullName(fullName)
+                    .sizeOfTicket(TICKET_INIT)
                     .role("USER")
                     .build();
         }
@@ -61,20 +64,11 @@ public class UserRequest {
     @Getter
     public static class UpdateUserInfoDTO {
 
-
         @NotEmpty
         @Size(min = 4, max = 20)
         private String password;
 
         private String profileImage;
-
-        @NotEmpty
-        @Pattern(
-                regexp = "^[a-zA-Z가-힣]{1,20}$",
-                message = "한글/영문 1~20자 이내로 작성해주세요"
-        )
-        private String fullName;
-
 
     }
 

@@ -43,7 +43,8 @@ public class UserResponse {
 
         private String email;
         private String fullName;
-        private Integer sizeOfTicket;
+        private Integer usedTicket;
+        private Integer leftTicket;
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -51,7 +52,8 @@ public class UserResponse {
         public GetUserInfoDTO(User user) {
             this.email = user.getEmail();
             this.fullName = user.getFullName();
-            this.sizeOfTicket = user.getSizeOfTicket();
+            this.leftTicket = user.getSizeOfTicket();
+            this.usedTicket = 12-user.getSizeOfTicket();
             this.profileImage = user.getProfileImage();
             this.createdAt = user.getCreatedAt();
             this.updatedAt = user.getUpdatedAt();

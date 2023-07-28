@@ -85,7 +85,6 @@ public class UserService {
                                , Long userId) throws DataAccessException{
 
         userRepository.updateUserInfo(
-                updateUserInfoDTO.getFullName(),
                 passwordEncoder.encode(updateUserInfoDTO.getPassword()),
                 updateUserInfoDTO.getProfileImage(),
                 userId

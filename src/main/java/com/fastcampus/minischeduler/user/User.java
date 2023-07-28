@@ -25,6 +25,7 @@ public class User {
     @Column(nullable = false, length = 120)
     private String password;
 
+
     private Integer sizeOfTicket;
     private String profileImage;
 

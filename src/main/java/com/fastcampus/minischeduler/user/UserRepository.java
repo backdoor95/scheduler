@@ -13,11 +13,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(@Param("email") String email);
 
     @Modifying(clearAutomatically = true)
-    @Query("UPDATE User u SET u.fullName = :fullName," +
+    @Query("UPDATE User u SET" +
             " u.password = :password," +
             " u.profileImage = :profileImage WHERE u.id = :id")
     int updateUserInfo(
-            @Param("fullName") String fullName,
             @Param("password") String password,
             @Param("profileImage") String profileImage,
             @Param("id") Long id);

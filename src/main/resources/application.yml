@@ -27,10 +27,9 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
-        ddl-auto: true
         format_sql: true
     database: mysql
     database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
