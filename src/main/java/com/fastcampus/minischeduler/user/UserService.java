@@ -27,7 +27,7 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
-    private final JwtTokenProvider jwtTokenProvider;
+
 
     @Transactional
     public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) {
@@ -86,7 +86,7 @@ public class UserService {
 
         userRepository.updateUserInfo(
                 updateUserInfoDTO.getFullName(),
-                updateUserInfoDTO.getPassword(),
+                passwordEncoder.encode(updateUserInfoDTO.getPassword()),
                 updateUserInfoDTO.getProfileImage(),
                 userId
                 );

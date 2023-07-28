@@ -5,6 +5,7 @@ import com.fastcampus.minischeduler.core.annotation.MyLog;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
@@ -76,17 +77,23 @@ public class UserController {
         return null;
     }
 
-    @GetMapping("/getUserInfo")
+    @GetMapping("/mypage/{id}")
     public ResponseEntity<?> getUserInfo(
+            @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        // mypage id와 로그인한 사용자 id비교
+        if(!id.equals(loginUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
         UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
         return ResponseEntity.ok(getUserInfoDTO);
     }
 
-    @PostMapping("/updateUserInfo/{id}")
-    public ResponseEntity<?> updateUserInfo(
+    @GetMapping("/mypage/update/{id}")
+    public ResponseEntity<?> getUpdateUserInfo(// 수정필요
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
@@ -95,12 +102,40 @@ public class UserController {
             Errors errors
     ){
         if(errors.hasErrors()) return null;
-
-
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        // mypage id와 로그인한 사용자 id비교
+        if(!id.equals(loginUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
         User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
                 .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
         // user 객체를 이용한 작업 수행
 
+
+        return ResponseEntity.ok()
+                .body(userPS);
+
+    }
+
+
+    @PostMapping("/mypage/update/{id}")
+    public ResponseEntity<?> postUpdateUserInfo(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestBody
+            @Valid
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
+            Errors errors
+    ){
+        if(errors.hasErrors()) return null;
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        // mypage update 작성자 id와 로그인한 사용자 id비교
+        if(!id.equals(loginUserId)){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
+        User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
+                .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
+        // user 객체를 이용한 작업 수행
 
         return ResponseEntity.ok()
                 .body(userPS);
