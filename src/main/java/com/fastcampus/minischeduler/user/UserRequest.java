@@ -3,14 +3,10 @@ package com.fastcampus.minischeduler.user;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 public class UserRequest {
 
-    @Setter
     @Getter
     public static class LoginDTO {
 
@@ -26,7 +22,6 @@ public class UserRequest {
         private String password;
     }
 
-    @Setter
     @Getter
     public static class JoinDTO {
 
@@ -55,6 +50,10 @@ public class UserRequest {
         @NotNull(message = "기획사 또는 팬을 선택해주세요")
         private Role role;
 
+        public void setPassword(String password) { // password 인코딩용
+            this.password = password;
+        }
+
         public User toEntity() {
             return User.builder()
                     .email(email)
@@ -63,5 +62,20 @@ public class UserRequest {
                     .role(role)
                     .build();
         }
+    }
+
+    @Setter
+    @Getter
+    public static class UpdateUserInfoDTO {
+
+        @NotBlank(message = "비밀번호를 입력해주세요")
+        @Size(min = 8, max = 20, message = "8~20자 이내로 입력해주세요")
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[$@$!%*#?&])[A-Za-z\\d$@$!%*#?&]{8,20}$",
+                message = "영문, 숫자, 특수문자 조합 8~20자 이내로 입력해주세요"
+        )
+        private String password;
+
+        private String profileImage;
     }
 }
