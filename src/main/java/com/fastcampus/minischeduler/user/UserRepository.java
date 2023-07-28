@@ -21,5 +21,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("profileImage") String profileImage,
             @Param("id") Long id
     );
-
 }

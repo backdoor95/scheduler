@@ -4,9 +4,13 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
+import com.fastcampus.minischeduler.core.dto.ResponseDTO;
+import com.fastcampus.minischeduler.core.exception.Exception403;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,7 +36,7 @@ public class SchedulerAdminController {
 
     @PostMapping("/createScheduler")
     public ResponseEntity<SchedulerAdminDto> createScheduler(
-            @RequestBody SchedulerAdminDto schedulerAdminDto, // TODO: request DTO가 필요한가
+            @RequestBody SchedulerAdminDto schedulerAdminDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
 
@@ -78,4 +82,29 @@ public class SchedulerAdminController {
 
         return ResponseEntity.ok(schedulerAdminDtoListFindByFullname);
     }
+
+    /**
+     * 결재관리 페이지
+     * @return
+     */
+//    @GetMapping("/schedule/confirm/{id}")
+//    public ResponseEntity<List<SchedulerAdminResponse.scheduleDTO>> getAdminSchedulerAndUserScheduler(
+//            @PathVariable Long id,
+//            @AuthenticationPrincipal MyUserDetails myUserDetails
+//    ) {
+//
+//        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+//
+//        List<SchedulerAdminResponse.scheduleDTO> scheduleDTOs = schedulerAdminService.getAdminScheduleDetail(id);
+//
+//        return ResponseEntity.ok(new ResponseDTO<>(scheduleDTOs).getData());
+//    }
 }
+
+// user
+// id, user_id, scheduler_admin_tb_id, schedule_start, progress, created_at
+
+// admin
+// id, user_id, title, description, image, schedule_start, schedule_end, created_at, updated_at
+
+// count(*) progress==WAITING

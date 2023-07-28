@@ -6,6 +6,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Calendar;
 
 @Getter
 @Table(name = "user_tb")
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 public class User {
 
     @Id
+    @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -25,8 +27,12 @@ public class User {
     @Column(nullable = false, length = 120)
     private String password;
 
+    @Column
     @Builder.Default
-    private Integer sizeOfTicket = 12;
+    private Integer sizeOfTicket = 11 - Calendar.getInstance().get(Calendar.MONTH);
+
+    @Column
+    private String profileImage;
 
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
@@ -39,10 +45,12 @@ public class User {
     @CreatedDate
     private LocalDateTime createdAt;
 
+    @Column
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private LocalDateTime latestLogin; // 업데이트 메서드 필요
+    @Column
+    private LocalDateTime latestLogin;
 
     @PrePersist
     protected void onCreate() {
@@ -57,28 +65,28 @@ public class User {
         this.latestLogin = LocalDateTime.now();
     }
 
-    @Builder
-    public User(
-            Long id,
-            String password,
-            String email,
-            Integer sizeOfTicket,
-            String profileImage,
-            Role role,
-            String fullName,
-            LocalDateTime createdAt
-    ) {
-        this.id = id;
-        this.password = password;
-        this.email = email;
-        this.sizeOfTicket = sizeOfTicket;
-        this.profileImage = profileImage;
-        this.role = role;
-        this.fullName = fullName;
-        this.createdAt = createdAt;
-    }
+//    @Builder
+//    public User(
+//            Long id,
+//            String password,
+//            String email,
+//            Integer sizeOfTicket,
+//            String profileImage,
+//            Role role,
+//            String fullName,
+//            LocalDateTime createdAt
+//    ) {
+//        this.id = id;
+//        this.password = password;
+//        this.email = email;
+//        this.sizeOfTicket = sizeOfTicket;
+//        this.profileImage = profileImage;
+//        this.role = role;
+//        this.fullName = fullName;
+//        this.createdAt = createdAt;
+//    }
 
-    public void setSizeOfTicket(Integer sizeOfTicket){
+    public void setSizeOfTicket(Integer sizeOfTicket) {
         this.sizeOfTicket = sizeOfTicket;
     }
 }
