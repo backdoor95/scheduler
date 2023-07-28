@@ -28,8 +28,6 @@ public class User {
     @Builder.Default
     private Integer sizeOfTicket = 12;
 
-    private String profileImage;
-
     @Column(nullable = false)
     @Enumerated(value = EnumType.STRING)
     private Role role;
