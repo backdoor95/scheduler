@@ -1,6 +1,8 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import java.util.List;
 public class SchedulerAdminService {
 
     private final SchedulerAdminRepository schedulerAdminRepository;
+    private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -112,6 +115,19 @@ public class SchedulerAdminService {
 
        if(!schedulerAdminResponseDto.getUser().getId().equals(loginUserId)){
            throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+       }
+       SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
+               .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
+
+       List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
+       if(!schedulerUsers.isEmpty()){
+           for(SchedulerUser schedulerUser : schedulerUsers){
+               System.out.println("user가 있다");
+               User user = schedulerUser.getUser();
+               int ticket = user.getSizeOfTicket();
+               user.setSizeOfTicket(ticket+1);
+               userRepository.save(user);
+           }
        }
 
        schedulerAdminRepository.deleteById(id);

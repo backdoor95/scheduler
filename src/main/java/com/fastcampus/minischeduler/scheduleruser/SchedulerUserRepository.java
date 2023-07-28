@@ -1,5 +1,6 @@
 package com.fastcampus.minischeduler.scheduleruser;
 
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -12,4 +13,6 @@ public interface SchedulerUserRepository extends JpaRepository<SchedulerUser, Lo
     boolean existsByUserAndCreatedAtBetween(User user, LocalDateTime startOfMonth, LocalDateTime endOfMonth);
 
     List<SchedulerUser> findByUser(User user);
+
+    List<SchedulerUser> findBySchedulerAdmin(SchedulerAdmin schedulerAdmin);
 }
