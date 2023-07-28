@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 public class UserResponse {
 
-    @Setter
+//    @Setter
     @Getter
     public static class JoinDTO {
         private Long id;
@@ -24,7 +24,8 @@ public class UserResponse {
         }
     }
 
-    @Getter @Setter
+    @Getter
+//    @Setter
     public static class DetailOutDTO{
         private Long id;
         private String email;

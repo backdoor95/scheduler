@@ -12,6 +12,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfiguration;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -93,8 +94,8 @@ public class SecurityConfig {
         http.authorizeRequests(
                 authorize -> authorize.antMatchers("/account/**").authenticated()
                         .antMatchers("/user/**")
-                        .access("hasRole('ADMIN') or hasRole('USER')")
-                        .antMatchers("/admin/**").hasRole("ADMIN")
+                        .access("hasAuthority('ADMIN') or hasAuthority('USER')")
+                        .antMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().permitAll()
         );
 

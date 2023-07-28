@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.user;
 
-import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
@@ -17,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Optional;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -91,8 +91,10 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<User> updateUserInfo(UserRequest.UpdateUserInfoDTO updateUserInfoDTO
-                               , Long userId) throws DataAccessException{
+    public Optional<User> updateUserInfo(
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
+            Long userId
+    ) throws DataAccessException{
 
         userRepository.updateUserInfo(
                 passwordEncoder.encode(updateUserInfoDTO.getPassword()),
@@ -100,10 +102,8 @@ public class UserService {
                 userId
                 );
         return userRepository.findById(userId);
-
     }
-
-
-
-
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 }
