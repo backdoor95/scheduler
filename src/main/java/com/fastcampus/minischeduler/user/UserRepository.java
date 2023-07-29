@@ -13,15 +13,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmail(@Param("email") String email);
 
-    @Modifying(clearAutomatically = true)
-    @Query("UPDATE User u SET" +
-            " u.password = :password," +
-            " u.profileImage = :profileImage," +
-            " u.updatedAt = :updatedAt WHERE u.id = :id")
-    int updateUserInfo(
-            @Param("password") String password,
-            @Param("profileImage") String profileImage,
-            @Param("updatedAt") LocalDateTime updatedAt,
-            @Param("id") Long id
-    );
+//    @Modifying(clearAutomatically = true)
+//    @Query("UPDATE User u SET" +
+//            " u.password = :password," +
+//            " u.profileImage = :profileImage," +
+//            " u.updatedAt = :updatedAt WHERE u.id = :id")
+//    int updateUserInfo(
+//            @Param("password") String password,
+//            @Param("profileImage") String profileImage,
+//            @Param("updatedAt") LocalDateTime updatedAt,
+//            @Param("id") Long id
+//    );
 }
