@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class SchedulerAdmin { // 기획사 일정
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -18,7 +18,11 @@ public class FilterResponseUtils {
 
         httpServletResponse.setStatus(e.status().value());
         httpServletResponse.setContentType("application/json; charset=utf-8");
-        ResponseDTO<?> responseDto = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "unAuthorized", e.getMessage());
+        ResponseDTO<?> responseDto = new ResponseDTO<>(
+                HttpStatus.UNAUTHORIZED,
+                "unAuthorized",
+                e.getMessage()
+        );
         ObjectMapper om = new ObjectMapper();
 //        String responseBody = om.writeValueAsString(e.body());
         String responseBody = om.writeValueAsString(responseDto);
@@ -32,7 +36,11 @@ public class FilterResponseUtils {
 
         httpServletResponse.setStatus(e.status().value());
         httpServletResponse.setContentType("application/json; charset=utf-8");
-        ResponseDTO<?> responseDto = new ResponseDTO<>(HttpStatus.UNAUTHORIZED, "unAuthorized", e.getMessage());
+        ResponseDTO<?> responseDto = new ResponseDTO<>(
+                HttpStatus.UNAUTHORIZED,
+                "unAuthorized",
+                e.getMessage()
+        );
         ObjectMapper om = new ObjectMapper();
 //        String responseBody = om.writeValueAsString(e.body());
         String responseBody = om.writeValueAsString(responseDto);

@@ -40,7 +40,7 @@ public class SchedulerAdminResponse {
     }
 
     @Data
-    public class SchedulerAdminResponseDto {
+    public static class SchedulerAdminResponseDto {
 
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
         private UserDto user;

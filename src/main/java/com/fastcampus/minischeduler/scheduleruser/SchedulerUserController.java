@@ -3,9 +3,10 @@ package com.fastcampus.minischeduler.scheduleruser;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
-import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRequest.SchedulerUserRequestDto;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class SchedulerUserController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
-        List<SchedulerAdminResponse.SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
         if(year != null && month != null){
@@ -66,9 +67,10 @@ public class SchedulerUserController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
         List<SchedulerUserResponseDto> schedulerUserDtoList;
+
         if(year != null && month != null){
             schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(token, year, month);
         }
@@ -77,7 +79,7 @@ public class SchedulerUserController {
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullname);
+        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
         response.put("schedulerUser", schedulerUserDtoList);
         return ResponseEntity.ok(response);
     }
@@ -104,7 +106,13 @@ public class SchedulerUserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
-        if(userTicketCount > 1 && !schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())){
+        if(
+                userTicketCount > 1 &&
+                !schedulerUserService.existingSchedulerInCurrentMonth(
+                        loginUserId,
+                        schedulerUserDto.getScheduleStart()
+                )
+        ){
             return ResponseEntity.ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, token));
         }
         else {

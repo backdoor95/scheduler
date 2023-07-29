@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Table(name = "login_log_tb")
 @Entity
 public class LoginLog {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
