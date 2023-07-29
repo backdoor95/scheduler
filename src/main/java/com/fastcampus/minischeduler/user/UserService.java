@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
@@ -93,12 +94,12 @@ public class UserService {
     @Transactional
     public Optional<User> updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
-            Long userId
-    ) throws DataAccessException{
+            Long userId) throws DataAccessException{
 
         userRepository.updateUserInfo(
                 passwordEncoder.encode(updateUserInfoDTO.getPassword()),
                 updateUserInfoDTO.getProfileImage(),
+                LocalDateTime.now(),
                 userId
                 );
         return userRepository.findById(userId);

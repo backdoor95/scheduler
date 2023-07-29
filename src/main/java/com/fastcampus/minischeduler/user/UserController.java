@@ -110,9 +110,9 @@ public class UserController {
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
         UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
         System.out.println("*******"+ getUserInfoDTO+"******");
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(getUserInfoDTO);
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+
+        return ResponseEntity.ok(responseDTO);
     }
 
 //    @GetMapping("/getUserInfo")
@@ -137,10 +137,9 @@ public class UserController {
         }
         UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(id);
         // user 객체를 이용한 작업 수행
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(getUserInfoDTO);
+        return ResponseEntity.ok(responseDTO);
 
     }
 
@@ -159,13 +158,13 @@ public class UserController {
         if (!id.equals(loginUserId)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
         }
+
         User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
                 .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
         // user 객체를 이용한 작업 수행
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
 
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(userPS);
+        return ResponseEntity.ok(responseDTO);
     }
 
     // DB 데이터 엑셀 다운로드 테스트 중.

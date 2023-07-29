@@ -142,7 +142,7 @@ public class SchedulerUserService {
     public void decreaseUserTicket(User user){
         user.setSizeOfTicket(user.getSizeOfTicket() - 1);
         userRepository.save(user);
-        schedulerUserRepository.deleteById(id);
+//        schedulerUserRepository.deleteById(id);
     }
 
     /**

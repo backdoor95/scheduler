@@ -77,5 +77,7 @@ public class UserRequest {
         private String password;
 
         private String profileImage;
+
+        private String updateDate;
     }
 }
