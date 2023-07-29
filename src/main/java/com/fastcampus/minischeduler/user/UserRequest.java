@@ -64,7 +64,7 @@ public class UserRequest {
         }
     }
 
-    @Setter
+
     @Getter
     public static class UpdateUserInfoDTO {
 

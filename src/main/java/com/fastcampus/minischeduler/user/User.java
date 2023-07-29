@@ -89,4 +89,11 @@ public class User {
     public void setSizeOfTicket(Integer sizeOfTicket) {
         this.sizeOfTicket = sizeOfTicket;
     }
+
+    public void updateUserInfo(String password, String profileImage){
+        this.password = password;
+        this.profileImage = profileImage;
+        onUpdate();
+    }
+
 }

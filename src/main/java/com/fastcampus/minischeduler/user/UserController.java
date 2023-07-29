@@ -125,7 +125,7 @@ public class UserController {
 //    }
 
     @GetMapping("/mypage/update/{id}")
-    public ResponseEntity<?> getUpdateUserInfo(// 수정필요
+    public ResponseEntity<?> getUpdateUserInfo(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
@@ -159,8 +159,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
         }
 
-        User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
-                .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
+        User userPS = userService.updateUserInfo(updateUserInfoDTO, id);
         // user 객체를 이용한 작업 수행
         ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
 
