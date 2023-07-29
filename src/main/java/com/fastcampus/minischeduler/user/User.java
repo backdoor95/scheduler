@@ -29,7 +29,7 @@ public class User {
 
     @Column
     @Builder.Default
-    private Integer sizeOfTicket = 11 - Calendar.getInstance().get(Calendar.MONTH);
+    private Integer sizeOfTicket = 12 - Calendar.getInstance().get(Calendar.MONTH);
 
     @Column
     private String profileImage;
@@ -40,6 +40,9 @@ public class User {
 
     @Column(nullable = false, length = 20)
     private String fullName;
+
+    @Column
+    private Integer usedTicket = 0;
 
     @Column(nullable = false)
     @CreatedDate
@@ -95,5 +98,6 @@ public class User {
         this.profileImage = profileImage;
         onUpdate();
     }
+
 
 }
