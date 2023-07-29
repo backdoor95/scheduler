@@ -15,4 +15,6 @@ public interface SchedulerUserRepository extends JpaRepository<SchedulerUser, Lo
     List<SchedulerUser> findByUser(User user);
 
     List<SchedulerUser> findBySchedulerAdmin(SchedulerAdmin schedulerAdmin);
+
+    void updateUserSchedule(Long schedulerAdminId, Progress progress);
 }

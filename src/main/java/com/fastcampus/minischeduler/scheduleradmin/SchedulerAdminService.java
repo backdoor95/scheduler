@@ -14,8 +14,8 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.*;
-import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.*;
+import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
+import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 
 @Service
 @RequiredArgsConstructor

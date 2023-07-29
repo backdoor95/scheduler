@@ -20,6 +20,7 @@ import java.util.Map;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class SchedulerUserController {
+
     private final SchedulerUserService schedulerUserService;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
