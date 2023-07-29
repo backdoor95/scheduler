@@ -28,7 +28,7 @@ public class SchedulerUserResponseDto {
             Progress progress,
             LocalDateTime createdAt
     ){
-        this.user = new UserDto(user.getId(), user.getFullName(), user.getSizeOfTicket(), user.getRole());
+        this.user = new UserDto(user.getId(), user.getFullName(), user.getSizeOfTicket(), user.getRole(), user.getProfileImage());
         this.schedulerAdmin = schedulerAdmin;
         this.scheduleStart = scheduleStart;
         this.progress = progress;
