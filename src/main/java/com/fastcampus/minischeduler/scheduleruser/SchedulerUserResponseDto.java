@@ -11,8 +11,10 @@ import java.time.LocalDateTime;
 
 @Data
 public class SchedulerUserResponseDto {
+
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private UserDto user;
+
     @JsonIgnoreProperties({"hibernateLazyInitializer"})
     private SchedulerAdmin schedulerAdmin;
 

@@ -7,14 +7,12 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception403;
-import com.sun.xml.bind.v2.TODO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -31,14 +29,19 @@ public class SchedulerAdminController {
      * year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/scheduleAll")
-    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList(
+    public ResponseEntity<List<SchedulerAdminResponse.SchedulerAdminResponseDto>> schedulerList(
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
         try {
-            DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
-            List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+            DecodedJWT decodedJWT =
+                    jwtTokenProvider.verify(token.replace(
+                            JwtTokenProvider.TOKEN_PREFIX,
+                            "")
+                    );
+            List<SchedulerAdminResponse.SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+
             if(year != null && month != null){
                 schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
             }
@@ -56,7 +59,7 @@ public class SchedulerAdminController {
      * 공연 등록/취소 페이지 : 로그인한 기획사가 등록한 일정만 나옴
      */
     @GetMapping("/schedule")
-    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerById(
+    public ResponseEntity<List<SchedulerAdminResponse.SchedulerAdminResponseDto>> schedulerById(
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token));
@@ -66,8 +69,8 @@ public class SchedulerAdminController {
      * 공연 등록 : 기획사가 공연을 등록함
      */
     @PostMapping("/schedule/create")
-    public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
-            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto ,
+    public ResponseEntity<SchedulerAdminResponse.SchedulerAdminResponseDto> createScheduler(
+            @RequestBody SchedulerAdminRequest.SchedulerAdminRequestDto schedulerAdminRequestDto ,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token));
@@ -91,13 +94,13 @@ public class SchedulerAdminController {
      * 공연 일정 수정 : 공연 일정을 업데이트함
      */
     @PostMapping("/schedule/update/{id}")
-    public ResponseEntity<SchedulerAdminResponseDto> updateScheduler(
+    public ResponseEntity<SchedulerAdminResponse.SchedulerAdminResponseDto> updateScheduler(
             @PathVariable Long id,
-            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto,
+            @RequestBody SchedulerAdminRequest.SchedulerAdminRequestDto schedulerAdminRequestDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         //스케줄 조회
-        SchedulerAdminResponseDto schedulerdto = schedulerAdminService.getSchedulerById(id);
+        SchedulerAdminResponse.SchedulerAdminResponseDto schedulerdto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -107,7 +110,7 @@ public class SchedulerAdminController {
         }
 
         Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto);
-        SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
+        SchedulerAdminResponse.SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
 
         return ResponseEntity.ok(updateScheduler);
     }
@@ -118,13 +121,13 @@ public class SchedulerAdminController {
      *  year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/schedule/search")
-    public ResponseEntity<List<SchedulerAdminResponseDto>> searchScheduler(
+    public ResponseEntity<List<SchedulerAdminResponse.SchedulerAdminResponseDto>> searchScheduler(
             @RequestParam String keyword,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
-                = schedulerAdminService.getSchedulerByFullname(keyword, year, month);
+        List<SchedulerAdminResponse.SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
+                = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
 
         return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }

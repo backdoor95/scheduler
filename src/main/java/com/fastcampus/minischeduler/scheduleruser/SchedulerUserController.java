@@ -3,7 +3,8 @@ package com.fastcampus.minischeduler.scheduleruser;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
-import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponseDto;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,7 +35,7 @@ public class SchedulerUserController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) {
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+        List<SchedulerAdminResponse.SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
         if(year != null && month != null){
@@ -66,7 +67,7 @@ public class SchedulerUserController {
             @RequestParam(required = false) Integer month
     ) {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname
-                = schedulerAdminService.getSchedulerByFullname(keyword, year, month);
+                = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
         List<SchedulerUserResponseDto> schedulerUserDtoList;
         if(year != null && month != null){
             schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(token, year, month);

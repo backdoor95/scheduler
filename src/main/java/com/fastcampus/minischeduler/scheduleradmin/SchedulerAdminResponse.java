@@ -1,10 +1,10 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserDto;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,21 +16,6 @@ public class SchedulerAdminResponse {
 
     private List<ScheduleDTO> scheduleDto;
     private CountProcessDTO countProcessDto;
-
-    //    @Builder
-//    public static class ScheduleDTO {
-//
-//        // admin 공연 일정 데이터
-//        private Long adminScheduleId;
-//        private String title;
-//        private String description;
-//
-//        // user 티케팅 승인대기 일정 데이터
-//        private Long userScheduleId;
-//        private String fullName;
-//        private Progress progress;
-//        private LocalDateTime scheduleStart;
-//    }
 
     public interface ScheduleDTO {
 
@@ -46,15 +31,6 @@ public class SchedulerAdminResponse {
         LocalDateTime getScheduleStart(); // from null
     }
 
-//    @Builder
-//    public static class CountProcessDTO {
-//
-//        // 승인 현황 별 count
-//        private Integer waiting;
-//        private Integer accepted;
-//        private Integer refused;
-//    }
-
     public interface CountProcessDTO {
 
         // 승인 현황 별 count
@@ -63,4 +39,45 @@ public class SchedulerAdminResponse {
         Integer getRefused();
     }
 
+    @Data
+    public class SchedulerAdminResponseDto {
+
+        @JsonIgnoreProperties({"hibernateLazyInitializer"})
+        private UserDto user;
+
+        private LocalDateTime scheduleStart;
+        private LocalDateTime scheduleEnd;
+        private String title;
+        private String description;
+        private String image;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        @Builder
+        public SchedulerAdminResponseDto(
+                User user,
+                LocalDateTime scheduleStart,
+                LocalDateTime scheduleEnd,
+                String title,
+                String description,
+                String image,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt
+        ){
+            this.user = new UserDto(
+                    user.getId(),
+                    user.getFullName(),
+                    user.getSizeOfTicket(),
+                    user.getRole(),
+                    user.getProfileImage()
+            );
+            this.scheduleStart = scheduleStart;
+            this.scheduleEnd = scheduleEnd;
+            this.title = title;
+            this.description = description;
+            this.image = image;
+            this.createdAt = createdAt;
+            this.updatedAt = updatedAt;
+        }
+    }
 }
