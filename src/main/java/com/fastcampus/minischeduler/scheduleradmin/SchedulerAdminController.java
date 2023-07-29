@@ -123,10 +123,10 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullname(keyword, year, month);
 
-        return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFullname);
+        return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
 
     /**
@@ -146,11 +146,3 @@ public class SchedulerAdminController {
         return ResponseEntity.ok(responseDTO);
     }
 }
-
-// user
-// id, user_id, scheduler_admin_tb_id, schedule_start, progress, created_at
-
-// admin
-// id, user_id, title, description, image, schedule_start, schedule_end, created_at, updated_at
-
-// count(*) progress==WAITING

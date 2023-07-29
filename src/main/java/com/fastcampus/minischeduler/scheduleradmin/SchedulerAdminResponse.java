@@ -1,8 +1,8 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SchedulerAdminResponse {
 
     private List<ScheduleDTO> scheduleDto;
@@ -35,15 +35,15 @@ public class SchedulerAdminResponse {
     public interface ScheduleDTO {
 
         // admin 공연 일정 데이터
-        Long getAdminScheduleId(); //
-        String getTitle();
-        String getDescription();
+        Long getAdminScheduleId(); // join null
+        String getTitle(); // join
+        String getDescription(); // join
 
         // user 티케팅 승인대기 일정 데이터
-        Long getUserScheduleId(); //
-        String getFullName(); //
-        Progress getProgress();
-        LocalDateTime getScheduleStart(); //
+        Long getUserScheduleId(); // from null
+        String getFullName(); // join null
+        Progress getProgress(); // from
+        LocalDateTime getScheduleStart(); // from null
     }
 
 //    @Builder
