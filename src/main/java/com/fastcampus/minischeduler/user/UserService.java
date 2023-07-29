@@ -5,6 +5,8 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
+import com.fastcampus.minischeduler.user.UserRequest.*;
+import com.fastcampus.minischeduler.user.UserResponse.*;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
@@ -98,15 +100,15 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse.GetUserInfoDTO getUserInfo(Long userId) {
+    public GetUserInfoDTO getUserInfo(Long userId) {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        return new UserResponse.GetUserInfoDTO(userPS);
+        return new GetUserInfoDTO(userPS);
     }
 
     @Transactional
     public Optional<User> updateUserInfo(
-            UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
+            UpdateUserInfoDTO updateUserInfoDTO,
             Long userId
     ) throws DataAccessException{
 

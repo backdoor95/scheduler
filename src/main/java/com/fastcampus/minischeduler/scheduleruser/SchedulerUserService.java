@@ -3,6 +3,7 @@ package com.fastcampus.minischeduler.scheduleruser;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRepository;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,18 +29,18 @@ public class SchedulerUserService {
      * @return List<SchedulerUserResponseDto>
      */
     @Transactional
-    public List<SchedulerUserResponse.SchedulerUserResponseDto> getSchedulerUserList(String token){
+    public List<SchedulerUserResponseDto> getSchedulerUserList(String token){
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(userId);
-        List<SchedulerUserResponse.SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
+        List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for(SchedulerUser schedulerUser : schedulerUsers){
-            SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto =
-                    SchedulerUserResponse.SchedulerUserResponseDto.builder()
+            SchedulerUserResponseDto schedulerUserDto =
+                    SchedulerUserResponseDto.builder()
                             .user(schedulerUser.getUser())
                             .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                             .scheduleStart(schedulerUser.getScheduleStart())
@@ -57,7 +57,7 @@ public class SchedulerUserService {
      * @param token, year, month
      * @return List<SchedulerUserResponseDto>
      */
-    public List<SchedulerUserResponse.SchedulerUserResponseDto> getSchedulerUserListByYearAndMonth(
+    public List<SchedulerUserResponseDto> getSchedulerUserListByYearAndMonth(
             String token,
             Integer year,
             Integer month
@@ -68,14 +68,15 @@ public class SchedulerUserService {
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(userId);
-        List<SchedulerUserResponse.SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
+        List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for(SchedulerUser schedulerUser : schedulerUsers){
             LocalDateTime scheduleStart = schedulerUser.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+
             if(yearMonth.equals(scheduleYearMonth)){
-                SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto =
-                        SchedulerUserResponse.SchedulerUserResponseDto.builder()
+                SchedulerUserResponseDto schedulerUserDto =
+                        SchedulerUserResponseDto.builder()
                                 .user(schedulerUser.getUser())
                                 .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                                 .scheduleStart(schedulerUser.getScheduleStart())
@@ -95,7 +96,7 @@ public class SchedulerUserService {
      * @return SchedulerUserResponseDto
      */
     @Transactional
-    public SchedulerUserResponse.SchedulerUserResponseDto createSchedulerUser(
+    public SchedulerUserResponseDto createSchedulerUser(
             Long schedulerAdminId,
             SchedulerUserRequest.SchedulerUserRequestDto schedulerUserRequestDto,
             String token
@@ -117,7 +118,8 @@ public class SchedulerUserService {
                 .createdAt(schedulerUserRequestDto.getCreatedAt())
                 .build();
         SchedulerUser saveSchedulerUser = schedulerUserRepository.save(schedulerUser);
-        return SchedulerUserResponse.SchedulerUserResponseDto.builder()
+
+        return SchedulerUserResponseDto.builder()
                 .user(saveSchedulerUser.getUser())
                 .schedulerAdmin(saveSchedulerUser.getSchedulerAdmin())
                 .scheduleStart(saveSchedulerUser.getScheduleStart())
@@ -169,7 +171,7 @@ public class SchedulerUserService {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
+        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
         if(!schedulerUserDto.getUser().getId().equals(loginUserId)){
             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
         }
@@ -185,11 +187,11 @@ public class SchedulerUserService {
      * @param id
      * @return SchedulerUserResponseDto
      */
-    private SchedulerUserResponse.SchedulerUserResponseDto getSchedulerById(Long id) {
+    public SchedulerUserResponseDto getSchedulerById(Long id) {
         SchedulerUser schedulerUser = schedulerUserRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 티켓팅은 존재하지 않습니다.")
         );
-        return SchedulerUserResponse.SchedulerUserResponseDto.builder()
+        return SchedulerUserResponseDto.builder()
                 .user(schedulerUser.getUser())
                 .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                 .scheduleStart(schedulerUser.getScheduleStart())
