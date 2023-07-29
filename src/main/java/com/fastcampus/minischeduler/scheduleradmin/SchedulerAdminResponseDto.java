@@ -33,7 +33,13 @@ public class SchedulerAdminResponseDto {
             LocalDateTime createdAt,
             LocalDateTime updatedAt
     ){
-        this.user = new UserDto(user.getId(), user.getFullName(), user.getSizeOfTicket(), user.getRole(), user.getProfileImage());
+        this.user = new UserDto(
+                user.getId(),
+                user.getFullName(),
+                user.getSizeOfTicket(),
+                user.getRole(),
+                user.getProfileImage()
+        );
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;
         this.title = title;

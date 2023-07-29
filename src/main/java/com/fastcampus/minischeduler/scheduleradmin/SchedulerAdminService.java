@@ -5,16 +5,15 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
-import com.fasterxml.jackson.datatype.jsr310.deser.YearDeserializer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -276,11 +275,12 @@ public class SchedulerAdminService {
         return schedulerAdminResponseDtoList;
     }
 
+    @Transactional(readOnly = true)
+    public SchedulerAdminResponse getAdminScheduleDetail(Long id) {
 
-
+        return new SchedulerAdminResponse(
+                schedulerAdminRepository.findSchedulesWithUsersById(id),
+                schedulerAdminRepository.countScheduleGroupByProgressById(id)
+        );
+    }
 }
-
-//    public List<SchedulerAdminResponse.scheduleDTO> getAdminScheduleDetail(Long id) {
-//
-//        return schedulerAdminRepository.findAdminScheduleDetailById(id);
-//    }

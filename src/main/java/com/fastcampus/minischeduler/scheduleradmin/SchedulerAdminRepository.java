@@ -12,9 +12,26 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
 
     List<SchedulerAdmin> findByUserFullNameContaining(String keyword);
 
-//    @Query("SELECT a, u " +
-//            "FROM scheduler_admin_tb a " +
-//            "LEFT OUTER JOIN scheduler_user_tb u " +
-//            "ON a.id = u.scheduler_admin_id")
-//    List<SchedulerAdminResponse.scheduleDTO> findAdminScheduleDetailById(Long id);
+    @Query(value =
+            "SELECT sa.id AS admin_schedule_id, sa.title, sa.description, " +
+            "su.id AS user_schedule_id, su.schedule_start, su.progress, u.full_name " +
+            "FROM scheduler_user_tb AS su " +
+            "LEFT OUTER JOIN user_tb AS u " +
+            "ON su.user_id = u.id " +
+            "LEFT OUTER JOIN scheduler_admin_tb AS sa " +
+            "ON sa.id = :id",
+            nativeQuery = true)
+    List<SchedulerAdminResponse.ScheduleDTO> findSchedulesWithUsersById(Long id);
+
+    @Query(value =
+            "SELECT SUM(T.WAITING) AS waiting, SUM(T.ACCEPTED) AS accepted, SUM(T.REFUSED) AS refused " +
+            "FROM (" +
+            "   SELECT " +
+            "   CASE WHEN progress = 'WAITING' THEN COUNT(progress) END AS WAITING, " +
+            "   CASE WHEN progress = 'ACCEPT' THEN COUNT(progress) END AS ACCEPTED, " +
+            "   CASE WHEN progress = 'REFUSE' THEN COUNT(progress) END AS REFUSED " +
+            "   FROM scheduler_user_tb WHERE scheduler_admin_id = :id GROUP BY progress) AS T",
+            nativeQuery = true)
+    SchedulerAdminResponse.CountProcessDTO countScheduleGroupByProgressById(Long id);
+
 }
