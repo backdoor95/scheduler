@@ -29,22 +29,24 @@ public class SchedulerUserService {
      * @return List<SchedulerUserResponseDto>
      */
     @Transactional
-    public List<SchedulerUserResponseDto> getSchedulerUserList(String token){
+    public List<SchedulerUserResponse.SchedulerUserResponseDto> getSchedulerUserList(String token){
+
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(userId);
-        List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
+        List<SchedulerUserResponse.SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for(SchedulerUser schedulerUser : schedulerUsers){
-            SchedulerUserResponseDto schedulerUserDto = SchedulerUserResponseDto.builder()
-                    .user(schedulerUser.getUser())
-                    .schedulerAdmin(schedulerUser.getSchedulerAdmin())
-                    .scheduleStart(schedulerUser.getScheduleStart())
-                    .progress(schedulerUser.getProgress())
-                    .createdAt(schedulerUser.getCreatedAt())
-                    .build();
+            SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto =
+                    SchedulerUserResponse.SchedulerUserResponseDto.builder()
+                            .user(schedulerUser.getUser())
+                            .schedulerAdmin(schedulerUser.getSchedulerAdmin())
+                            .scheduleStart(schedulerUser.getScheduleStart())
+                            .progress(schedulerUser.getProgress())
+                            .createdAt(schedulerUser.getCreatedAt())
+                            .build();
             schedulerUserDtoList.add(schedulerUserDto);
         }
         return schedulerUserDtoList;
@@ -55,26 +57,31 @@ public class SchedulerUserService {
      * @param token, year, month
      * @return List<SchedulerUserResponseDto>
      */
-    public List<SchedulerUserResponseDto> getSchedulerUserListByYearAndMonth(String token, Integer year, Integer month) {
+    public List<SchedulerUserResponse.SchedulerUserResponseDto> getSchedulerUserListByYearAndMonth(
+            String token,
+            Integer year,
+            Integer month
+    ) {
         YearMonth yearMonth = YearMonth.of(year, month);
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(userId);
-        List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
+        List<SchedulerUserResponse.SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for(SchedulerUser schedulerUser : schedulerUsers){
             LocalDateTime scheduleStart = schedulerUser.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
             if(yearMonth.equals(scheduleYearMonth)){
-                SchedulerUserResponseDto schedulerUserDto = SchedulerUserResponseDto.builder()
-                        .user(schedulerUser.getUser())
-                        .schedulerAdmin(schedulerUser.getSchedulerAdmin())
-                        .scheduleStart(schedulerUser.getScheduleStart())
-                        .progress(schedulerUser.getProgress())
-                        .createdAt(schedulerUser.getCreatedAt())
-                        .build();
+                SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto =
+                        SchedulerUserResponse.SchedulerUserResponseDto.builder()
+                                .user(schedulerUser.getUser())
+                                .schedulerAdmin(schedulerUser.getSchedulerAdmin())
+                                .scheduleStart(schedulerUser.getScheduleStart())
+                                .progress(schedulerUser.getProgress())
+                                .createdAt(schedulerUser.getCreatedAt())
+                                .build();
                 schedulerUserDtoList.add(schedulerUserDto);
             }
         }
@@ -88,9 +95,9 @@ public class SchedulerUserService {
      * @return SchedulerUserResponseDto
      */
     @Transactional
-    public SchedulerUserResponseDto createSchedulerUser(
+    public SchedulerUserResponse.SchedulerUserResponseDto createSchedulerUser(
             Long schedulerAdminId,
-            SchedulerUserRequestDto schedulerUserRequestDto,
+            SchedulerUserRequest.SchedulerUserRequestDto schedulerUserRequestDto,
             String token
     ){
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -110,7 +117,7 @@ public class SchedulerUserService {
                 .createdAt(schedulerUserRequestDto.getCreatedAt())
                 .build();
         SchedulerUser saveSchedulerUser = schedulerUserRepository.save(schedulerUser);
-        return SchedulerUserResponseDto.builder()
+        return SchedulerUserResponse.SchedulerUserResponseDto.builder()
                 .user(saveSchedulerUser.getUser())
                 .schedulerAdmin(saveSchedulerUser.getSchedulerAdmin())
                 .scheduleStart(saveSchedulerUser.getScheduleStart())
@@ -162,7 +169,7 @@ public class SchedulerUserService {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
+        SchedulerUserResponse.SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
         if(!schedulerUserDto.getUser().getId().equals(loginUserId)){
             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
         }
@@ -178,11 +185,11 @@ public class SchedulerUserService {
      * @param id
      * @return SchedulerUserResponseDto
      */
-    private SchedulerUserResponseDto getSchedulerById(Long id) {
+    private SchedulerUserResponse.SchedulerUserResponseDto getSchedulerById(Long id) {
         SchedulerUser schedulerUser = schedulerUserRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 티켓팅은 존재하지 않습니다.")
         );
-        return SchedulerUserResponseDto.builder()
+        return SchedulerUserResponse.SchedulerUserResponseDto.builder()
                 .user(schedulerUser.getUser())
                 .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                 .scheduleStart(schedulerUser.getScheduleStart())

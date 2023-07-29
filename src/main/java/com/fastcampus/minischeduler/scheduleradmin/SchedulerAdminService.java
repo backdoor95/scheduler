@@ -13,7 +13,9 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.*;
+import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.*;
 
 @Service
 @RequiredArgsConstructor
@@ -34,16 +36,17 @@ public class SchedulerAdminService {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin scheduler : schedulers) {
-            SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
-                    .user(scheduler.getUser())
-                    .scheduleStart(scheduler.getScheduleStart())
-                    .scheduleEnd(scheduler.getScheduleEnd())
-                    .title(scheduler.getTitle())
-                    .description(scheduler.getDescription())
-                    .image(scheduler.getImage())
-                    .createdAt(scheduler.getCreatedAt())
-                    .updatedAt(scheduler.getUpdatedAt())
-                    .build();
+            SchedulerAdminResponseDto schedulerAdminResponseDto =
+                    SchedulerAdminResponseDto.builder()
+                            .user(scheduler.getUser())
+                            .scheduleStart(scheduler.getScheduleStart())
+                            .scheduleEnd(scheduler.getScheduleEnd())
+                            .title(scheduler.getTitle())
+                            .description(scheduler.getDescription())
+                            .image(scheduler.getImage())
+                            .createdAt(scheduler.getCreatedAt())
+                            .updatedAt(scheduler.getUpdatedAt())
+                            .build();
             schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         return schedulerAdminResponseDtoList;
@@ -54,7 +57,11 @@ public class SchedulerAdminService {
      * @param year, month
      * @return SchedulerAdminResponseDto
      */
-    public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(Integer year, Integer month) {
+    public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(
+            Integer year,
+            Integer month
+    ) {
+
         YearMonth yearMonth = YearMonth.of(year, month);
 
         List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
@@ -64,16 +71,17 @@ public class SchedulerAdminService {
             LocalDateTime scheduleStart = scheduler.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
             if(yearMonth.equals(scheduleYearMonth)) {
-                SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
-                        .user(scheduler.getUser())
-                        .scheduleStart(scheduler.getScheduleStart())
-                        .scheduleEnd(scheduler.getScheduleEnd())
-                        .title(scheduler.getTitle())
-                        .description(scheduler.getDescription())
-                        .image(scheduler.getImage())
-                        .createdAt(scheduler.getCreatedAt())
-                        .updatedAt(scheduler.getUpdatedAt())
-                        .build();
+                SchedulerAdminResponseDto schedulerAdminResponseDto =
+                        SchedulerAdminResponseDto.builder()
+                                .user(scheduler.getUser())
+                                .scheduleStart(scheduler.getScheduleStart())
+                                .scheduleEnd(scheduler.getScheduleEnd())
+                                .title(scheduler.getTitle())
+                                .description(scheduler.getDescription())
+                                .image(scheduler.getImage())
+                                .createdAt(scheduler.getCreatedAt())
+                                .updatedAt(scheduler.getUpdatedAt())
+                                .build();
                 schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
         }
@@ -93,6 +101,7 @@ public class SchedulerAdminService {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
                 .scheduleStart(schedulerAdminRequestDto.getScheduleStart())
@@ -102,6 +111,7 @@ public class SchedulerAdminService {
                 .image(schedulerAdminRequestDto.getImage())
                 .build();
         SchedulerAdmin saveScheduler = schedulerAdminRepository.save(scheduler);
+
         return SchedulerAdminResponseDto.builder()
                 .user(saveScheduler.getUser())
                 .scheduleStart(saveScheduler.getScheduleStart())
@@ -120,7 +130,10 @@ public class SchedulerAdminService {
      * @return id
      */
     @Transactional
-    public Long updateScheduler(Long id, SchedulerAdminRequestDto schedulerAdminRequestDto){
+    public Long updateScheduler(
+            Long id,
+            SchedulerAdminRequestDto schedulerAdminRequestDto
+    ){
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
         );
@@ -141,7 +154,8 @@ public class SchedulerAdminService {
      */
     @Transactional
     public Long delete(Long id, String token){
-       SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
+
+        SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
        if(!schedulerAdminResponseDto.getUser().getId().equals(loginUserId)){
@@ -171,7 +185,11 @@ public class SchedulerAdminService {
      * @return List<SchedulerAdminResponseDto>
      */
     @Transactional
-    public List<SchedulerAdminResponseDto> getSchedulerByFullname(String keyword, Integer year, Integer month){
+    public List<SchedulerAdminResponseDto> getSchedulerByFullName(
+            String keyword,
+            Integer year,
+            Integer month
+    ){
         YearMonth yearMonth = null;
         if(year != null && month != null){
             yearMonth = YearMonth.of(year, month);
@@ -184,34 +202,34 @@ public class SchedulerAdminService {
                 LocalDateTime scheduleStart = scheduler.getScheduleStart();
                 YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
                 if(yearMonth.equals(scheduleYearMonth)) {
-                    SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
-                            .user(scheduler.getUser())
-                            .scheduleStart(scheduler.getScheduleStart())
-                            .scheduleEnd(scheduler.getScheduleEnd())
-                            .title(scheduler.getTitle())
-                            .description(scheduler.getDescription())
-                            .image(scheduler.getImage())
-                            .createdAt(scheduler.getCreatedAt())
-                            .updatedAt(scheduler.getUpdatedAt())
-                            .build();
+                    SchedulerAdminResponseDto schedulerAdminResponseDto =
+                            SchedulerAdminResponseDto.builder()
+                                    .user(scheduler.getUser())
+                                    .scheduleStart(scheduler.getScheduleStart())
+                                    .scheduleEnd(scheduler.getScheduleEnd())
+                                    .title(scheduler.getTitle())
+                                    .description(scheduler.getDescription())
+                                    .image(scheduler.getImage())
+                                    .createdAt(scheduler.getCreatedAt())
+                                    .updatedAt(scheduler.getUpdatedAt())
+                                    .build();
                     schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
                 }
-            }
-            else {
-                SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
-                        .user(scheduler.getUser())
-                        .scheduleStart(scheduler.getScheduleStart())
-                        .scheduleEnd(scheduler.getScheduleEnd())
-                        .title(scheduler.getTitle())
-                        .description(scheduler.getDescription())
-                        .image(scheduler.getImage())
-                        .createdAt(scheduler.getCreatedAt())
-                        .updatedAt(scheduler.getUpdatedAt())
-                        .build();
+            } else {
+                SchedulerAdminResponseDto schedulerAdminResponseDto =
+                        SchedulerAdminResponseDto.builder()
+                                .user(scheduler.getUser())
+                                .scheduleStart(scheduler.getScheduleStart())
+                                .scheduleEnd(scheduler.getScheduleEnd())
+                                .title(scheduler.getTitle())
+                                .description(scheduler.getDescription())
+                                .image(scheduler.getImage())
+                                .createdAt(scheduler.getCreatedAt())
+                                .updatedAt(scheduler.getUpdatedAt())
+                                .build();
                 schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
         }
-
         return schedulerAdminResponseDtoList;
     }
 
@@ -254,27 +272,36 @@ public class SchedulerAdminService {
      * @return List<SchedulerAdminResponseDto>
      */
     public List<SchedulerAdminResponseDto> getSchedulerListById(String token) {
+
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         List<SchedulerAdmin> schedulerAdmins = schedulerAdminRepository.findByUser(user);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
+
         for(SchedulerAdmin schedulerAdmin : schedulerAdmins){
-            SchedulerAdminResponseDto schedulerAdminResponseDto = SchedulerAdminResponseDto.builder()
-                    .user(schedulerAdmin.getUser())
-                    .scheduleStart(schedulerAdmin.getScheduleStart())
-                    .scheduleEnd(schedulerAdmin.getScheduleEnd())
-                    .title(schedulerAdmin.getTitle())
-                    .description(schedulerAdmin.getDescription())
-                    .image(schedulerAdmin.getImage())
-                    .createdAt(schedulerAdmin.getCreatedAt())
-                    .updatedAt(schedulerAdmin.getUpdatedAt())
-                    .build();
+            SchedulerAdminResponseDto schedulerAdminResponseDto =
+                    SchedulerAdminResponseDto.builder()
+                            .user(schedulerAdmin.getUser())
+                            .scheduleStart(schedulerAdmin.getScheduleStart())
+                            .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                            .title(schedulerAdmin.getTitle())
+                            .description(schedulerAdmin.getDescription())
+                            .image(schedulerAdmin.getImage())
+                            .createdAt(schedulerAdmin.getCreatedAt())
+                            .updatedAt(schedulerAdmin.getUpdatedAt())
+                            .build();
             schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         return schedulerAdminResponseDtoList;
     }
 
+    /**
+     * 결재관리 페이지의 해당 기획사 공연에 티케팅한 사용자의 내역과
+     * 승인현황 별 티케팅 수를 조회합니다.
+     * @param id
+     * @return
+     */
     @Transactional(readOnly = true)
     public SchedulerAdminResponse getAdminScheduleDetail(Long id) {
 

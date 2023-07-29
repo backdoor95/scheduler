@@ -11,6 +11,7 @@ import org.springframework.validation.Errors;
 @Aspect
 @Component
 public class MyValidationAdvice {
+
     @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
     public void postMapping() {
     }

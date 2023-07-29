@@ -26,6 +26,7 @@ public class MyLogAdvice {
 
     @AfterReturning("myLog()")
     public void logAdvice(JoinPoint joinPoint) {
+
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
         Method method = signature.getMethod();
         log.debug("디버그 : " + method.getName() + " 성공");

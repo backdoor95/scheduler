@@ -7,14 +7,14 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception403;
-import com.sun.xml.bind.v2.TODO;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -37,8 +37,13 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer month
     ){
         try {
-            DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
+            DecodedJWT decodedJWT =
+                    jwtTokenProvider.verify(token.replace(
+                            JwtTokenProvider.TOKEN_PREFIX,
+                            "")
+                    );
             List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+
             if(year != null && month != null){
                 schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
             }
@@ -97,12 +102,12 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         //스케줄 조회
-        SchedulerAdminResponseDto schedulerdto = schedulerAdminService.getSchedulerById(id);
+        SchedulerAdminResponseDto schedulerDto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
-        if(!schedulerdto.getUser().getId().equals(loginUserId)){
+        if(!schedulerDto.getUser().getId().equals(loginUserId)){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
         }
 
@@ -124,7 +129,7 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer month
     ){
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
-                = schedulerAdminService.getSchedulerByFullname(keyword, year, month);
+                = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
 
         return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
