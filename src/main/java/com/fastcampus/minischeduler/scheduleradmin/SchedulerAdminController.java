@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -66,7 +67,7 @@ public class SchedulerAdminController {
      */
     @PostMapping("/schedule/create")
     public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
-            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto , // TODO: request DTO가 필요한가
+            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto ,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token));
@@ -122,34 +123,26 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullname(keyword, year, month);
 
-        return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFullname);
+        return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
 
     /**
      * 결재관리 페이지
      * @return
      */
-//    @GetMapping("/schedule/confirm/{id}")
-//    public ResponseEntity<List<SchedulerAdminResponse.scheduleDTO>> getAdminSchedulerAndUserScheduler(
-//            @PathVariable Long id,
-//            @AuthenticationPrincipal MyUserDetails myUserDetails
-//    ) {
-//
-//        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
-//
-//        List<SchedulerAdminResponse.scheduleDTO> scheduleDTOs = schedulerAdminService.getAdminScheduleDetail(id);
-//
-//        return ResponseEntity.ok(new ResponseDTO<>(scheduleDTOs).getData());
-//    }
+    @GetMapping("/schedule/confirm/{id}")
+    public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
+            @PathVariable Long id,
+            @AuthenticationPrincipal MyUserDetails myUserDetails
+    ) {
+
+        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id));
+
+        return ResponseEntity.ok(responseDTO);
+    }
 }
-
-// user
-// id, user_id, scheduler_admin_tb_id, schedule_start, progress, created_at
-
-// admin
-// id, user_id, title, description, image, schedule_start, schedule_end, created_at, updated_at
-
-// count(*) progress==WAITING

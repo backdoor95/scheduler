@@ -11,7 +11,6 @@ import org.springframework.data.annotation.LastModifiedDate;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
-
 @Getter
 @Entity(name = "scheduler_admin_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -75,12 +74,15 @@ public class SchedulerAdmin { // 기획사 일정
         this.title = title;
         this.description = description;
         this.createdAt = createdAt;
-
     }
 
-    // 이 메서드는 직접 실행하는 로직은 없지만 JPA의 영속성 컨텍스트로 인해 자동으로 실행된다
-    // 영속성 컨텍스트에 포함된 Entity 객체의 값이 변경되면 트랜잭션이 종료(commit)되는 시점이 update쿼리 실행 -> 더티 체킹
-    public void update(LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description, String image){
+    public void update(
+            LocalDateTime scheduleStart,
+            LocalDateTime scheduleEnd,
+            String title,
+            String description,
+            String image
+    ){
         this.scheduleStart = scheduleStart;
         this.scheduleEnd = scheduleEnd;
         this.title = title;

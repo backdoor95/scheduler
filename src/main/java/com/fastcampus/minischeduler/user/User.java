@@ -21,7 +21,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(unique = true, nullable = false, length = 30)
     private String email;
 
     @Column(nullable = false, length = 120)
@@ -29,7 +29,7 @@ public class User {
 
     @Column
     @Builder.Default
-    private Integer sizeOfTicket = 11 - Calendar.getInstance().get(Calendar.MONTH);
+    private Integer sizeOfTicket = 10 - Calendar.getInstance().get(Calendar.MONTH);
 
     @Column
     private String profileImage;
