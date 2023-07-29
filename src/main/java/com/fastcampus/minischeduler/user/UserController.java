@@ -141,7 +141,6 @@ public class UserController {
         return ResponseEntity.ok()
                 .header(JwtTokenProvider.HEADER, token)
                 .body(getUserInfoDTO);
-
     }
 
     @PostMapping("/mypage/update/{id}")
