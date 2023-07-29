@@ -12,9 +12,5 @@ public interface SchedulerUserRepository extends JpaRepository<SchedulerUser, Lo
     List<SchedulerUser> findByUserId(Long userId);
     boolean existsByUserAndCreatedAtBetween(User user, LocalDateTime startOfMonth, LocalDateTime endOfMonth);
 
-    List<SchedulerUser> findByUser(User user);
-
     List<SchedulerUser> findBySchedulerAdmin(SchedulerAdmin schedulerAdmin);
-
-    void updateUserSchedule(Long schedulerAdminId, Progress progress);
 }

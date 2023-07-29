@@ -191,9 +191,8 @@ public class SchedulerAdminService {
             Integer month
     ){
         YearMonth yearMonth = null;
-        if(year != null && month != null){
-            yearMonth = YearMonth.of(year, month);
-        }
+        if(year != null && month != null) yearMonth = YearMonth.of(year, month);
+
         List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(keyword);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 

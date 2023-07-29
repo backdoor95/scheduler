@@ -6,6 +6,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
+import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception403;
 import com.fastcampus.minischeduler.core.exception.Exception404;
 import com.fastcampus.minischeduler.core.exception.Exception412;
@@ -14,6 +15,8 @@ import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.Schedu
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
+import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +24,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin")
@@ -29,8 +31,10 @@ import java.util.Optional;
 public class SchedulerAdminController {
 
     private final SchedulerUserRepository schedulerUserRepository;
+    private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     /**
      * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
@@ -159,25 +163,44 @@ public class SchedulerAdminController {
     }
 
     /**
-     * 선택한 티켓을 승인합니다.
-     * @param schedulerAdminId
+     * 선택한 티켓을 승인하거나 거절합니다.
+     * @param id : 사용자(기획사) id
+     * @param schedulerUserId
+     * @param progress : 승인/거절
      * @param myUserDetails
      * @return
      */
-    @PostMapping("/schedule/{schedulerAdminId}/accept")
-    public ResponseEntity<?> acceptSchedule(
-            @PathVariable Long schedulerAdminId,
+    @PostMapping("/schedule/confirm/{id}/{schedulerUserId}")
+    public ResponseEntity<?> confirmSchedule(
+            @PathVariable Long id,
+            @PathVariable Long schedulerUserId,
+            @RequestParam String progress,
             @AuthenticationPrincipal MyUserDetails myUserDetails
     ) {
-        if(schedulerAdminId.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
 
-        SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerAdminId).get();
+        // 유효성 검사
+        SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
         if(schedulerUser == null) throw new Exception404("해당 티켓은 존재하지 않습니다");
         if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
-        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("거절된 티켓입니다. 다시 신청해주세요");
+        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
+        User fan = schedulerUser.getUser();
+        if(fan == null) throw new Exception400(fan.getEmail(), "해당 사용자는 존재하지 않습니다");
 
-        schedulerUserRepository.updateUserSchedule(schedulerAdminId, Progress.ACCEPT);
+        String message = null;
+        Progress confirmProgress = null;
+        if(progress.equals("accept")) {
+            confirmProgress = Progress.ACCEPT;
+            message = "티켓을 승인합니다";
+        } else if(progress.equals("refuse")) {
 
-        return ResponseEntity.ok("티켓을 승인합니다.");
+            fan.setSizeOfTicket(fan.getSizeOfTicket() + 1);
+            confirmProgress = Progress.REFUSE;
+            message = "티켓을 거절합니다.";
+        } else throw new Exception400(progress, "잘못된 요청입니다");
+
+        schedulerAdminRepository.updateUserSchedule(schedulerUserId, confirmProgress);
+
+        return ResponseEntity.ok(message);
     }
 }
