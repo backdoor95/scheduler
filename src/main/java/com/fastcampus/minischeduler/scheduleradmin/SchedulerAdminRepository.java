@@ -2,6 +2,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -13,8 +14,8 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
     List<SchedulerAdmin> findByUserFullNameContaining(String keyword);
 
     @Query(value =
-            "SELECT sa.id AS admin_schedule_id, sa.title, sa.description, " +
-            "su.id AS user_schedule_id, su.schedule_start, su.progress, u.full_name " +
+            "SELECT sa.id AS adminScheduleId, sa.title, sa.description, " +
+            "su.id AS userScheduleId, su.schedule_start AS scheduleStart, su.progress, u.full_name AS fullName " +
             "FROM scheduler_user_tb AS su " +
             "LEFT OUTER JOIN user_tb AS u " +
             "ON su.user_id = u.id " +

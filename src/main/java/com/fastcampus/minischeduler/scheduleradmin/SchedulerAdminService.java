@@ -278,9 +278,10 @@ public class SchedulerAdminService {
     @Transactional(readOnly = true)
     public SchedulerAdminResponse getAdminScheduleDetail(Long id) {
 
-        return new SchedulerAdminResponse(
+        SchedulerAdminResponse schedulerAdminResponse = new SchedulerAdminResponse(
                 schedulerAdminRepository.findSchedulesWithUsersById(id),
-                schedulerAdminRepository.countScheduleGroupByProgressById(id)
-        );
+                schedulerAdminRepository.countScheduleGroupByProgressById(id));
+
+        return schedulerAdminResponse;
     }
 }
