@@ -22,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.Column;
 import javax.persistence.EntityManager;
@@ -29,6 +30,8 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.metamodel.EntityType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -117,12 +120,28 @@ public class UserService {
     @Transactional
     public User updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
-            Long userId) throws DataAccessException {
+            Long userId) throws DataAccessException, IOException {
+
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
-        userPS.updateUserInfo(passwordEncoder.encode(updateUserInfoDTO.getPassword()), updateUserInfoDTO.getProfileImage());
+
+
+        // Password encoding - 암호화
+        String encodedPassword = passwordEncoder.encode(updateUserInfoDTO.getPassword());
+
+        // Image handling
+        MultipartFile profileImageFile = updateUserInfoDTO.getProfileImage();
+        String profileImagePath = null;
+        if(profileImageFile != null) {// Amazon S3 또는 Google Cloud Storage
+            String originalFilename = profileImageFile.getOriginalFilename();
+            profileImagePath = "D:\\ImageFile\\" + originalFilename; // 제 컴퓨터에 저장하도록 하였습니다.
+            profileImageFile.transferTo(new File(profileImagePath));
+        }
+
+
+        userPS.updateUserInfo(encodedPassword, profileImagePath);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
@@ -236,4 +255,7 @@ public class UserService {
         workbook.write(httpServletResponse.getOutputStream());
         workbook.close();
     }
+
+
+
 }
