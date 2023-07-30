@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -25,5 +26,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 //            @Param("id") Long id
 //    );
 
-
+    @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
+    List<User> update12TicketsOfAllFans();
 }

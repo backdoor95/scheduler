@@ -29,8 +29,7 @@ public class User {
     private String password;
 
     @Column
-    @Builder.Default
-    private Integer sizeOfTicket = 12 - Calendar.getInstance().get(Calendar.MONTH);
+    private Integer sizeOfTicket;
 
     @Column
     private String profileImage;
