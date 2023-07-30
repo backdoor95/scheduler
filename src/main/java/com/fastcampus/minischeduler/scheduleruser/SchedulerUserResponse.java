@@ -2,7 +2,8 @@ package com.fastcampus.minischeduler.scheduleruser;
 
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserDto;
+import com.fastcampus.minischeduler.user.UserResponse;
+import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;

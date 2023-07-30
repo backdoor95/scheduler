@@ -1,12 +1,9 @@
 package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 public class UserRequest {
 
@@ -21,11 +18,11 @@ public class UserRequest {
         private String email;
 
         @NotBlank(message = "비밀번호를 입력해주세요")
-        @Size(min = 8, max = 20)
         private String password;
     }
 
     @Getter
+    @NoArgsConstructor
     public static class JoinDTO {
 
         @NotBlank(message = "이메일을 입력해주세요")
@@ -50,8 +47,7 @@ public class UserRequest {
         )
         private String fullName;
 
-        @NotNull(message = "기획사 또는 팬을 선택해주세요")
-        private Role role;
+        private String role;
 
         public void setPassword(String password) { // password 인코딩용
             this.password = password;
@@ -62,7 +58,7 @@ public class UserRequest {
                     .email(email)
                     .password(password)
                     .fullName(fullName)
-                    .role(role)
+                    .role(Role.valueOf(role))
                     .build();
         }
     }

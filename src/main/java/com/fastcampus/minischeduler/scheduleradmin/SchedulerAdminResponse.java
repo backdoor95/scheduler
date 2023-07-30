@@ -2,7 +2,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserDto;
+import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
 

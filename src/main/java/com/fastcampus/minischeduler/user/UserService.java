@@ -47,7 +47,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationManager authenticationManager;
+
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
@@ -70,48 +70,37 @@ public class UserService {
         return new UserResponse.JoinDTO(userPS);
     }
 
-    /**
-     * @param loginDTO
-     * @return
-     */
-    @Transactional(readOnly = false)
-    public String signin(UserRequest.LoginDTO loginDTO) {
-        try {
-            Authentication authentication =
-                    authenticationManager.authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    loginDTO.getEmail(),
-                                    loginDTO.getPassword()
-                            )
-                    );
-
-            MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
-            User loginUser = myUserDetails.getUser();
-
-            // 최종 로그인 날짜 기록
-            loginUser.onUpdateLatestLogin();
-
-            // 로그 테이블 기록
-            loginLogRepository.save(
-                    LoginLog.builder()
-                            .userId(loginUser.getId())
-                            .userAgent(httpServletRequest.getHeader("User-Agent"))
-                            .clientIP(httpServletRequest.getRemoteAddr())
-                            .build()
-            );
-
-            return JwtTokenProvider.create(loginUser);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            throw new Exception401("인증되지 않았습니다.");
-        }
-    }
-
     @Transactional
     public GetUserInfoDTO getUserInfo(Long userId) {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         return new UserResponse.GetUserInfoDTO(userPS);
+    }
+
+    /**
+     * 로그인합니다.
+     * @param authentication
+     * @return
+     */
+    @Transactional(readOnly = false)
+    public String signin(Authentication authentication) {
+
+        MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
+        User loginUser = myUserDetails.getUser();
+
+        // 최종 로그인 날짜 기록
+        loginUser.onUpdateLatestLogin();
+
+        // 로그 테이블 기록
+        loginLogRepository.save(
+                LoginLog.builder()
+                        .userId(loginUser.getId())
+                        .userAgent(httpServletRequest.getHeader("User-Agent"))
+                        .clientIP(httpServletRequest.getRemoteAddr())
+                        .build()
+        );
+
+        return JwtTokenProvider.create(loginUser);
     }
 
     @Transactional

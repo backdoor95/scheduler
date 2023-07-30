@@ -5,11 +5,17 @@ import com.fastcampus.minischeduler.core.annotation.MyLog;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception401;
+import com.fastcampus.minischeduler.core.exception.Exception412;
 import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +24,8 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 public class UserController {
+
+    private final AuthenticationManager authenticationManager;
 
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -29,35 +37,40 @@ public class UserController {
     public ResponseEntity<?> join(
             @RequestBody
             @Valid
-            UserRequest.JoinDTO joinRequestDTO,
-            Errors errors
+            UserRequest.JoinDTO joinRequestDTO
     ) {
         // 유효성 검사
-        if(errors.hasErrors()) return null;
-
         if (userRepository.findByEmail(joinRequestDTO.getEmail()).isPresent())
             throw new Exception400("email", "이미 존재하는 이메일입니다."); // 중복 계정 검사
+        // joinRequestDTO의 Enum 타입 Role 에 대한 유효성 검사는 컨트롤러 단에서 할 수 없어서 String으로 받기로.
+        String role = joinRequestDTO.getRole();
+        if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
+        if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception412("잘못된 접근입니다. 범위 내 권한을 입력해주세요");
 
-        UserResponse.JoinDTO joinResponseDTO = userService.signup(joinRequestDTO);
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(joinResponseDTO);
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO)));
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody
             @Valid
-            UserRequest.LoginDTO loginRequestDTO,
-            Errors errors
+            UserRequest.LoginDTO loginRequestDTO
     ) {
-        if(errors.hasErrors()) return null;
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequestDTO.getEmail(),
+                            loginRequestDTO.getPassword()
+                    )
+            );
 
-        String jwt = userService.signin(loginRequestDTO); // 로그인 후 토큰 발행
+            return ResponseEntity.ok()
+                    .header(JwtTokenProvider.HEADER, userService.signin(authentication))
+                    .body(new ResponseDTO<>());
 
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, jwt)
-                .body(new ResponseDTO<>());
+        } catch (Exception e) {
+            throw new Exception401("아이디와 비밀번호를 확인해주세요");
+        }
     }
 
     @GetMapping("/mypage/{id}")
