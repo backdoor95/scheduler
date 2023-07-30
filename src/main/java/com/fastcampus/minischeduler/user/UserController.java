@@ -73,15 +73,16 @@ public class UserController {
         if(role.equals("admin")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
-        GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
 
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(getUserInfoDTO);
+        UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
+        System.out.println("*******"+ getUserInfoDTO+"******");
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping("/mypage/update/{id}")
-    public ResponseEntity<?> getUpdateUserInfo( // 수정필요
+    public ResponseEntity<?> getUpdateUserInfo(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
@@ -93,10 +94,9 @@ public class UserController {
 
         GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(id);
         // user 객체를 이용한 작업 수행
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(getUserInfoDTO);
+        return ResponseEntity.ok(responseDTO);
     }
 
     @PostMapping("/mypage/update/{id}")
@@ -113,15 +113,15 @@ public class UserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage update 작성자 id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (!id.equals(loginUserId)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        }
 
-        User userPS = userService.updateUserInfo(updateUserInfoDTO, id)
-                .orElseThrow(() -> new RuntimeException("유저 업데이트 실패"));
-
+        User userPS = userService.updateUserInfo(updateUserInfoDTO, id);
         // user 객체를 이용한 작업 수행
-        return ResponseEntity.ok()
-                .header(JwtTokenProvider.HEADER, token)
-                .body(userPS);
+        ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
+
+        return ResponseEntity.ok(responseDTO);
     }
 
     // DB 데이터 엑셀 다운로드 테스트 중.

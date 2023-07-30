@@ -87,7 +87,6 @@ public class SchedulerUserService {
             }
         }
         return schedulerUserDtoList;
-
     }
 
     /**
@@ -182,6 +181,12 @@ public class SchedulerUserService {
         schedulerUserRepository.deleteById(id);
     }
 
+    public void decreaseUserTicket(User user){
+        user.setSizeOfTicket(user.getSizeOfTicket() - 1);
+        userRepository.save(user);
+//        schedulerUserRepository.deleteById(id);
+    }
+
     /**
      * id로 스케줄을 찾아 반환
      * @param id
@@ -199,6 +204,4 @@ public class SchedulerUserService {
                 .createdAt(schedulerUser.getCreatedAt())
                 .build();
     }
-
-
 }

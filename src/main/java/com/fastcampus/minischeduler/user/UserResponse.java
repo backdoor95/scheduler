@@ -29,7 +29,7 @@ public class UserResponse {
         private String fullName;
         private Role role;
 
-        public DetailOutDTO(User user) {
+        public DetailOutDTO(User user){
             this.id = user.getId();
             this.email = user.getEmail();
             this.fullName = user.getFullName();
@@ -53,7 +53,7 @@ public class UserResponse {
             this.email = user.getEmail();
             this.fullName = user.getFullName();
             this.leftTicket = user.getSizeOfTicket();
-            this.usedTicket = 12-user.getSizeOfTicket();
+            this.usedTicket = user.getUsedTicket();
             this.profileImage = user.getProfileImage();
             this.createdAt = user.getCreatedAt();
             this.updatedAt = user.getUpdatedAt();
