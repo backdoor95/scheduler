@@ -1,5 +1,6 @@
 package com.fastcampus.minischeduler.core.advice;
 
+import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,11 @@ public class MyExceptionAdvice {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
+    @ExceptionHandler(Exception412.class)
+    public ResponseEntity<?> preconditionFailed(Exception412 e){
+        return new ResponseEntity<>(e.body(), e.status());
+    }
+
     @ExceptionHandler(Exception500.class)
     public ResponseEntity<?> serverError(Exception500 e){
         return new ResponseEntity<>(e.body(), e.status());
@@ -41,6 +47,7 @@ public class MyExceptionAdvice {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> unknownServerError(Exception e){
+
         ApiUtils.ApiResult<?> apiResult =
                 ApiUtils.error(
                         e.getMessage(),

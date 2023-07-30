@@ -181,9 +181,7 @@ public class SchedulerAdminController {
 
         // 유효성 검사
         SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
-        if(schedulerUser == null) throw new Exception404("해당 티켓은 존재하지 않습니다");
-        if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
-        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
+
         User fan = schedulerUser.getUser();
         if(fan == null) throw new Exception400(fan.getEmail(), "해당 사용자는 존재하지 않습니다");
 
@@ -199,8 +197,12 @@ public class SchedulerAdminController {
             message = "티켓을 거절합니다.";
         } else throw new Exception400(progress, "잘못된 요청입니다");
 
-        schedulerAdminRepository.updateUserSchedule(schedulerUserId, confirmProgress);
+        if(schedulerUser == null) throw new Exception404("해당 티켓은 존재하지 않습니다");
+        if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
+        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
 
-        return ResponseEntity.ok(message);
+        schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress);
+
+        return ResponseEntity.ok(new ResponseDTO<>(message));
     }
 }

@@ -3,6 +3,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
@@ -35,6 +36,7 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
             nativeQuery = true)
     SchedulerAdminResponse.CountProcessDTO countScheduleGroupByProgressById(Long id);
 
-    void updateUserSchedule(Long schedulerAdminId, Progress progress);
-
+    @Modifying
+    @Query("UPDATE scheduler_user_tb SET progress = :progress WHERE id = :schedulerAdminId")
+    void updateUserScheduleById(Long schedulerAdminId, Progress progress);
 }
