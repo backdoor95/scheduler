@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
@@ -309,5 +310,11 @@ public class SchedulerAdminService {
                 schedulerAdminRepository.countScheduleGroupByProgressById(id));
 
         return schedulerAdminResponse;
+    }
+
+    @Transactional
+    public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
+
+        schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
     }
 }
