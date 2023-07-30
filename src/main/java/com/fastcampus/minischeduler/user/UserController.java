@@ -20,6 +20,8 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.awt.*;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -121,20 +123,25 @@ public class UserController {
             UpdateUserInfoDTO updateUserInfoDTO,
             Errors errors
     ) {
-        if (errors.hasErrors()) return null;
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        try {
+            if (errors.hasErrors()) return null;
 
-        // mypage update 작성자 id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+            // mypage update 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            }
+
+            User userPS = userService.updateUserInfo(updateUserInfoDTO, id);
+            // user 객체를 이용한 작업 수행
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 사진 저장 실패");
         }
-
-        User userPS = userService.updateUserInfo(updateUserInfoDTO, id);
-        // user 객체를 이용한 작업 수행
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
-
-        return ResponseEntity.ok(responseDTO);
     }
 
     // DB 데이터 엑셀 다운로드 테스트 중.
@@ -147,4 +154,8 @@ public class UserController {
     public void excelDownload() throws Exception {
         userService.excelDownload();
     }
+
+
+
+
 }

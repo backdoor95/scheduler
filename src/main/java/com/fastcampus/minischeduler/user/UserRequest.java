@@ -1,7 +1,9 @@
 package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
+
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.constraints.*;
 
@@ -75,8 +77,7 @@ public class UserRequest {
         )
         private String password;
 
-        private String profileImage;
+        private MultipartFile profileImage;
 
-        private String updateDate;
     }
 }
