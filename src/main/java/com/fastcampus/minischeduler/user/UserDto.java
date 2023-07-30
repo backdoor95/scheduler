@@ -5,14 +5,22 @@ import lombok.Data;
 @Data
 public class UserDto {
     private Long id;
-    private String fullname;
+    private String fullName;
     private int sizeOfTicket;
     private Role role;
+    private String profileImage;
 
-    public UserDto(Long id, String fullname, int sizeOfTicket, Role role){
+    public UserDto(
+            Long id,
+            String fullName,
+            int sizeOfTicket,
+            Role role,
+            String profileImage
+    ){
         this.id = id;
-        this.fullname = fullname;
+        this.fullName = fullName;
         this.sizeOfTicket = sizeOfTicket;
         this.role = role;
+        this.profileImage = profileImage;
     }
 }

@@ -21,7 +21,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 20)
+    @Column(unique = true, nullable = false, length = 30)
     private String email;
 
     @Column(nullable = false, length = 120)
@@ -99,6 +99,4 @@ public class User {
         this.profileImage = profileImage;
         onUpdate();
     }
-
-
 }

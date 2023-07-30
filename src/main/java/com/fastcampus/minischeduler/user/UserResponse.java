@@ -2,13 +2,11 @@ package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
 public class UserResponse {
 
-//    @Setter
     @Getter
     public static class JoinDTO {
         private Long id;
@@ -25,7 +23,6 @@ public class UserResponse {
     }
 
     @Getter
-//    @Setter
     public static class DetailOutDTO{
         private Long id;
         private String email;

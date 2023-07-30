@@ -3,8 +3,10 @@ package com.fastcampus.minischeduler.scheduleruser;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
-import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponseDto;
+import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRequest.SchedulerUserRequestDto;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +20,34 @@ import java.util.Map;
 @RequestMapping("/user")
 @RequiredArgsConstructor
 public class SchedulerUserController {
+
     private final SchedulerUserService schedulerUserService;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 전체 일정 조회(메인) : 모든 기획사의 일정과 본인이 신청한 일정이 나옴
+     * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
+     * 본인이 신청한 날짜기준으로 year와 month에 부합하는 일정만 나옴
+     * year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/schedule")
-    public ResponseEntity<Map<String, Object>> schedulerList(@RequestHeader(JwtTokenProvider.HEADER) String token) {
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-        List<SchedulerUserResponseDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+    public ResponseEntity<Map<String, Object>> schedulerList(
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+        List<SchedulerUserResponseDto> schedulerUserDtoList;
 
+        if(year != null && month != null){
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
+            schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(token, year, month);
+        }
+        else {
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
+            schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+        }
         Map<String, Object> response = new HashMap<>();
         response.put("schedulerAdmin", schedulerAdminResponseDtoList);
         response.put("schedulerUser", schedulerUserDtoList);
@@ -39,14 +57,30 @@ public class SchedulerUserController {
     /**
      * 기획사 검색: 기획사의 이름으로 검색. 검색 내용과 본인의 스케줄이 나옴
      * 정확히 일치하지 않더라도 keyword가 fullname에 포함되어있으면 출력
+     * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
+     * 본인이 신청한 날짜기준으로 year와 month에 부합하는 일정만 나옴
+     * year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/schedule/search")
-    public ResponseEntity<Map<String, Object>> searchSchedulerList(@RequestParam String keyword, @RequestHeader(JwtTokenProvider.HEADER) String token) {
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullname = schedulerAdminService.getSchedulerByFullname(keyword);
-        List<SchedulerUserResponseDto> schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+    public ResponseEntity<Map<String, Object>> searchSchedulerList(
+            @RequestParam String keyword,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
+    ) {
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
+                = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
+        List<SchedulerUserResponseDto> schedulerUserDtoList;
+
+        if(year != null && month != null){
+            schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(token, year, month);
+        }
+        else {
+            schedulerUserDtoList = schedulerUserService.getSchedulerUserList(token);
+        }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullname);
+        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
         response.put("schedulerUser", schedulerUserDtoList);
         return ResponseEntity.ok(response);
     }
@@ -73,7 +107,13 @@ public class SchedulerUserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
-        if(userTicketCount > 1 && !schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())){
+        if(
+                userTicketCount > 1 &&
+                !schedulerUserService.existingSchedulerInCurrentMonth(
+                        loginUserId,
+                        schedulerUserDto.getScheduleStart()
+                )
+        ){
             return ResponseEntity.ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, token));
         }
         else {

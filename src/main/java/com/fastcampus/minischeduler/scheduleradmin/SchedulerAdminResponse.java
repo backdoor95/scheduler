@@ -2,57 +2,82 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.List;
 
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SchedulerAdminResponse {
 
-    @Getter
-    public static class scheduleDTO {
+    private List<ScheduleDTO> scheduleDto;
+    private CountProcessDTO countProcessDto;
 
-        // admin 공연 일정
+    public interface ScheduleDTO {
+
+        // admin 공연 일정 데이터
+        Long getAdminScheduleId(); // join null
+        String getTitle(); // join
+        String getDescription(); // join
+
+        // user 티케팅 승인대기 일정 데이터
+        Long getUserScheduleId(); // from null
+        String getFullName(); // join null
+        Progress getProgress(); // from
+        LocalDateTime getScheduleStart(); // from null
+    }
+
+    public interface CountProcessDTO {
+
+        // 승인 현황 별 count
+        Integer getWaiting();
+        Integer getAccepted();
+        Integer getRefused();
+    }
+
+    @Data
+    public static class SchedulerAdminResponseDto {
+
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
-        private User user;
+        private UserDto user;
 
-        @JsonIgnoreProperties({"hibernateLazyInitializer"})
-        private SchedulerAdmin schedulerAdmin;
-
-//        private String title;
-//        private String description;
-//        private String image;
-//
-//        private LocalDateTime scheduleStart;
-//        private LocalDateTime scheduleEnd;
-//
-//        private Progress progress;
-//
-//        private LocalDateTime createdAt;
-//        private LocalDateTime updatedAt;
-//
-//        // user 티케팅 승인대기 일정
-//
-//        private LocalDateTime scheduleStart;
-//        private LocalDateTime createdAt;
+        private LocalDateTime scheduleStart;
+        private LocalDateTime scheduleEnd;
+        private String title;
+        private String description;
+        private String image;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
 
         @Builder
-        public scheduleDTO(
+        public SchedulerAdminResponseDto(
                 User user,
-                SchedulerAdmin schedulerAdmin
-//                LocalDateTime scheduleStart,
-//                Progress progress,
-//                LocalDateTime createdAt
+                LocalDateTime scheduleStart,
+                LocalDateTime scheduleEnd,
+                String title,
+                String description,
+                String image,
+                LocalDateTime createdAt,
+                LocalDateTime updatedAt
         ){
-            this.user = user;
-            this.schedulerAdmin = schedulerAdmin;
-//            this.scheduleStart = scheduleStart;
-//            this.progress = progress;
-//            this.createdAt = createdAt;
+            this.user = new UserDto(
+                    user.getId(),
+                    user.getFullName(),
+                    user.getSizeOfTicket(),
+                    user.getRole(),
+                    user.getProfileImage()
+            );
+            this.scheduleStart = scheduleStart;
+            this.scheduleEnd = scheduleEnd;
+            this.title = title;
+            this.description = description;
+            this.image = image;
+            this.createdAt = createdAt;
+            this.updatedAt = updatedAt;
         }
     }
 }
