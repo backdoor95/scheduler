@@ -42,6 +42,7 @@ public class User {
     private String fullName;
 
     @Column
+    @Builder.Default
     private Integer usedTicket = 0;
 
     @Column(nullable = false)
