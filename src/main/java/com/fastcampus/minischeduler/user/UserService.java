@@ -5,6 +5,8 @@ import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRequest;
 import com.fastcampus.minischeduler.user.UserRequest.*;
 import com.fastcampus.minischeduler.user.UserResponse.*;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 
 import org.springframework.dao.DataAccessException;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,12 +33,7 @@ import javax.persistence.metamodel.EntityType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Optional;
-import java.util.List;
-import java.util.NoSuchElementException;
-
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -47,6 +45,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    private final SchedulerUserRepository schedulerUserRepository;
 
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
@@ -64,8 +64,13 @@ public class UserService {
 
         // 비밀번호 인코딩
         joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
+
         // 회원 가입
         User userPS = userRepository.save(joinDTO.toEntity());
+
+        // USER 는 티켓 제공, ADMIN 은 제공 안함
+        if (userPS.getRole().equals(Role.USER)) userPS.setSizeOfTicket(12 - Calendar.getInstance().get(Calendar.MONTH));
+        if (userPS.getRole().equals(Role.ADMIN)) userPS.setSizeOfTicket(null);
 
         return new UserResponse.JoinDTO(userPS);
     }
@@ -82,7 +87,7 @@ public class UserService {
      * @param authentication
      * @return
      */
-    @Transactional(readOnly = false)
+    @Transactional
     public String signin(Authentication authentication) {
 
         MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
@@ -111,16 +116,28 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
-        userPS.updateUserInfo(passwordEncoder.encode(updateUserInfoDTO.getPassword()), updateUserInfoDTO.getProfileImage());
+        userPS.updateUserInfo(
+                passwordEncoder.encode(updateUserInfoDTO.getPassword()),
+                updateUserInfoDTO.getProfileImage()
+        );
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
         return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }
+
+    /**
+     * 모든 사용자를 조회합니다.
+     * @return
+     */
     public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
+    /**
+     * 엑셀 파일을 다운받습니다.
+     * @throws Exception
+     */
     public void excelDownload() throws Exception {
 
         Workbook workbook = new XSSFWorkbook();
@@ -169,6 +186,7 @@ public class UserService {
         /**
          * header data
          */
+
         EntityType<?> entityType = entityManager.getMetamodel().entity(User.class); // User 테이블의 메타정보
 
         Row row = null;
@@ -224,5 +242,14 @@ public class UserService {
         // Excel File Output
         workbook.write(httpServletResponse.getOutputStream());
         workbook.close();
+    }
+
+    /**
+     * 매년 1월 1일 사용자의 티켓은 12개로 초기화 됩니다.
+     */
+    @Scheduled(cron = "0 0 0 1 1 *", zone = "Asia/Seoul")
+    public void updateTicketEveryYear() {
+        System.out.println("1월 1일이 되어 티켓을 12개로 초기화합니다.");
+        userRepository.update12TicketsOfAllFans();
     }
 }
