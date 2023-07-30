@@ -5,6 +5,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 
@@ -68,27 +69,6 @@ public class User {
     protected void onUpdateLatestLogin() {
         this.latestLogin = LocalDateTime.now();
     }
-
-//    @Builder
-//    public User(
-//            Long id,
-//            String password,
-//            String email,
-//            Integer sizeOfTicket,
-//            String profileImage,
-//            Role role,
-//            String fullName,
-//            LocalDateTime createdAt
-//    ) {
-//        this.id = id;
-//        this.password = password;
-//        this.email = email;
-//        this.sizeOfTicket = sizeOfTicket;
-//        this.profileImage = profileImage;
-//        this.role = role;
-//        this.fullName = fullName;
-//        this.createdAt = createdAt;
-//    }
 
     public void setSizeOfTicket(Integer sizeOfTicket) {
         this.sizeOfTicket = sizeOfTicket;

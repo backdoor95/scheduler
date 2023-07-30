@@ -24,4 +24,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 //            @Param("updatedAt") LocalDateTime updatedAt,
 //            @Param("id") Long id
 //    );
+
+
 }
