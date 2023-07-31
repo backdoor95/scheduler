@@ -6,17 +6,13 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
-import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception403;
-import com.fastcampus.minischeduler.core.exception.Exception404;
-import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,10 +27,8 @@ import java.util.List;
 public class SchedulerAdminController {
 
     private final SchedulerUserRepository schedulerUserRepository;
-    private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
 
     /**
      * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
@@ -152,10 +146,13 @@ public class SchedulerAdminController {
     @GetMapping("/schedule/confirm/{id}")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
             @PathVariable Long id,
-            @AuthenticationPrincipal MyUserDetails myUserDetails
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
 
-        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id));
 
@@ -175,10 +172,13 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @PathVariable Long schedulerUserId,
             @RequestParam String progress,
-            @AuthenticationPrincipal MyUserDetails myUserDetails
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         // 유효성 검사
-        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
         User fan = schedulerUser.getUser();
@@ -202,5 +202,26 @@ public class SchedulerAdminController {
         schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress);
 
         return ResponseEntity.ok(new ResponseDTO<>(message));
+    }
+
+    /**
+     * 기획사 id를 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
+     * @param id
+     * @param myUserDetails
+     * @throws Exception
+     */
+    @GetMapping("/schedule/{id}/excelDownload")
+    public void excelDownload(
+            @PathVariable Long id,
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ) throws Exception {
+
+        // 유효성 검사
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
+
+        schedulerAdminService.excelDownload(id);
     }
 }

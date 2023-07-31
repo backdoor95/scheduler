@@ -37,8 +37,8 @@ public class FilterResponseUtils {
         httpServletResponse.setStatus(e.status().value());
         httpServletResponse.setContentType("application/json; charset=utf-8");
         ResponseDTO<?> responseDto = new ResponseDTO<>(
-                HttpStatus.UNAUTHORIZED,
-                "unAuthorized",
+                HttpStatus.FORBIDDEN,
+                "forbidden",
                 e.getMessage()
         );
         ObjectMapper om = new ObjectMapper();

@@ -4,10 +4,12 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtAuthenticationFilter;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception403;
 import com.fastcampus.minischeduler.core.utils.FilterResponseUtils;
+import com.fastcampus.minischeduler.user.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -92,11 +94,11 @@ public class SecurityConfig {
 
         // 11. 인증, 권한 필터 설정
         http.authorizeRequests(
-                authorize -> authorize.antMatchers("/account/**").authenticated()
-                        .antMatchers("/user/**")
-                        .access("hasAuthority('ADMIN') or hasAuthority('USER')")
-                        .antMatchers("/admin/**").hasAuthority("ADMIN")
+                authorize -> authorize
+                        .antMatchers("/user/**").access("hasAuthority('ADMIN') or hasAuthority('USER')")
+                        .antMatchers("/admin/**").hasAuthority("ADMIN")//.hasRole("ADMIN")
                         .anyRequest().permitAll()
+
         );
 
         return http.build();

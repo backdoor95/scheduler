@@ -49,6 +49,8 @@ public class UserRequest {
 
         private String role;
 
+        private String profileImage;
+
         public void setPassword(String password) { // password 인코딩용
             this.password = password;
         }
@@ -59,10 +61,10 @@ public class UserRequest {
                     .password(password)
                     .fullName(fullName)
                     .role(Role.valueOf(role))
+                    .profileImage(profileImage)
                     .build();
         }
     }
-
 
     @Getter
     public static class UpdateUserInfoDTO {
