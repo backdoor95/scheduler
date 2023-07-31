@@ -7,11 +7,19 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.*;
 
 import javax.persistence.Column;
 import javax.persistence.EntityManager;
@@ -33,11 +41,13 @@ import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse
 @RequiredArgsConstructor
 public class SchedulerAdminService {
 
+    @Value("${file.dir}")
+    private String fileDir;
+
     @PersistenceContext
     private EntityManager entityManager;
 
     private final HttpServletResponse httpServletResponse;
-
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
@@ -113,11 +123,16 @@ public class SchedulerAdminService {
     @Transactional
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            String token
-    ){
+            String token,
+            MultipartFile file
+    ) throws IOException {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String filePath = fileDir + filename;
+        file.transferTo(new File(filePath));
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
@@ -125,7 +140,7 @@ public class SchedulerAdminService {
                 .scheduleEnd(schedulerAdminRequestDto.getScheduleEnd())
                 .title(schedulerAdminRequestDto.getTitle())
                 .description(schedulerAdminRequestDto.getDescription())
-                .image(schedulerAdminRequestDto.getImage())
+                .image(filename)
                 .build();
         SchedulerAdmin saveScheduler = schedulerAdminRepository.save(scheduler);
 
@@ -143,24 +158,39 @@ public class SchedulerAdminService {
 
     /**
      * 일정을 수정합니다.
-     * @param id, schedulerAdminRequestDto
+     * @param id, schedulerAdminRequestDto, file
      * @return id
      */
     @Transactional
     public Long updateScheduler(
             Long id,
-            SchedulerAdminRequestDto schedulerAdminRequestDto
-    ){
+            SchedulerAdminRequestDto schedulerAdminRequestDto,
+            MultipartFile file
+    ) throws IOException {
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
         );
-        scheduler.update(
-                schedulerAdminRequestDto.getScheduleStart(),
-                schedulerAdminRequestDto.getScheduleEnd(),
-                schedulerAdminRequestDto.getTitle(),
-                schedulerAdminRequestDto.getDescription(),
-                schedulerAdminRequestDto.getImage()
-        );
+        if(file != null && !file.isEmpty()){
+            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String filePath = fileDir + filename;
+            file.transferTo(new File(filePath));
+            scheduler.update(
+                    schedulerAdminRequestDto.getScheduleStart(),
+                    schedulerAdminRequestDto.getScheduleEnd(),
+                    schedulerAdminRequestDto.getTitle(),
+                    schedulerAdminRequestDto.getDescription(),
+                    filename
+            );
+        }
+        else {
+            scheduler.update(
+                    schedulerAdminRequestDto.getScheduleStart(),
+                    schedulerAdminRequestDto.getScheduleEnd(),
+                    schedulerAdminRequestDto.getTitle(),
+                    schedulerAdminRequestDto.getDescription(),
+                    scheduler.getImage()
+            );
+        }
         return id;
     }
 
@@ -188,6 +218,16 @@ public class SchedulerAdminService {
                int ticket = user.getSizeOfTicket();
                user.setSizeOfTicket(ticket+1);
                userRepository.save(user);
+           }
+       }
+
+       //글 삭제시 local에 저장된 image파일도 같이 삭제
+       String image = schedulerAdmin.getImage();
+       if(image != null && !image.isEmpty()){
+           String filePath = fileDir + image;
+           File imgeFile = new File(filePath);
+           if(imgeFile.exists()){
+               imgeFile.delete();
            }
        }
 
@@ -284,16 +324,40 @@ public class SchedulerAdminService {
 
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
-     * @param token
-     * @return List<SchedulerAdminResponseDto>
+     * year와 month가 null이 아니면 각 년도와 달에 부합한 스케줄도 같이 전달합니다.
+     * @param token, year, month
+     * @return Map<String, Object>
      */
-    public List<SchedulerAdminResponseDto> getSchedulerListById(String token) {
-
+    public Map<String, Object> getSchedulerListById(String token, Integer year, Integer month) {
+        Map<String, Object> response = new HashMap<>();
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         List<SchedulerAdmin> schedulerAdmins = schedulerAdminRepository.findByUser(user);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListByYearAndMonth = new ArrayList<>();
+        if(year != null && month != null){
+            YearMonth yearMonth = YearMonth.of(year, month);
+            for(SchedulerAdmin schedulerAdmin : schedulerAdmins){
+                LocalDateTime scheduleStart = schedulerAdmin.getScheduleStart();
+                YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+                if(yearMonth.equals(scheduleYearMonth)){
+                    SchedulerAdminResponseDto schedulerAdminResponseDto =
+                            SchedulerAdminResponseDto.builder()
+                                    .user(schedulerAdmin.getUser())
+                                    .scheduleStart(schedulerAdmin.getScheduleStart())
+                                    .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                                    .title(schedulerAdmin.getTitle())
+                                    .description(schedulerAdmin.getDescription())
+                                    .image(schedulerAdmin.getImage())
+                                    .createdAt(schedulerAdmin.getCreatedAt())
+                                    .updatedAt(schedulerAdmin.getUpdatedAt())
+                                    .build();
+                    schedulerAdminResponseDtoListByYearAndMonth.add(schedulerAdminResponseDto);
+                }
+            }
+            response.put("schedulerAdminListByYearAndMonth", schedulerAdminResponseDtoListByYearAndMonth);
+        }
 
         for(SchedulerAdmin schedulerAdmin : schedulerAdmins){
             SchedulerAdminResponseDto schedulerAdminResponseDto =
@@ -309,7 +373,8 @@ public class SchedulerAdminService {
                             .build();
             schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
-        return schedulerAdminResponseDtoList;
+        response.put("schedulerAdminList", schedulerAdminResponseDtoList);
+        return response;
     }
 
     /**
@@ -330,7 +395,6 @@ public class SchedulerAdminService {
 
     @Transactional
     public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
-
         schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
     }
 

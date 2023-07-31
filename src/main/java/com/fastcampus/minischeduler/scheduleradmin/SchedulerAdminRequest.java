@@ -2,8 +2,10 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -42,6 +44,10 @@ public class SchedulerAdminRequest {
             this.image = image;
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
+        }
+
+        public SchedulerAdminRequestDto() {
+
         }
     }
 }
