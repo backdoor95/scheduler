@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.core.advice;
 
-import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;

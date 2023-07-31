@@ -8,6 +8,9 @@ import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +21,19 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 
+import javax.persistence.Column;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.metamodel.EntityType;
+import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+
 import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
 import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 
@@ -27,6 +43,11 @@ public class SchedulerAdminService {
 
     @Value("${file.dir}")
     private String fileDir;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    private final HttpServletResponse httpServletResponse;
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
@@ -375,5 +396,143 @@ public class SchedulerAdminService {
     @Transactional
     public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
         schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
+    }
+
+    /**
+     * 엑셀 파일을 다운받습니다.
+     * @throws Exception
+     */
+    public void excelDownload(Long adminId) throws Exception {
+
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("티케팅 현황"); // 엑셀 시트 생성
+        sheet.setDefaultColumnWidth(28); // 디폴트 너비 설정
+
+        /**
+         * header font style
+         */
+        XSSFFont headerXSSFFont = (XSSFFont) workbook.createFont();
+        headerXSSFFont.setColor(new XSSFColor(
+                new byte[]{(byte) 255, (byte) 255, (byte) 255},
+                new DefaultIndexedColorMap()
+        ));
+
+        /**
+         * header cell style
+         */
+        XSSFCellStyle headerXssfCellStyle = (XSSFCellStyle) workbook.createCellStyle();
+
+        // 테두리 설정
+        headerXssfCellStyle.setBorderLeft(BorderStyle.THIN);
+        headerXssfCellStyle.setBorderRight(BorderStyle.THIN);
+        headerXssfCellStyle.setBorderTop(BorderStyle.THIN);
+        headerXssfCellStyle.setBorderBottom(BorderStyle.THIN);
+
+        // 셀 배경 설정
+        headerXssfCellStyle.setFillForegroundColor(new XSSFColor(
+                new byte[]{(byte) 108, (byte) 39, (byte) 255},
+                new DefaultIndexedColorMap()
+        ));
+        headerXssfCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerXssfCellStyle.setFont(headerXSSFFont);
+
+        /**
+         * body cell style
+         */
+        XSSFCellStyle bodyXssfCellStyle = (XSSFCellStyle) workbook.createCellStyle();
+
+        // 테두리 설정
+        bodyXssfCellStyle.setBorderLeft(BorderStyle.THIN);
+        bodyXssfCellStyle.setBorderRight(BorderStyle.THIN);
+        bodyXssfCellStyle.setBorderTop(BorderStyle.THIN);
+        bodyXssfCellStyle.setBorderBottom(BorderStyle.THIN);
+
+        /**
+         * header data
+         */
+        EntityType<?> entityType = entityManager.getMetamodel().entity(SchedulerUser.class); // User 테이블의 메타정보
+        Row row = null;
+        Cell cell = null;
+        int numberOfRow = 0;
+
+        // Header
+        List<Field> fields = Arrays.asList(SchedulerUser.class.getDeclaredFields());
+        fields.sort(Comparator.comparingInt(
+                field -> {
+                    Column column = field.getAnnotation(Column.class);
+                    if (column != null) {
+                        return column.columnDefinition().length();
+                    } else {
+                        return 0;
+                    }
+                }));
+
+        row = sheet.createRow(numberOfRow++); // 행 추가
+
+        int index = 0;
+        for (Field field : fields) {
+            String fieldName = field.getName();
+
+            cell = row.createCell(index);
+            cell.setCellValue(fieldName);
+            cell.setCellStyle(headerXssfCellStyle);
+            index++;
+        }
+
+        // Body
+        for (SchedulerUser schedulerUser : getAllTicketsOfThisAdmin(adminId)) {
+            row = sheet.createRow(numberOfRow++); // 행 추가
+            index = 0;
+            for (Field field : schedulerUser.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+
+                cell = row.createCell(index); // 열 추가
+                if (field.get(schedulerUser) == null) cell.setCellValue("null");
+                if (field.get(schedulerUser) != null) { // 데이터 추가
+                    if (field.getName().equals("user")) {
+                        User user = (User)field.get(schedulerUser);
+                        cell.setCellValue(
+                                user.getFullName() + " " + user.getEmail()
+                        );
+                    } else if (field.getName().equals("schedulerAdmin")) {
+                        SchedulerAdmin schedulerAdmin = (SchedulerAdmin)field.get(schedulerUser);
+                        cell.setCellValue(
+                                "행사번호: " + schedulerAdmin.getId() +
+                                "제목: " + schedulerAdmin.getTitle() +
+                                " 기간: " + schedulerAdmin.getScheduleStart() +
+                                "~ " + schedulerAdmin.getScheduleEnd()
+                        );
+                    } else {
+                        cell.setCellValue(field.get(schedulerUser).toString());
+                    }
+                }
+                cell.setCellStyle(bodyXssfCellStyle); // 바디 스타일 추가
+                index++;
+            }
+        }
+
+        // 컨텐츠 타입과 파일명 지정
+        httpServletResponse.setContentType("ms-vnd/excel");
+        httpServletResponse.setHeader(
+                "Content-Disposition",
+                "attachment;filename=" + entityType.getName() + ".xlsx"
+        );
+
+        // Excel File Output
+        workbook.write(httpServletResponse.getOutputStream());
+        workbook.close();
+    }
+
+    /**
+     * 매년 1월 1일 사용자의 티켓은 12개로 초기화 됩니다.
+     */
+    @Scheduled(cron = "0 0 0 1 1 *", zone = "Asia/Seoul")
+    public void updateTicketEveryYear() {
+        System.out.println("1월 1일이 되어 티켓을 12개로 초기화합니다.");
+        userRepository.update12TicketsOfAllFans();
+    }
+
+    public List<SchedulerUser> getAllTicketsOfThisAdmin(Long id) {
+        return schedulerAdminRepository.findAllTicketsByAdminId(id);
     }
 }

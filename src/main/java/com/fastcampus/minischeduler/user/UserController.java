@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
@@ -135,16 +135,5 @@ public class UserController {
         ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
 
         return ResponseEntity.ok(responseDTO);
-    }
-
-    // DB 데이터 엑셀 다운로드 테스트 중.
-    @GetMapping("/excel")
-    public String download() {
-        return "/exceldown";
-    }
-
-    @GetMapping("/excel/download")
-    public void excelDownload() throws Exception {
-        userService.excelDownload();
     }
 }

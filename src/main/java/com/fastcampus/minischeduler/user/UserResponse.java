@@ -14,12 +14,14 @@ public class UserResponse {
         private String email;
         private String fullName;
         private Role role;
+        private String profileImage;
 
         public JoinDTO(User user) {
             this.id = user.getId();
             this.email = user.getEmail();
             this.fullName = user.getFullName();
             this.role = user.getRole();
+            this.profileImage = user.getProfileImage();
         }
     }
 
@@ -82,5 +84,9 @@ public class UserResponse {
             this.role = role;
             this.profileImage = profileImage;
         }
+    }
+
+    public static class ExcelDto {
+
     }
 }
