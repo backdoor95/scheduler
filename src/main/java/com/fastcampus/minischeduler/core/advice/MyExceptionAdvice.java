@@ -8,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -56,5 +58,20 @@ public class MyExceptionAdvice {
                 );
 
         return new ResponseEntity<>(apiResult, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<?> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
+        String key = e.getName();
+        Exception400 badRequestException = new Exception400(key, "유효하지 않은 입력값입니다.");
+        return ResponseEntity.status(badRequestException.status()).body(badRequestException.body());
+    }
+
+    @ExceptionHandler(MissingPathVariableException.class)
+    public ResponseEntity<?> handleMissingPathVariableException(MissingPathVariableException e) {
+        String variableName = e.getVariableName();
+        String message = "경로 변수가 누락되었습니다 : " + variableName;
+        Exception400 badRequestException = new Exception400(variableName, message);
+        return ResponseEntity.status(badRequestException.status()).body(badRequestException.body());
     }
 }

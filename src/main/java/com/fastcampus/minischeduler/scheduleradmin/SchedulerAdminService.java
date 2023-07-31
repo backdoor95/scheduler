@@ -374,7 +374,6 @@ public class SchedulerAdminService {
 
     @Transactional
     public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
-
         schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
     }
 }

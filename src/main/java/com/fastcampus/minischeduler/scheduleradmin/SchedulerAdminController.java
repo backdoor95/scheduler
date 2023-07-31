@@ -19,8 +19,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.util.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -28,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -56,24 +60,22 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
-        try {
-            DecodedJWT decodedJWT =
-                    jwtTokenProvider.verify(token.replace(
-                            JwtTokenProvider.TOKEN_PREFIX,
-                            "")
-                    );
-            List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
-            if(year != null && month != null){
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
-            }
-            else {
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-            }
-            return ResponseEntity.ok(schedulerAdminResponseDtoList);
-        } catch (SignatureVerificationException | TokenExpiredException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
         }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
+        if(year != null && month != null){
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
+        }
+        else {
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
+        }
+        return ResponseEntity.ok(schedulerAdminResponseDtoList);
     }
 
     /**
@@ -86,6 +88,13 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
+        }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
         return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
     }
 
@@ -93,8 +102,20 @@ public class SchedulerAdminController {
      * 공연 상세보기 : 공연의 정보를 상세하게 봄
      */
     @GetMapping("/schedule/{id}")
-    public SchedulerAdmin scheduleDetail(@PathVariable Long id){
-        return schedulerAdminService.getSchedulerAdminById(id);
+    public ResponseEntity<SchedulerAdmin> scheduleDetail(@PathVariable Long id){
+        try {
+            if(id == null || id <=0){
+                throw new Exception400("id", "유효하지 않은 id값입니다.");
+            }
+            SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
+            if(schedulerAdmin == null){
+                throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
+            }
+            return ResponseEntity.ok(schedulerAdmin);
+        } catch (NullPointerException e){
+            throw new Exception400("id", "유효하지 않은 id값입니다.");
+        }
+
     }
 
     /**
@@ -109,9 +130,23 @@ public class SchedulerAdminController {
             @RequestParam("title") String title,
             @RequestParam("description") String description
     ) throws IOException {
+        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+            throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
+        }
+        if(StringUtils.isEmpty(title)){
+            throw new Exception400("title", "제목이 비어있습니다.");
+        }
+        LocalDateTime start, end;
+        try {
+            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (DateTimeParseException e){
+            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
+        }
+
         SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
-        schedulerAdminRequestDto.setScheduleStart(LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
-        schedulerAdminRequestDto.setScheduleEnd(LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+        schedulerAdminRequestDto.setScheduleStart(start);
+        schedulerAdminRequestDto.setScheduleEnd(end);
         schedulerAdminRequestDto.setTitle(title);
         schedulerAdminRequestDto.setDescription(description);
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, file));
@@ -129,7 +164,7 @@ public class SchedulerAdminController {
         } catch (FileNotFoundException e) {
             throw new Exception401("파일을 찾을수 없습니다");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("이미지를 읽는 도중 오류가 발생했습니다", e);
         }
     }
 
@@ -141,9 +176,14 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
-
-        schedulerAdminService.delete(id, token);
-
+        try {
+            if(id == null || id <=0){
+                throw new Exception400("id", "유효하지 않은 id값입니다.");
+            }
+            schedulerAdminService.delete(id, token);
+        }catch (NullPointerException e){
+            throw new Exception400("id", "유효하지 않은 id값입니다.");
+        }
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
@@ -167,12 +207,26 @@ public class SchedulerAdminController {
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
         if(!schedulerDto.getUser().getId().equals(loginUserId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            throw new Exception401("권한이 존재하지 않습니다."); //권한없음
+        }
+
+        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+            throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
+        }
+        if(StringUtils.isEmpty(title)){
+            throw new Exception400("title", "제목이 비어있습니다.");
+        }
+        LocalDateTime start, end;
+        try {
+            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (DateTimeParseException e){
+            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
         }
 
         SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
-        schedulerAdminRequestDto.setScheduleStart(LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
-        schedulerAdminRequestDto.setScheduleEnd(LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+        schedulerAdminRequestDto.setScheduleStart(start);
+        schedulerAdminRequestDto.setScheduleEnd(end);
         schedulerAdminRequestDto.setTitle(title);
         schedulerAdminRequestDto.setDescription(description);
 
@@ -193,9 +247,15 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
+        }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
-
         return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
 
