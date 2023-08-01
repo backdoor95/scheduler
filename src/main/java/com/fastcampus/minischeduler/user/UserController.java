@@ -91,13 +91,7 @@ public class UserController {
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
-        getUserInfoDTO.setEmail(aes256Utils.decryptAES256(getUserInfoDTO.getEmail()));
-        getUserInfoDTO.setFullName(aes256Utils.decryptAES256(getUserInfoDTO.getFullName()));
-
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
     }
 
     @GetMapping("/mypage/update/{id}")
@@ -111,11 +105,7 @@ public class UserController {
         // mypage id와 로그인한 사용자 id비교
         if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
 
-        GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(id);
-        getUserInfoDTO.setEmail(aes256Utils.decryptAES256(getUserInfoDTO.getEmail()));
-        getUserInfoDTO.setFullName(aes256Utils.decryptAES256(getUserInfoDTO.getFullName()));
-
-        return ResponseEntity.ok(new ResponseDTO<>(getUserInfoDTO));
+        return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(id)));
     }
 
     @PostMapping("/mypage/update/{id}")
@@ -130,7 +120,7 @@ public class UserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage update 작성자 id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
 
         return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
     }
