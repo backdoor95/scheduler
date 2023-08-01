@@ -1,9 +1,0 @@
-logging:
-  level:
-    '[com.fastcampus.minischeduler]': DEBUG
-    '[org.hibernate.type]': TRACE
-    org:
-      hibernate:
-        type:
-          descriptor:
-            sql: trace
