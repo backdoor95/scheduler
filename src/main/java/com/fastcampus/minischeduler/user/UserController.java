@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class UserController {
             @RequestBody
             @Valid
             UserRequest.JoinDTO joinRequestDTO
-    ) {
+    ) throws Exception {
         // 유효성 검사
         if (userRepository.findByEmail(joinRequestDTO.getEmail()).isPresent())
             throw new Exception400("email", "이미 존재하는 이메일입니다."); // 중복 계정 검사

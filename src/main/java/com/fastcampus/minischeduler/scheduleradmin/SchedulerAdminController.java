@@ -201,7 +201,7 @@ public class SchedulerAdminController {
 
         schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress);
 
-        return ResponseEntity.ok(new ResponseDTO<>(message));
+        return ResponseEntity.ok(message);
     }
 
     /**
@@ -211,7 +211,7 @@ public class SchedulerAdminController {
      * @throws Exception
      */
     @GetMapping("/schedule/{id}/excelDownload")
-    public void excelDownload(
+    public ResponseEntity<String> excelDownload(
             @PathVariable Long id,
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
@@ -223,5 +223,7 @@ public class SchedulerAdminController {
         if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         schedulerAdminService.excelDownload(id);
+
+        return ResponseEntity.ok("다운로드 완료");
     }
 }

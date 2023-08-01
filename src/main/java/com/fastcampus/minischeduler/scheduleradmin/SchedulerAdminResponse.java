@@ -2,6 +2,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
 import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -16,6 +17,7 @@ public class SchedulerAdminResponse {
 
     private List<ScheduleDTO> scheduleDto;
     private CountProcessDTO countProcessDto;
+    private UserResponse.GetUserInfoDTO userInfoDTO;
 
     public interface ScheduleDTO {
 

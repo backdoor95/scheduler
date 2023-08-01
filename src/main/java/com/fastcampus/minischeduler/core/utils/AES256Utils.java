@@ -1,10 +1,14 @@
 package com.fastcampus.minischeduler.core.utils;
 
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
+@Component
 public class AES256Utils {
     public static String alg = "AES/CBC/PKCS5Padding";
     private final String key = "aeskey12345678987654321asekey987"; // 32byte

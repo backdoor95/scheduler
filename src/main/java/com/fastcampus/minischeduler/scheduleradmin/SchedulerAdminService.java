@@ -6,6 +6,8 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
+import com.fastcampus.minischeduler.user.UserResponse;
+import com.fastcampus.minischeduler.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
@@ -37,6 +39,7 @@ public class SchedulerAdminService {
     private EntityManager entityManager;
 
     private final HttpServletResponse httpServletResponse;
+    private final UserService userService; //
 
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
@@ -323,7 +326,9 @@ public class SchedulerAdminService {
 
         SchedulerAdminResponse schedulerAdminResponse = new SchedulerAdminResponse(
                 schedulerAdminRepository.findSchedulesWithUsersById(id),
-                schedulerAdminRepository.countScheduleGroupByProgressById(id));
+                schedulerAdminRepository.countScheduleGroupByProgressById(id),
+                userService.getUserInfo(id)
+        );
 
         return schedulerAdminResponse;
     }
@@ -386,7 +391,7 @@ public class SchedulerAdminService {
         /**
          * header data
          */
-        EntityType<?> entityType = entityManager.getMetamodel().entity(SchedulerUser.class); // User 테이블의 메타정보
+        EntityType<?> entityType = entityManager.getMetamodel().entity(SchedulerUser.class); // SchedulerUser 테이블의 메타정보
         Row row = null;
         Cell cell = null;
         int numberOfRow = 0;
