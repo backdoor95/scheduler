@@ -39,4 +39,4 @@ out/
 .vscode/
 
 ###
-application-awsIgnoreTest.yml
+src/main/resources/application-awsIgnoreTest2.yml
