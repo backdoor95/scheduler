@@ -41,3 +41,5 @@ out/
 ### yml file ###
 src/main/resources/application-awsIgnoreTest2.yml
 src/main/resources/application-test3.yml
+src/main/resources/application-test3.yml
+src/main/resources/application-aws.yml

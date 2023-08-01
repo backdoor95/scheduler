@@ -50,6 +50,11 @@ spring:
     mode: HTML
     check-template-location: true
     cache: false
-
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  profiles:
+    active: aws
 file:
   dir: /Users/kilminjun/mini/scheduler/src/main/resources/static/asset/upload/
