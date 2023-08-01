@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.scheduleruser;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRepository;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
@@ -18,10 +19,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class SchedulerUserService {
+
     private final SchedulerUserRepository schedulerUserRepository;
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AES256Utils aes256Utils;
 
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
@@ -29,7 +32,7 @@ public class SchedulerUserService {
      * @return List<SchedulerUserResponseDto>
      */
     @Transactional
-    public List<SchedulerUserResponseDto> getSchedulerUserList(String token){
+    public List<SchedulerUserResponseDto> getSchedulerUserList(String token) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
@@ -39,9 +42,14 @@ public class SchedulerUserService {
         List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for(SchedulerUser schedulerUser : schedulerUsers){
+
+            User responseUser = schedulerUser.getUser();
+            responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+            responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
             SchedulerUserResponseDto schedulerUserDto =
                     SchedulerUserResponseDto.builder()
-                            .user(schedulerUser.getUser())
+                            .user(responseUser)
                             .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                             .scheduleStart(schedulerUser.getScheduleStart())
                             .progress(schedulerUser.getProgress())
@@ -61,7 +69,8 @@ public class SchedulerUserService {
             String token,
             Integer year,
             Integer month
-    ) {
+    ) throws Exception {
+
         YearMonth yearMonth = YearMonth.of(year, month);
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
@@ -74,10 +83,14 @@ public class SchedulerUserService {
             LocalDateTime scheduleStart = schedulerUser.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
 
+            User responseUser = schedulerUser.getUser();
+            responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+            responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
             if(yearMonth.equals(scheduleYearMonth)){
                 SchedulerUserResponseDto schedulerUserDto =
                         SchedulerUserResponseDto.builder()
-                                .user(schedulerUser.getUser())
+                                .user(responseUser)
                                 .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                                 .scheduleStart(schedulerUser.getScheduleStart())
                                 .progress(schedulerUser.getProgress())
@@ -99,7 +112,7 @@ public class SchedulerUserService {
             Long schedulerAdminId,
             SchedulerUserRequest.SchedulerUserRequestDto schedulerUserRequestDto,
             String token
-    ){
+    ) throws Exception {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
@@ -118,8 +131,12 @@ public class SchedulerUserService {
                 .build();
         SchedulerUser saveSchedulerUser = schedulerUserRepository.save(schedulerUser);
 
+        User responseUser = saveSchedulerUser.getUser();
+        responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+        responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+
         return SchedulerUserResponseDto.builder()
-                .user(saveSchedulerUser.getUser())
+                .user(responseUser)
                 .schedulerAdmin(saveSchedulerUser.getSchedulerAdmin())
                 .scheduleStart(saveSchedulerUser.getScheduleStart())
                 .progress(saveSchedulerUser.getProgress())

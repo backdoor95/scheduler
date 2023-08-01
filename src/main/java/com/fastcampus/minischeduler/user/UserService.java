@@ -39,9 +39,6 @@ public class UserService {
     @Transactional
     public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) throws Exception {
 
-        String email = joinDTO.getEmail();
-        String fullName = joinDTO.getFullName();
-
         // 인코딩
         joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
         joinDTO.setEmail(aes256Utils.encryptAES256(joinDTO.getEmail()));
@@ -53,10 +50,6 @@ public class UserService {
         // USER 는 티켓 제공, ADMIN 은 제공 안함
         if (userPS.getRole().equals(Role.USER)) userPS.setSizeOfTicket(12 - Calendar.getInstance().get(Calendar.MONTH));
         if (userPS.getRole().equals(Role.ADMIN)) userPS.setSizeOfTicket(null);
-
-        // 복호화
-        userPS.setEmail(email);
-        userPS.setFullName(fullName);
 
         return new UserResponse.JoinDTO(userPS);
     }

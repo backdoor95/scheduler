@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.core.utils;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -10,9 +11,17 @@ import java.util.Base64;
 
 @Component
 public class AES256Utils {
-    public static String alg = "AES/CBC/PKCS5Padding";
-    private final String key = "aeskey12345678987654321asekey987"; // 32byte
-    private String iv = "aesiv12345678912"; // 16byte
+
+    @Value("${my-env.aes256.key}")
+    private String key; // 32byte
+    @Value("${my-env.aes256.iv}")
+    private String iv; // 16byte
+
+    public static String alg;
+    @Value("${my-env.aes256.alg}")
+    public void setAlg(String alg) {
+        this.alg = alg;
+    }
 
     // 암호화
     public String encryptAES256(String text) throws Exception {

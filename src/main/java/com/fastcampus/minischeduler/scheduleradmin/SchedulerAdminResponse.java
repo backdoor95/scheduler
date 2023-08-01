@@ -29,6 +29,7 @@ public class SchedulerAdminResponse {
         // user 티케팅 승인대기 일정 데이터
         Long getUserScheduleId(); // from null
         String getFullName(); // join null
+        String setFullName(String fullName);
         Progress getProgress(); // from
         LocalDateTime getScheduleStart(); // from null
     }

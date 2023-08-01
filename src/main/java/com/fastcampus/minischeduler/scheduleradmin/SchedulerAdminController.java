@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.*;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
@@ -29,6 +30,7 @@ public class SchedulerAdminController {
     private final SchedulerUserRepository schedulerUserRepository;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AES256Utils aes256Utils;
 
     /**
      * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
@@ -40,7 +42,7 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ){
+    ) throws Exception {
         try {
             DecodedJWT decodedJWT =
                     jwtTokenProvider.verify(token.replace(
@@ -58,7 +60,7 @@ public class SchedulerAdminController {
             return ResponseEntity.ok(schedulerAdminResponseDtoList);
         } catch (SignatureVerificationException | TokenExpiredException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        } // 이 캐치문이 언제 발동되는지 알면 예외처리를 미뤄서 한 곳에서 처리 할 수 있음
+        }
     }
 
     // TODO : year랑 month 받아서 넘겨주는거 하나랑 상관없이 넘겨주는거 하나 총 두개를 넘겨줘야되는지 확인하기
@@ -68,7 +70,7 @@ public class SchedulerAdminController {
     @GetMapping("/schedule")
     public ResponseEntity<List<SchedulerAdminResponseDto>> getSchedulerList(
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
         return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token));
     }
 
@@ -79,7 +81,7 @@ public class SchedulerAdminController {
     public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
             @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto ,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token));
     }
 
@@ -90,7 +92,7 @@ public class SchedulerAdminController {
     public ResponseEntity<String> deleteScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
 
         schedulerAdminService.delete(id, token);
 
@@ -105,7 +107,7 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
         //스케줄 조회
         SchedulerAdminResponseDto schedulerDto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
@@ -132,7 +134,7 @@ public class SchedulerAdminController {
             @RequestParam String keyword,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ){
+    ) throws Exception {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
 
@@ -148,15 +150,13 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) {
+    ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
         if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id));
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id)));
     }
 
     /**
@@ -182,7 +182,7 @@ public class SchedulerAdminController {
 
         SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
         User fan = schedulerUser.getUser();
-        if(fan == null) throw new Exception400(fan.getEmail(), "해당 사용자는 존재하지 않습니다");
+        if(fan == null) throw new Exception400("해당 사용자는 존재하지 않습니다");
 
         String message = null;
         Progress confirmProgress = null;

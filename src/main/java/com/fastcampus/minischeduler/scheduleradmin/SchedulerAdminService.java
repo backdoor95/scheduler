@@ -1,6 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
@@ -45,20 +46,26 @@ public class SchedulerAdminService {
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final AES256Utils aes256Utils;
 
     /**
      * 전체 일정 목록을 출력합니다.
      * @return schedulerAdminResponseDtoList
      */
     @Transactional
-    public List<SchedulerAdminResponseDto> getSchedulerList(){
+    public List<SchedulerAdminResponseDto> getSchedulerList() throws Exception {
         List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin scheduler : schedulers) {
+
+            User responseUser = scheduler.getUser();
+            responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+            responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
             SchedulerAdminResponseDto schedulerAdminResponseDto =
                     SchedulerAdminResponseDto.builder()
-                            .user(scheduler.getUser())
+                            .user(responseUser)
                             .scheduleStart(scheduler.getScheduleStart())
                             .scheduleEnd(scheduler.getScheduleEnd())
                             .title(scheduler.getTitle())
@@ -80,7 +87,7 @@ public class SchedulerAdminService {
     public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(
             Integer year,
             Integer month
-    ) {
+    ) throws Exception {
 
         YearMonth yearMonth = YearMonth.of(year, month);
 
@@ -91,9 +98,14 @@ public class SchedulerAdminService {
             LocalDateTime scheduleStart = scheduler.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
             if(yearMonth.equals(scheduleYearMonth)) {
+
+                User responseUser = scheduler.getUser();
+                responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+                responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
                 SchedulerAdminResponseDto schedulerAdminResponseDto =
                         SchedulerAdminResponseDto.builder()
-                                .user(scheduler.getUser())
+                                .user(responseUser)
                                 .scheduleStart(scheduler.getScheduleStart())
                                 .scheduleEnd(scheduler.getScheduleEnd())
                                 .title(scheduler.getTitle())
@@ -117,7 +129,7 @@ public class SchedulerAdminService {
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
             String token
-    ){
+    ) throws Exception {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
@@ -132,8 +144,12 @@ public class SchedulerAdminService {
                 .build();
         SchedulerAdmin saveScheduler = schedulerAdminRepository.save(scheduler);
 
+        User responseUser = saveScheduler.getUser();
+        responseUser.setFullName(aes256Utils.decryptAES256(user.getFullName()));
+        responseUser.setEmail(aes256Utils.decryptAES256(user.getEmail()));
+
         return SchedulerAdminResponseDto.builder()
-                .user(saveScheduler.getUser())
+                .user(responseUser)
                 .scheduleStart(saveScheduler.getScheduleStart())
                 .scheduleEnd(saveScheduler.getScheduleEnd())
                 .title(saveScheduler.getTitle())
@@ -173,7 +189,7 @@ public class SchedulerAdminService {
      * @return id
      */
     @Transactional
-    public Long delete(Long id, String token){
+    public Long delete(Long id, String token) throws Exception {
 
         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -189,8 +205,8 @@ public class SchedulerAdminService {
            for(SchedulerUser schedulerUser : schedulerUsers){
                User user = schedulerUser.getUser();
                int ticket = user.getSizeOfTicket();
-               user.setSizeOfTicket(ticket+1);
-               userRepository.save(user);
+               user.setSizeOfTicket(ticket + 1);
+               userRepository.save(user); // 저장해야 ..?
            }
        }
 
@@ -209,7 +225,8 @@ public class SchedulerAdminService {
             String keyword,
             Integer year,
             Integer month
-    ){
+    ) throws Exception {
+
         YearMonth yearMonth = null;
         if(year != null && month != null) yearMonth = YearMonth.of(year, month);
 
@@ -217,13 +234,18 @@ public class SchedulerAdminService {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin scheduler : schedulers){
-            if(yearMonth != null){
+
+            User responseUser = scheduler.getUser();
+            responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+            responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
+            if(yearMonth != null) {
                 LocalDateTime scheduleStart = scheduler.getScheduleStart();
                 YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
                 if(yearMonth.equals(scheduleYearMonth)) {
                     SchedulerAdminResponseDto schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
-                                    .user(scheduler.getUser())
+                                    .user(responseUser)
                                     .scheduleStart(scheduler.getScheduleStart())
                                     .scheduleEnd(scheduler.getScheduleEnd())
                                     .title(scheduler.getTitle())
@@ -237,7 +259,7 @@ public class SchedulerAdminService {
             } else {
                 SchedulerAdminResponseDto schedulerAdminResponseDto =
                         SchedulerAdminResponseDto.builder()
-                                .user(scheduler.getUser())
+                                .user(responseUser)
                                 .scheduleStart(scheduler.getScheduleStart())
                                 .scheduleEnd(scheduler.getScheduleEnd())
                                 .title(scheduler.getTitle())
@@ -258,14 +280,18 @@ public class SchedulerAdminService {
      * @return SchedulerAdminResponseDto
      */
     @Transactional
-    public SchedulerAdminResponseDto getSchedulerById(Long id){
+    public SchedulerAdminResponseDto getSchedulerById(Long id) throws Exception {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
         );
 
+        User responseUser = scheduler.getUser();
+        responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+        responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
         return SchedulerAdminResponseDto.builder()
-                .user(scheduler.getUser())
+                .user(responseUser)
                 .scheduleStart(scheduler.getScheduleStart())
                 .scheduleEnd(scheduler.getScheduleEnd())
                 .title(scheduler.getTitle())
@@ -290,7 +316,7 @@ public class SchedulerAdminService {
      * @param token
      * @return List<SchedulerAdminResponseDto>
      */
-    public List<SchedulerAdminResponseDto> getSchedulerListById(String token) {
+    public List<SchedulerAdminResponseDto> getSchedulerListById(String token) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
@@ -299,9 +325,14 @@ public class SchedulerAdminService {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for(SchedulerAdmin schedulerAdmin : schedulerAdmins){
+
+            User responseUser = schedulerAdmin.getUser();
+            responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
+            responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+
             SchedulerAdminResponseDto schedulerAdminResponseDto =
                     SchedulerAdminResponseDto.builder()
-                            .user(schedulerAdmin.getUser())
+                            .user(responseUser)
                             .scheduleStart(schedulerAdmin.getScheduleStart())
                             .scheduleEnd(schedulerAdmin.getScheduleEnd())
                             .title(schedulerAdmin.getTitle())
@@ -322,12 +353,22 @@ public class SchedulerAdminService {
      * @return
      */
     @Transactional(readOnly = true)
-    public SchedulerAdminResponse getAdminScheduleDetail(Long id) {
+    public SchedulerAdminResponse getAdminScheduleDetail(Long id) throws Exception {
+
+        List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList = schedulerAdminRepository.findSchedulesWithUsersById(id);
+
+        for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
+            scheduleDTO.setFullName(scheduleDTO.getFullName());
+        }
+
+        UserResponse.GetUserInfoDTO loginUser = userService.getUserInfo(id);
+        loginUser.setFullName(aes256Utils.decryptAES256(loginUser.getFullName()));
+        loginUser.setEmail(aes256Utils.decryptAES256(loginUser.getEmail()));
 
         SchedulerAdminResponse schedulerAdminResponse = new SchedulerAdminResponse(
-                schedulerAdminRepository.findSchedulesWithUsersById(id),
+                scheduleDtoList,
                 schedulerAdminRepository.countScheduleGroupByProgressById(id),
-                userService.getUserInfo(id)
+                loginUser
         );
 
         return schedulerAdminResponse;
@@ -433,7 +474,8 @@ public class SchedulerAdminService {
                     if (field.getName().equals("user")) {
                         User user = (User)field.get(schedulerUser);
                         cell.setCellValue(
-                                user.getFullName() + " " + user.getEmail()
+                                aes256Utils.decryptAES256(user.getFullName()) + " " +
+                                aes256Utils.decryptAES256(user.getEmail())
                         );
                     } else if (field.getName().equals("schedulerAdmin")) {
                         SchedulerAdmin schedulerAdmin = (SchedulerAdmin)field.get(schedulerUser);

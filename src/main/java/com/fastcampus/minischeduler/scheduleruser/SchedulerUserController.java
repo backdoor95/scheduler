@@ -36,7 +36,8 @@ public class SchedulerUserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ) {
+    ) throws Exception {
+
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
@@ -51,7 +52,9 @@ public class SchedulerUserController {
         Map<String, Object> response = new HashMap<>();
         response.put("schedulerAdmin", schedulerAdminResponseDtoList);
         response.put("schedulerUser", schedulerUserDtoList);
+
         return ResponseEntity.ok(response);
+
     }
 
     /**
@@ -67,7 +70,7 @@ public class SchedulerUserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ) {
+    ) throws Exception {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
         List<SchedulerUserResponseDto> schedulerUserDtoList;
@@ -82,6 +85,7 @@ public class SchedulerUserController {
         Map<String, Object> response = new HashMap<>();
         response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
         response.put("schedulerUser", schedulerUserDtoList);
+
         return ResponseEntity.ok(response);
     }
 
@@ -102,7 +106,7 @@ public class SchedulerUserController {
             @RequestBody SchedulerUserRequestDto schedulerUserDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam Long schedulerAdminId
-    ){
+    ) throws Exception {
         DecodedJWT decodedJWT = jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -114,7 +118,9 @@ public class SchedulerUserController {
                         schedulerUserDto.getScheduleStart()
                 )
         ){
-            return ResponseEntity.ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, token));
+            return ResponseEntity.ok(
+                    schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, token)
+            );
         }
         else {
             //1개 미만이면 권한없음상태
