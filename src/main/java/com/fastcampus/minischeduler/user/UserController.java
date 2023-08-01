@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ import javax.validation.Valid;
 public class UserController {
 
     private final AuthenticationManager authenticationManager;
+    private final AES256Utils aes256Utils;
 
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -38,7 +40,8 @@ public class UserController {
             @RequestBody
             @Valid
             UserRequest.JoinDTO joinRequestDTO
-    ) {
+    ) throws Exception {
+
         // 유효성 검사
         if (userRepository.findByEmail(joinRequestDTO.getEmail()).isPresent())
             throw new Exception400("email", "이미 존재하는 이메일입니다."); // 중복 계정 검사
@@ -59,7 +62,7 @@ public class UserController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            loginRequestDTO.getEmail(),
+                            aes256Utils.encryptAES256(loginRequestDTO.getEmail()),
                             loginRequestDTO.getPassword()
                     )
             );
@@ -78,17 +81,20 @@ public class UserController {
             @PathVariable Long id,
             @RequestParam("role") String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
+
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage id와 로그인한 사용자 id비교
-        if(!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-        if(role.equals("admin")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (role.equals("admin")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
 
         Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        UserResponse.GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
-        System.out.println("*******"+ getUserInfoDTO+"******");
+        GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(userId);
+        getUserInfoDTO.setEmail(aes256Utils.decryptAES256(getUserInfoDTO.getEmail()));
+        getUserInfoDTO.setFullName(aes256Utils.decryptAES256(getUserInfoDTO.getFullName()));
+
         ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
         return ResponseEntity.ok(responseDTO);
@@ -98,18 +104,18 @@ public class UserController {
     public ResponseEntity<?> getUpdateUserInfo(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+    ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage id와 로그인한 사용자 id비교
-        if(!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
 
         GetUserInfoDTO getUserInfoDTO = userService.getUserInfo(id);
-        // user 객체를 이용한 작업 수행
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+        getUserInfoDTO.setEmail(aes256Utils.decryptAES256(getUserInfoDTO.getEmail()));
+        getUserInfoDTO.setFullName(aes256Utils.decryptAES256(getUserInfoDTO.getFullName()));
 
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(getUserInfoDTO));
     }
 
     @PostMapping("/mypage/update/{id}")
@@ -118,22 +124,14 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
             @Valid
-            UpdateUserInfoDTO updateUserInfoDTO,
-            Errors errors
-    ) {
-        if (errors.hasErrors()) return null;
+            UpdateUserInfoDTO updateUserInfoDTO
+    ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage update 작성자 id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-        }
+        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
 
-        User userPS = userService.updateUserInfo(updateUserInfoDTO, id);
-        // user 객체를 이용한 작업 수행
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
     }
 }

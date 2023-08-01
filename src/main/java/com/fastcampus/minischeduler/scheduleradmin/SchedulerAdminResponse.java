@@ -2,6 +2,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
 import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -16,19 +17,21 @@ public class SchedulerAdminResponse {
 
     private List<ScheduleDTO> scheduleDto;
     private CountProcessDTO countProcessDto;
+    private UserResponse.GetUserInfoDTO userInfoDTO;
 
     public interface ScheduleDTO {
 
         // admin 공연 일정 데이터
-        Long getAdminScheduleId(); // join null
-        String getTitle(); // join
-        String getDescription(); // join
+        Long getAdminScheduleId();
+        String getTitle();
+        String getDescription();
 
         // user 티케팅 승인대기 일정 데이터
-        Long getUserScheduleId(); // from null
-        String getFullName(); // join null
-        Progress getProgress(); // from
-        LocalDateTime getScheduleStart(); // from null
+        Long getUserScheduleId();
+        String getFullName();
+        String setFullName(String fullName);
+        Progress getProgress();
+        LocalDateTime getScheduleStart();
     }
 
     public interface CountProcessDTO {

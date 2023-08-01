@@ -2,8 +2,11 @@ package com.fastcampus.minischeduler.user;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 public class UserRequest {
 
@@ -22,6 +25,7 @@ public class UserRequest {
     }
 
     @Getter
+    @Setter
     @NoArgsConstructor
     public static class JoinDTO {
 

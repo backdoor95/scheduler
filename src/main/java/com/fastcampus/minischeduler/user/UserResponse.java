@@ -1,5 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
+import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 public class UserResponse {
 
     @Getter
+    @Setter
     public static class JoinDTO {
         private Long id;
         private String email;

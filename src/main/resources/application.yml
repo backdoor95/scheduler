@@ -18,16 +18,24 @@ logging:
           descriptor:
             sql: trace
 
+my-env:
+  jwt:
+    secret: ${JWT_SECRET}
+  aes256:
+    iv: ${AES256_IV}
+    key: ${AES256_KEY}
+    alg: ${AES256_ALG}
+
 spring:
   datasource:
-    username: root
-    password: root1234
+    username: ${DB_ID}
+    password: ${DB_PASSWORD}
     url: jdbc:mysql://localhost:3306/minischeduler
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
@@ -42,3 +50,6 @@ spring:
     mode: HTML
     check-template-location: true
     cache: false
+
+file:
+  dir: /Users/kilminjun/mini/scheduler/src/main/resources/static/asset/upload/

@@ -18,6 +18,10 @@ public class Exception400 extends RuntimeException {
         this.value = value;
     }
 
+    public Exception400(String message) {
+        super(message);
+    }
+
     public ResponseDTO<?> body(){
         ValidDTO validDTO = new ValidDTO(key, value);
         return new ResponseDTO<>(HttpStatus.BAD_REQUEST, "badRequest", validDTO);

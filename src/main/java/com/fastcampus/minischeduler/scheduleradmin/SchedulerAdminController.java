@@ -1,8 +1,5 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
-import com.auth0.jwt.exceptions.SignatureVerificationException;
-import com.auth0.jwt.exceptions.TokenExpiredException;
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
@@ -15,12 +12,9 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
@@ -52,26 +46,25 @@ public class SchedulerAdminController {
      * year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/scheduleAll")
-    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList(
-            @RequestHeader(JwtTokenProvider.HEADER) String token,
+    public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList (
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ){
+    ) throws Exception {
+
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
         //year와 month 유효성검증
-        if(year != null && (year <2000 || year >3000)){
+        if (year != null && (year < 2000 || year > 3000))
             throw new Exception400("year", "유효하지 않은 년도입니다.");
-        }
-        if(month != null && (month <1 || month >12)){
+        if (month != null && (month <1 || month >12))
             throw new Exception400("month", "유효하지 않은 달입니다.");
-        }
-        if(year != null && month != null){
+
+        if (year != null && month != null)
             schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
-        }
-        else {
+        else
             schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-        }
+
+
         return ResponseEntity.ok(schedulerAdminResponseDtoList);
     }
 
@@ -84,14 +77,14 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ){
+    ) throws Exception {
+
         //year와 month 유효성검증
-        if(year != null && (year <2000 || year >3000)){
+        if (year != null && (year < 2000 || year > 3000))
             throw new Exception400("year", "유효하지 않은 년도입니다.");
-        }
-        if(month != null && (month <1 || month >12)){
+        if (month != null && (month < 1 || month > 12))
             throw new Exception400("month", "유효하지 않은 달입니다.");
-        }
+
         return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
     }
 
@@ -100,19 +93,13 @@ public class SchedulerAdminController {
      */
     @GetMapping("/schedule/{id}")
     public ResponseEntity<SchedulerAdmin> scheduleDetail(@PathVariable Long id){
-        try {
-            if(id == null || id <=0){
-                throw new Exception400("id", "유효하지 않은 id값입니다.");
-            }
-            SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
-            if(schedulerAdmin == null){
-                throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
-            }
-            return ResponseEntity.ok(schedulerAdmin);
-        } catch (NullPointerException e){
-            throw new Exception400("id", "유효하지 않은 id값입니다.");
-        }
 
+        if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다.");
+
+        SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
+        if (schedulerAdmin == null) throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
+
+        return ResponseEntity.ok(schedulerAdmin);
     }
 
     /**
@@ -126,18 +113,17 @@ public class SchedulerAdminController {
             @RequestParam("scheduleEnd") String scheduleEnd,
             @RequestParam("title") String title,
             @RequestParam("description") String description
-    ) throws IOException {
-        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+    ) throws Exception {
+
+        if (StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd))
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
-        }
-        if(StringUtils.isEmpty(title)){
-            throw new Exception400("title", "제목이 비어있습니다.");
-        }
+        if(StringUtils.isEmpty(title)) throw new Exception400("title", "제목이 비어있습니다.");
+
         LocalDateTime start, end;
         try {
             start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
             end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        } catch (DateTimeParseException e){
+        } catch (DateTimeParseException e) {
             throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
         }
 
@@ -146,6 +132,7 @@ public class SchedulerAdminController {
         schedulerAdminRequestDto.setScheduleEnd(end);
         schedulerAdminRequestDto.setTitle(title);
         schedulerAdminRequestDto.setDescription(description);
+
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, file));
     }
 
@@ -154,7 +141,8 @@ public class SchedulerAdminController {
      */
     @GetMapping(value = "/schedule/image/{fileName}")
     @ResponseBody
-    public byte[] getImage(@PathVariable String fileName){
+    public byte[] getImage(@PathVariable String fileName) {
+
         try (InputStream inputStream = new FileInputStream(fileDir + fileName)) {
             return inputStream.readAllBytes();
 
@@ -172,15 +160,11 @@ public class SchedulerAdminController {
     public ResponseEntity<String> deleteScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
-        try {
-            if(id == null || id <=0){
-                throw new Exception400("id", "유효하지 않은 id값입니다.");
-            }
-            schedulerAdminService.delete(id, token);
-        }catch (NullPointerException e){
-            throw new Exception400("id", "유효하지 않은 id값입니다.");
-        }
+    ) throws Exception {
+
+        if(id == null || id <=0) throw new Exception400("id", "유효하지 않은 id값입니다.");
+
+        schedulerAdminService.delete(id, token);
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
@@ -196,28 +180,24 @@ public class SchedulerAdminController {
             @RequestParam("scheduleEnd") String scheduleEnd,
             @RequestParam("title") String title,
             @RequestParam("description") String description
-    ) throws IOException {
+    ) throws Exception {
+
         //스케줄 조회
         SchedulerAdminResponseDto schedulerDto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
-        if(!schedulerDto.getUser().getId().equals(loginUserId)){
-            throw new Exception401("권한이 존재하지 않습니다."); //권한없음
-        }
-
-        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+        if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception401("권한이 존재하지 않습니다."); //권한없음
+        if(StringUtils.isEmpty(title)) throw new Exception400("title", "제목이 비어있습니다.");
+        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd))
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
-        }
-        if(StringUtils.isEmpty(title)){
-            throw new Exception400("title", "제목이 비어있습니다.");
-        }
+
         LocalDateTime start, end;
         try {
             start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
             end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        } catch (DateTimeParseException e){
+        } catch (DateTimeParseException e) {
             throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
         }
 
@@ -243,16 +223,15 @@ public class SchedulerAdminController {
             @RequestParam String keyword,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ){
+    ) throws Exception {
+
         //year와 month 유효성검증
-        if(year != null && (year <2000 || year >3000)){
-            throw new Exception400("year", "유효하지 않은 년도입니다.");
-        }
-        if(month != null && (month <1 || month >12)){
-            throw new Exception400("month", "유효하지 않은 달입니다.");
-        }
+        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다.");
+        if (month != null && (month <1 || month >12)) throw new Exception400("month", "유효하지 않은 달입니다.");
+
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
+
         return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
 
@@ -265,15 +244,13 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) {
+    ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
-        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
+        if (!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if (!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
-        ResponseDTO<?> responseDTO = new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id));
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id)));
     }
 
     /**
@@ -299,11 +276,11 @@ public class SchedulerAdminController {
 
         SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
         User fan = schedulerUser.getUser();
-        if(fan == null) throw new Exception400(fan.getEmail(), "해당 사용자는 존재하지 않습니다");
+        if (fan == null) throw new Exception400("해당 사용자는 존재하지 않습니다");
 
         String message = null;
         Progress confirmProgress = null;
-        if(progress.equals("accept")) {
+        if (progress.equals("accept")) {
             confirmProgress = Progress.ACCEPT;
             message = "티켓을 승인합니다";
         } else if(progress.equals("refuse")) {
@@ -318,7 +295,7 @@ public class SchedulerAdminController {
 
         schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress);
 
-        return ResponseEntity.ok(new ResponseDTO<>(message));
+        return ResponseEntity.ok(message);
     }
 
     /**
@@ -328,7 +305,7 @@ public class SchedulerAdminController {
      * @throws Exception
      */
     @GetMapping("/schedule/{id}/excelDownload")
-    public void excelDownload(
+    public ResponseEntity<String> excelDownload(
             @PathVariable Long id,
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
@@ -336,9 +313,11 @@ public class SchedulerAdminController {
 
         // 유효성 검사
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
-        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
+        if (!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if (!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         schedulerAdminService.excelDownload(id);
+
+        return ResponseEntity.ok("다운로드 완료");
     }
 }
