@@ -58,10 +58,17 @@ public class UserService {
     }
 
     @Transactional
-    public GetUserInfoDTO getUserInfo(Long userId) {
+    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
+
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        return new UserResponse.GetUserInfoDTO(userPS);
+
+        GetUserInfoDTO getUserInfoDTO = GetUserInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .build();
+
+        return getUserInfoDTO;
     }
 
     /**
@@ -91,7 +98,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUserInfo(
+    public GetUserInfoDTO updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
             Long userId) throws Exception {
 
@@ -104,10 +111,17 @@ public class UserService {
         );
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
-        updatedUser.setFullName(aes256Utils.decryptAES256(updatedUser.getFullName()));
-        updatedUser.setEmail(aes256Utils.decryptAES256(updatedUser.getEmail()));
+        GetUserInfoDTO responseUser = GetUserInfoDTO.builder()
+                .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
+                .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
+                .profileImage(updatedUser.getProfileImage())
+                .usedTicket(updatedUser.getUsedTicket())
+                .leftTicket(updatedUser.getSizeOfTicket())
+                .updatedAt(updatedUser.getUpdatedAt())
+                .createdAt(updatedUser.getCreatedAt())
+                .build();
 
-        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+        return responseUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }
 
     /**

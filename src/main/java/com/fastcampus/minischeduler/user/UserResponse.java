@@ -44,6 +44,7 @@ public class UserResponse {
 
     @Setter
     @Getter
+    @Builder
     public static class GetUserInfoDTO {
 
         private String email;
