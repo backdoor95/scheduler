@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Calendar;
 
 @Getter
+@Setter
 @Table(name = "user_tb")
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -22,10 +23,10 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false, length = 30)
+    @Column(unique = true, nullable = false, length = 60)
     private String email;
 
-    @Column(nullable = false, length = 120)
+    @Column(nullable = false, length = 60)
     private String password;
 
     @Column
@@ -38,7 +39,7 @@ public class User {
     @Enumerated(value = EnumType.STRING)
     private Role role;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 60)
     private String fullName;
 
     @Column

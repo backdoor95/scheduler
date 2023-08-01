@@ -6,17 +6,19 @@ import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.user.User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Base64;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
 
-    public static final Long EXP = 1000L * 60 * 60 * 24; // 24시간
+    public static final Long EXP = 1000L * 60 * 60 * 2; // 2시간
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
-    public static final String SECRET = "MySecretKey";
+    public static final String SECRET = Base64.getEncoder().encodeToString("MySecretKey".getBytes());
 
     public static String create(User user) {
 

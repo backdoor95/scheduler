@@ -2,11 +2,11 @@ package com.fastcampus.minischeduler.user;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AES256Utils aes256Utils;
 
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
@@ -35,10 +36,12 @@ public class UserService {
      * @return
      */
     @Transactional
-    public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) {
+    public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) throws Exception {
 
-        // 비밀번호 인코딩
+        // 인코딩
         joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
+        joinDTO.setEmail(aes256Utils.encryptAES256(joinDTO.getEmail()));
+        joinDTO.setFullName(aes256Utils.encryptAES256(joinDTO.getFullName()));
 
         // 회원 가입
         User userPS = userRepository.save(joinDTO.toEntity());
@@ -47,7 +50,11 @@ public class UserService {
         if (userPS.getRole().equals(Role.USER)) userPS.setSizeOfTicket(12 - Calendar.getInstance().get(Calendar.MONTH));
         if (userPS.getRole().equals(Role.ADMIN)) userPS.setSizeOfTicket(null);
 
-        return new UserResponse.JoinDTO(userPS);
+        UserResponse.JoinDTO response = new UserResponse.JoinDTO(userPS);
+        response.setFullName(aes256Utils.decryptAES256(response.getFullName()));
+        response.setEmail(aes256Utils.decryptAES256(response.getEmail()));
+
+        return response;
     }
 
     @Transactional
@@ -86,7 +93,7 @@ public class UserService {
     @Transactional
     public User updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
-            Long userId) throws DataAccessException {
+            Long userId) throws Exception {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
@@ -97,6 +104,8 @@ public class UserService {
         );
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+        updatedUser.setFullName(aes256Utils.decryptAES256(updatedUser.getFullName()));
+        updatedUser.setEmail(aes256Utils.decryptAES256(updatedUser.getEmail()));
 
         return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }

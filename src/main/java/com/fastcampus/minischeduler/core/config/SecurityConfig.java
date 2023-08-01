@@ -96,7 +96,7 @@ public class SecurityConfig {
         http.authorizeRequests(
                 authorize -> authorize
                         .antMatchers("/user/**").access("hasAuthority('ADMIN') or hasAuthority('USER')")
-                        .antMatchers("/admin/**").hasAuthority("ADMIN")//.hasRole("ADMIN")
+                        .antMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().permitAll()
 
         );
