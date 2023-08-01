@@ -1,5 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.fastcampus.minischeduler.core.annotation.MyErrorLog;
 import com.fastcampus.minischeduler.core.annotation.MyLog;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
@@ -18,6 +19,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.parameters.P;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.awt.*;
@@ -114,15 +116,24 @@ public class UserController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    /**
+     * 사용자 정보변경 : 이름, 비밀번호 만.
+     * @param id
+     * @param token
+     * @param updateUserInfoDTO
+     * @param errors
+     * @return
+     */
+
     @PostMapping("/mypage/update/{id}")
     public ResponseEntity<?> postUpdateUserInfo(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
             @Valid
-            UpdateUserInfoDTO updateUserInfoDTO,
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
             Errors errors
-    ) {
+    ) {// dlfma.
 
         try {
             if (errors.hasErrors()) return null;
@@ -139,10 +150,71 @@ public class UserController {
             ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
 
             return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {
-            throw new RuntimeException("프로필 사진 저장 실패");
+        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+            //
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
         }
     }
+
+    /**
+     * 이미지
+     * @param id
+     * @param token
+     * @param file
+     * @return
+     */
+    @PostMapping("/mypage/update/image/{id}")
+    public ResponseEntity<?> postUpdateUserProfileImage(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+            // mypage update image 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            }
+
+            if(file.isEmpty()){// 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+                String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
+
+                User user = userService.findById(id);
+
+                user.updateUserProfileImage(defaultNameURL);
+
+                ResponseDTO<?> responseDTO = new ResponseDTO<>(user);
+
+                return ResponseEntity.ok(responseDTO);
+
+            }
+
+            User userPS = userService.updateUserProfileImage(file, id);
+            // user 객체를 이용한 작업 수행
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+            //
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        }
+
+    }
+
+//    @PostMapping("/mypage/delete/image/{id}")
+//    public ResponseEntity<?> postDeleteUserProfileImage(
+//            @PathVariable Long id,
+//            @RequestHeader(JwtTokenProvider.HEADER) String token,
+//            @RequestParam("file") MultipartFile file
+//    ) {
+//
+//    }
+
+
+
+
 
     // DB 데이터 엑셀 다운로드 테스트 중.
     @GetMapping("/excel")

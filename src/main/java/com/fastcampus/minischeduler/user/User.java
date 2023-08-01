@@ -73,9 +73,13 @@ public class User {
         this.sizeOfTicket = sizeOfTicket;
     }
 
-    public void updateUserInfo(String password, String profileImage){
+    public void updateUserInfo(String password, String fullName){
         this.password = password;
-        this.profileImage = profileImage;
+        this.fullName = fullName;
         onUpdate();
+    }
+
+    public void updateUserProfileImage(String imageURL){
+        this.profileImage = imageURL;
     }
 }

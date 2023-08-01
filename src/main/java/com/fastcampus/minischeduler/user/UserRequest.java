@@ -77,7 +77,24 @@ public class UserRequest {
         )
         private String password;
 
-        private MultipartFile profileImage;
+        @NotBlank(message = "이름을 입력해주세요")
+        @Pattern(
+                regexp = "^[a-zA-Z가-힣]{1,20}$",
+                message = "한글/영문 1~20자 이내로 작성해주세요"
+        )
+        private String fullName;
+
 
     }
+
+
+
+    @Getter
+    public static class UpdateUserProfileImageDTO {
+
+        private MultipartFile multipartFileProfileImage;
+
+    }
+
+
 }

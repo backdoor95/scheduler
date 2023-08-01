@@ -1,29 +1,23 @@
 package com.fastcampus.minischeduler.user;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
-import com.fastcampus.minischeduler.core.exception.Exception401;
+import com.fastcampus.minischeduler.core.exception.ImageUploadException;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
-import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRequest;
-import com.fastcampus.minischeduler.user.UserRequest.*;
-import com.fastcampus.minischeduler.user.UserResponse.*;
+import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
-
-import org.springframework.beans.factory.annotation.Autowired;
-
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,7 +27,6 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.metamodel.EntityType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -54,6 +47,47 @@ public class UserService {
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
     private final HttpServletResponse httpServletResponse;
+    // Aws s3
+    private final AmazonS3 amazonS3;
+
+    //버킷 이름.
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
+
+    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
+        String random = UUID.randomUUID().toString();
+        return random+originName;
+    }
+
+    private String uploadImageToS3(MultipartFile image) { //이미지를 S3에 업로드하고 이미지의 url을 반환
+        String originName = image.getOriginalFilename(); //원본 이미지 이름
+        String ext = originName.substring(originName.lastIndexOf(".")); //확장자
+        String changedName = changedImageName(originName); //새로 생성된 이미지 이름
+        ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
+        metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
+        // 이미지만 받을 예정이므로 contentType은  "image/확장자"
+        try {
+            PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
+                    bucketName, changedName, image.getInputStream(), metadata
+            ).withCannedAcl(CannedAccessControlList.PublicRead));
+
+        } catch (IOException e) {
+            throw new ImageUploadException(); //커스텀 예외 던짐.
+        }
+        return amazonS3.getUrl(bucketName, changedName).toString(); //데이터베이스에 저장할 이미지가 저장된 주소
+
+    }
+
+    public void deleteImage(String fileName) {
+        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
+    }
+
+
+    public User findById(Long id){
+        return userRepository.findById(id).get();
+    }
+
+
 
     /**
      * 회원가입 메서드입니다.
@@ -111,6 +145,14 @@ public class UserService {
         return JwtTokenProvider.create(loginUser);
     }
 
+    /**
+     * 여기서는 유저의 이름, 비밀번호 변경 로직이 실행됩니다.
+     * @param updateUserInfoDTO
+     * @param userId
+     * @return
+     * @throws DataAccessException
+     * @throws IOException
+     */
     @Transactional
     public User updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
@@ -120,26 +162,70 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
-
         // Password encoding - 암호화
         String encodedPassword = passwordEncoder.encode(updateUserInfoDTO.getPassword());
 
-        // Image handling
-        MultipartFile profileImageFile = updateUserInfoDTO.getProfileImage();
-        String profileImagePath = null;
-        if(profileImageFile != null) {// Amazon S3 또는 Google Cloud Storage
-            String originalFilename = profileImageFile.getOriginalFilename();
-            profileImagePath = "D:\\ImageFile\\" + originalFilename; // 제 컴퓨터에 저장하도록 하였습니다.
-            profileImageFile.transferTo(new File(profileImagePath));
-        }
+        String fullName = updateUserInfoDTO.getFullName();
 
-
-        userPS.updateUserInfo(encodedPassword, profileImagePath);// profileImage에 파일위치 저장
+        userPS.updateUserInfo(encodedPassword, fullName);//이름, 비번  수정
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
         return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }
+
+    /**
+     * 유저의 프로필 사진 업데이트 로직실행
+     * @param userId
+     * @return
+     * @throws DataAccessException
+     * @throws IOException
+     */
+    @Transactional
+    public User updateUserProfileImage(
+            MultipartFile multipartFile,
+            Long userId) throws DataAccessException, IOException {
+
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
+
+        String imageURL = uploadImageToS3(multipartFile);
+
+        userPS.updateUserProfileImage(imageURL);
+
+        User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+
+        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+    }
+
+    /**
+     *  이미지 삭제
+     * @param userId
+     * @return
+     * @throws DataAccessException
+     * @throws IOException
+     */
+
+    @Transactional
+    public User deleteUserProfileImage(
+            Long userId) throws DataAccessException, IOException {
+
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
+
+
+        //지울때 url은 null 로 초기화
+        String imageURL = null;
+
+        userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
+
+        User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+
+        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+    }
+
 
     /**
      * 모든 사용자를 조회합니다.
