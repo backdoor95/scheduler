@@ -6,24 +6,33 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
-import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception403;
-import com.fastcampus.minischeduler.core.exception.Exception404;
-import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MultipartFile;
+import org.thymeleaf.util.StringUtils;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/admin")
@@ -31,10 +40,11 @@ import java.util.List;
 public class SchedulerAdminController {
 
     private final SchedulerUserRepository schedulerUserRepository;
-    private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserRepository userRepository;
+
+    @Value("${file.dir}")
+    private String fileDir;
 
     /**
      * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
@@ -47,35 +57,62 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
-        try {
-            DecodedJWT decodedJWT =
-                    jwtTokenProvider.verify(token.replace(
-                            JwtTokenProvider.TOKEN_PREFIX,
-                            "")
-                    );
-            List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
+        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
-            if(year != null && month != null){
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
-            }
-            else {
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-            }
-            return ResponseEntity.ok(schedulerAdminResponseDtoList);
-        } catch (SignatureVerificationException | TokenExpiredException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        } // 이 캐치문이 언제 발동되는지 알면 예외처리를 미뤄서 한 곳에서 처리 할 수 있음
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
+        }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
+        if(year != null && month != null){
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
+        }
+        else {
+            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
+        }
+        return ResponseEntity.ok(schedulerAdminResponseDtoList);
     }
 
-    // TODO : year랑 month 받아서 넘겨주는거 하나랑 상관없이 넘겨주는거 하나 총 두개를 넘겨줘야되는지 확인하기
     /**
      * 공연 등록/취소 페이지 : 로그인한 기획사가 등록한 일정만 나옴
+     *  year과 month가 null일땐 모든 스케줄이 나옴
      */
     @GetMapping("/schedule")
-    public ResponseEntity<List<SchedulerAdminResponseDto>> getSchedulerList(
-            @RequestHeader(JwtTokenProvider.HEADER) String token
+    public ResponseEntity<Map<String, Object>> getSchedulerList(
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month
     ){
-        return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token));
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
+        }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
+        return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
+    }
+
+    /**
+     * 공연 상세보기 : 공연의 정보를 상세하게 봄
+     */
+    @GetMapping("/schedule/{id}")
+    public ResponseEntity<SchedulerAdmin> scheduleDetail(@PathVariable Long id){
+        try {
+            if(id == null || id <=0){
+                throw new Exception400("id", "유효하지 않은 id값입니다.");
+            }
+            SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
+            if(schedulerAdmin == null){
+                throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
+            }
+            return ResponseEntity.ok(schedulerAdmin);
+        } catch (NullPointerException e){
+            throw new Exception400("id", "유효하지 않은 id값입니다.");
+        }
+
     }
 
     /**
@@ -83,10 +120,49 @@ public class SchedulerAdminController {
      */
     @PostMapping("/schedule/create")
     public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
-            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto ,
-            @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
-        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token));
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam(required = false) MultipartFile file,
+            @RequestParam("scheduleStart") String scheduleStart,
+            @RequestParam("scheduleEnd") String scheduleEnd,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description
+    ) throws IOException {
+        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+            throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
+        }
+        if(StringUtils.isEmpty(title)){
+            throw new Exception400("title", "제목이 비어있습니다.");
+        }
+        LocalDateTime start, end;
+        try {
+            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (DateTimeParseException e){
+            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
+        }
+
+        SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
+        schedulerAdminRequestDto.setScheduleStart(start);
+        schedulerAdminRequestDto.setScheduleEnd(end);
+        schedulerAdminRequestDto.setTitle(title);
+        schedulerAdminRequestDto.setDescription(description);
+        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, file));
+    }
+
+    /**
+     * 이미지 연결
+     */
+    @GetMapping(value = "/schedule/image/{fileName}")
+    @ResponseBody
+    public byte[] getImage(@PathVariable String fileName){
+        try (InputStream inputStream = new FileInputStream(fileDir + fileName)) {
+            return inputStream.readAllBytes();
+
+        } catch (FileNotFoundException e) {
+            throw new Exception401("파일을 찾을수 없습니다");
+        } catch (IOException e) {
+            throw new RuntimeException("이미지를 읽는 도중 오류가 발생했습니다", e);
+        }
     }
 
     /**
@@ -97,9 +173,14 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ){
-
-        schedulerAdminService.delete(id, token);
-
+        try {
+            if(id == null || id <=0){
+                throw new Exception400("id", "유효하지 않은 id값입니다.");
+            }
+            schedulerAdminService.delete(id, token);
+        }catch (NullPointerException e){
+            throw new Exception400("id", "유효하지 않은 id값입니다.");
+        }
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
 
@@ -109,9 +190,13 @@ public class SchedulerAdminController {
     @PostMapping("/schedule/update/{id}")
     public ResponseEntity<SchedulerAdminResponseDto> updateScheduler(
             @PathVariable Long id,
-            @RequestBody SchedulerAdminRequestDto schedulerAdminRequestDto,
-            @RequestHeader(JwtTokenProvider.HEADER) String token
-    ){
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam(required = false) MultipartFile file,
+            @RequestParam("scheduleStart") String scheduleStart,
+            @RequestParam("scheduleEnd") String scheduleEnd,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description
+    ) throws IOException {
         //스케줄 조회
         SchedulerAdminResponseDto schedulerDto = schedulerAdminService.getSchedulerById(id);
         //로그인한 사용자 id조회
@@ -119,10 +204,30 @@ public class SchedulerAdminController {
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
         if(!schedulerDto.getUser().getId().equals(loginUserId)){
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            throw new Exception401("권한이 존재하지 않습니다."); //권한없음
         }
 
-        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto);
+        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd)){
+            throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
+        }
+        if(StringUtils.isEmpty(title)){
+            throw new Exception400("title", "제목이 비어있습니다.");
+        }
+        LocalDateTime start, end;
+        try {
+            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
+        } catch (DateTimeParseException e){
+            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
+        }
+
+        SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
+        schedulerAdminRequestDto.setScheduleStart(start);
+        schedulerAdminRequestDto.setScheduleEnd(end);
+        schedulerAdminRequestDto.setTitle(title);
+        schedulerAdminRequestDto.setDescription(description);
+
+        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, file);
         SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
 
         return ResponseEntity.ok(updateScheduler);
@@ -139,9 +244,15 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ){
+        //year와 month 유효성검증
+        if(year != null && (year <2000 || year >3000)){
+            throw new Exception400("year", "유효하지 않은 년도입니다.");
+        }
+        if(month != null && (month <1 || month >12)){
+            throw new Exception400("month", "유효하지 않은 달입니다.");
+        }
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFulName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
-
         return ResponseEntity.ok(schedulerAdminResponseDtoListFindByFulName);
     }
 
@@ -152,10 +263,13 @@ public class SchedulerAdminController {
     @GetMapping("/schedule/confirm/{id}")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
             @PathVariable Long id,
-            @AuthenticationPrincipal MyUserDetails myUserDetails
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
 
-        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         ResponseDTO<?> responseDTO = new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id));
 
@@ -175,10 +289,13 @@ public class SchedulerAdminController {
             @PathVariable Long id,
             @PathVariable Long schedulerUserId,
             @RequestParam String progress,
-            @AuthenticationPrincipal MyUserDetails myUserDetails
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         // 유효성 검사
-        if(id.longValue() != myUserDetails.getUser().getId()) throw new Exception403("권한이 없습니다");
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
         SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
         User fan = schedulerUser.getUser();
@@ -202,5 +319,26 @@ public class SchedulerAdminController {
         schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress);
 
         return ResponseEntity.ok(new ResponseDTO<>(message));
+    }
+
+    /**
+     * 기획사 id를 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
+     * @param id
+     * @param myUserDetails
+     * @throws Exception
+     */
+    @GetMapping("/schedule/{id}/excelDownload")
+    public void excelDownload(
+            @PathVariable Long id,
+            @AuthenticationPrincipal MyUserDetails myUserDetails,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ) throws Exception {
+
+        // 유효성 검사
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
+        if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
+
+        schedulerAdminService.excelDownload(id);
     }
 }

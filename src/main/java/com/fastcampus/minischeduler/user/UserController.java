@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -203,19 +203,6 @@ public class UserController {
 
     }
 
-//    @PostMapping("/mypage/delete/image/{id}")
-//    public ResponseEntity<?> postDeleteUserProfileImage(
-//            @PathVariable Long id,
-//            @RequestHeader(JwtTokenProvider.HEADER) String token,
-//            @RequestParam("file") MultipartFile file
-//    ) {
-//
-//    }
-
-
-
-
-
     // DB 데이터 엑셀 다운로드 테스트 중.
     @GetMapping("/excel")
     public String download() {
@@ -226,8 +213,4 @@ public class UserController {
     public void excelDownload() throws Exception {
         userService.excelDownload();
     }
-
-
-
-
 }
