@@ -194,21 +194,56 @@ public class UserController {
 
                 user.updateUserProfileImage(defaultNameURL);
 
+
+
                 ResponseDTO<?> responseDTO = new ResponseDTO<>(user);
 
                 return ResponseEntity.ok(responseDTO);
 
             }
 
-            User userPS = userService.updateUserProfileImage(file, id);
+            UserResponse.GetUserInfoDTO getUserInfoDTO = userService.updateUserProfileImage(file, id);
             // user 객체를 이용한 작업 수행
-            ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
             return ResponseEntity.ok(responseDTO);
         } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
             //
             throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        } catch (Exception e) {
+            throw new RuntimeException("디코딩중 문제발생?");
         }
+
+    }
+
+
+    @PostMapping("/mypage/delete/image/{id}")// 구현중.
+    public ResponseEntity<?> postDeleteUserProfileImage(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token
+    ) {
+        try {
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+            // mypage update image 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            }
+
+            UserResponse.GetUserInfoDTO getUserInfoDTO = userService.deleteUserProfileImage(id);
+
+            // user 객체를 이용한 작업 수행
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+            //
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        } catch (Exception e) {
+            throw new RuntimeException("디코딩중 문제발생?");
+        }
+
+
 
     }
 

@@ -194,7 +194,7 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteImage(String fileName) {
+    private void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
 
@@ -207,9 +207,9 @@ public class UserService {
      * @throws IOException
      */
     @Transactional
-    public User updateUserProfileImage(
+    public UserResponse.GetUserInfoDTO updateUserProfileImage(
             MultipartFile multipartFile,
-            Long userId) throws DataAccessException, IOException {
+            Long userId) throws Exception {
 
 
         User userPS = userRepository.findById(userId)
@@ -221,7 +221,18 @@ public class UserService {
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
-        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+        UserResponse.GetUserInfoDTO getUserInfoDTO
+                = GetUserInfoDTO.builder()
+                .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
+                .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
+                .profileImage(updatedUser.getProfileImage())
+                .usedTicket(updatedUser.getUsedTicket())
+                .sizeOfTicket(updatedUser.getSizeOfTicket())
+                .updatedAt(updatedUser.getUpdatedAt())
+                .createdAt(updatedUser.getCreatedAt())
+                .build();
+
+        return getUserInfoDTO; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }
 
     /**
@@ -233,20 +244,31 @@ public class UserService {
      */
 
     @Transactional
-    public User deleteUserProfileImage(
-            Long userId) throws DataAccessException, IOException {
+    public UserResponse.GetUserInfoDTO deleteUserProfileImage(
+            Long userId) throws Exception {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
 
-        //지울때 url은 null 로 초기화
-        String imageURL = null;
+        //지울때 url은 기본 프로필로 초기화
+        String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
 
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+        UserResponse.GetUserInfoDTO getUserInfoDTO
+                = GetUserInfoDTO.builder()
+                .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
+                .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
+                .profileImage(updatedUser.getProfileImage())
+                .usedTicket(updatedUser.getUsedTicket())
+                .sizeOfTicket(updatedUser.getSizeOfTicket())
+                .updatedAt(updatedUser.getUpdatedAt())
+                .createdAt(updatedUser.getCreatedAt())
+                .build();
 
-        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+
+        return getUserInfoDTO; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
     }
 
 
