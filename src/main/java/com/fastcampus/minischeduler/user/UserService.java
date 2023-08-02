@@ -168,8 +168,8 @@ public class UserService {
 
         PutObjectResult putObjectResult = amazonS3
                 .putObject(new PutObjectRequest(bucketName, changedName, image.getInputStream(), metadata)
-                // getInputStream에서 exception 발생 -> controller에서 처리
-                .withCannedAcl(CannedAccessControlList.PublicRead));
+                        // getInputStream에서 exception 발생 -> controller에서 처리
+                        .withCannedAcl(CannedAccessControlList.PublicRead));
 
         //데이터베이스에 저장할 이미지가 저장된 주소
         return amazonS3.getUrl(bucketName, changedName).toString();

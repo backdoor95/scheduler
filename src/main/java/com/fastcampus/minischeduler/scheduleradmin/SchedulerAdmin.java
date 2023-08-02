@@ -64,8 +64,7 @@ public class SchedulerAdmin { // 기획사 일정
             LocalDateTime scheduleEnd,
             String image,
             String title,
-            String description,
-            LocalDateTime createdAt
+            String description
     ) {
         this.id = id;
         this.user = user;
@@ -74,7 +73,7 @@ public class SchedulerAdmin { // 기획사 일정
         this.image = image;
         this.title = title;
         this.description = description;
-        this.createdAt = createdAt;
+        onCreate();
     }
 
     public void update(

@@ -33,7 +33,7 @@ public class SchedulerAdminRequest {
                 LocalDateTime scheduleEnd,
                 String title,
                 String description,
-                String image,
+                //String image,
                 LocalDateTime createdAt,
                 LocalDateTime updatedAt
         ){

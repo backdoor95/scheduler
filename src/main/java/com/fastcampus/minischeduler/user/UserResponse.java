@@ -39,7 +39,6 @@ public class UserResponse {
         }
     }
 
-    @AllArgsConstructor
     @Setter
     @Getter
     @Builder
@@ -85,6 +84,10 @@ public class UserResponse {
             this.sizeOfTicket = sizeOfTicket;
             this.role = role;
             this.profileImage = profileImage;
+        }
+
+        public UserDto() {
+
         }
     }
 }

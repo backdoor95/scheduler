@@ -18,6 +18,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,9 +40,6 @@ public class SchedulerAdminController {
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${file.dir}")
-    private String fileDir;
-
     /**
      * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
      * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
@@ -48,10 +47,11 @@ public class SchedulerAdminController {
      */
     @GetMapping("/scheduleAll")
     public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList (
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) throws Exception {
-
+        jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
         //year와 month 유효성검증
@@ -109,49 +109,13 @@ public class SchedulerAdminController {
     @PostMapping("/schedule/create")
     public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
             @RequestHeader(JwtTokenProvider.HEADER) String token,
-            @RequestParam(required = false) MultipartFile file,
-            @RequestParam("scheduleStart") String scheduleStart,
-            @RequestParam("scheduleEnd") String scheduleEnd,
-            @RequestParam("title") String title,
-            @RequestParam("description") String description
+            @RequestPart(value = "file",required = false) MultipartFile image,
+            @RequestPart(value = "dto") SchedulerAdminRequestDto schedulerAdminRequestDto
     ) throws Exception {
-
-        if (StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd))
+        if (schedulerAdminRequestDto.getScheduleStart() == null|| schedulerAdminRequestDto.getScheduleEnd()==null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
-        if(StringUtils.isEmpty(title)) throw new Exception400("title", "제목이 비어있습니다.");
-
-        LocalDateTime start, end;
-        try {
-            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        } catch (DateTimeParseException e) {
-            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
-        }
-
-        SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
-        schedulerAdminRequestDto.setScheduleStart(start);
-        schedulerAdminRequestDto.setScheduleEnd(end);
-        schedulerAdminRequestDto.setTitle(title);
-        schedulerAdminRequestDto.setDescription(description);
-
-        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, file));
-    }
-
-    /**
-     * 이미지 연결
-     */
-    @GetMapping(value = "/schedule/image/{fileName}")
-    @ResponseBody
-    public byte[] getImage(@PathVariable String fileName) {
-
-        try (InputStream inputStream = new FileInputStream(fileDir + fileName)) {
-            return inputStream.readAllBytes();
-
-        } catch (FileNotFoundException e) {
-            throw new Exception401("파일을 찾을수 없습니다");
-        } catch (IOException e) {
-            throw new RuntimeException("이미지를 읽는 도중 오류가 발생했습니다", e);
-        }
+        if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다.");
+        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
     }
 
     /**
@@ -176,11 +140,8 @@ public class SchedulerAdminController {
     public ResponseEntity<SchedulerAdminResponseDto> updateScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
-            @RequestParam(required = false) MultipartFile file,
-            @RequestParam("scheduleStart") String scheduleStart,
-            @RequestParam("scheduleEnd") String scheduleEnd,
-            @RequestParam("title") String title,
-            @RequestParam("description") String description
+            @RequestPart(value = "file",required = false) MultipartFile image,
+            @RequestPart(value = "dto") SchedulerAdminRequestDto schedulerAdminRequestDto
     ) throws Exception {
 
         //스케줄 조회
@@ -190,27 +151,12 @@ public class SchedulerAdminController {
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
         if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception401("권한이 존재하지 않습니다."); //권한없음
-        if(StringUtils.isEmpty(title)) throw new Exception400("title", "제목이 비어있습니다.");
-        if(StringUtils.isEmpty(scheduleStart) || StringUtils.isEmpty(scheduleEnd))
+        if (schedulerAdminRequestDto.getScheduleStart() == null|| schedulerAdminRequestDto.getScheduleEnd()==null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
+        if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다.");
 
-        LocalDateTime start, end;
-        try {
-            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-        } catch (DateTimeParseException e) {
-            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
-        }
-
-        SchedulerAdminRequestDto schedulerAdminRequestDto = new SchedulerAdminRequestDto();
-        schedulerAdminRequestDto.setScheduleStart(start);
-        schedulerAdminRequestDto.setScheduleEnd(end);
-        schedulerAdminRequestDto.setTitle(title);
-        schedulerAdminRequestDto.setDescription(description);
-
-        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, file);
+        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, image);
         SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
-
         return ResponseEntity.ok(updateScheduler);
     }
 
