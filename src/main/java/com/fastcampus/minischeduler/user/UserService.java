@@ -46,19 +46,19 @@ public class UserService {
     /**
      * 회원가입 메서드입니다.
      * Controller에서 유효성 검사가 완료된 DTO를 받아 비밀번호를 BCrypt 인코딩 후 사용자 정보 테이블(user_tb)에 저장합니다.
-     * @param joinDTO : 회원가입 시 기재한 정보
+     * @param request : 회원가입 시 기재한 정보
      * @return        : 회원가입 된 회원 정보
      */
     @Transactional
-    public UserResponse.JoinDTO signup(UserRequest.JoinDTO joinDTO) throws Exception {
+    public UserResponse.JoinDTO signup(UserRequest.JoinDTO request) throws Exception {
 
         // 인코딩
-        joinDTO.setPassword(passwordEncoder.encode(joinDTO.getPassword()));
-        joinDTO.setEmail(aes256Utils.encryptAES256(joinDTO.getEmail()));
-        joinDTO.setFullName(aes256Utils.encryptAES256(joinDTO.getFullName()));
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        request.setEmail(aes256Utils.encryptAES256(request.getEmail()));
+        request.setFullName(aes256Utils.encryptAES256(request.getFullName()));
 
         // 회원 가입
-        User userPS = userRepository.save(joinDTO.toEntity());
+        User userPS = userRepository.save(request.toEntity());
 
         // USER 는 티켓 제공, ADMIN 은 제공 안함
         if (userPS.getRole().equals(Role.USER)) userPS.setSizeOfTicket(12 - Calendar.getInstance().get(Calendar.MONTH));
@@ -160,10 +160,10 @@ public class UserService {
     private String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
 
         String originName = image.getOriginalFilename(); //원본 이미지 이름
-        String ext = originName.substring(originName.lastIndexOf(".")); //확장자
-        String changedName = changedImageName(originName); //새로 생성된 이미지 이름
-        ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
-        metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
+        String changedName = changedImageName(originName.substring(originName.lastIndexOf("."))); //새로 생성된 이미지 이름
+
+        ObjectMetadata metadata = new ObjectMetadata(); // 메타데이터
+        metadata.setContentType(image.getContentType()); // putObject의 인자로 들어갈 메타데이터를 생성.
         // 이미지만 받을 예정이므로 contentType은  "image/확장자"
 
         PutObjectResult putObjectResult = amazonS3
@@ -172,7 +172,8 @@ public class UserService {
                         .withCannedAcl(CannedAccessControlList.PublicRead));
 
         //데이터베이스에 저장할 이미지가 저장된 주소
-        return amazonS3.getUrl(bucketName, changedName).toString();
+//        return amazonS3.getUrl(bucketName, changedName).toString();
+        return changedName;
 
     }
 
@@ -192,8 +193,8 @@ public class UserService {
     @Transactional
     public UserResponse.GetUserInfoDTO updateUserProfileImage(
             MultipartFile multipartFile,
-            Long userId) throws Exception {
-
+            Long userId
+    ) throws Exception {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));

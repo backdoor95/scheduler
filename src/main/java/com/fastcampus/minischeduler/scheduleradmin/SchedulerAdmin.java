@@ -37,6 +37,7 @@ public class SchedulerAdmin { // 기획사 일정
     @Column(columnDefinition = "LONGTEXT")
     private String description;
 
+    @Column(length = 200)
     private String image;
 
     @Column(nullable = false)

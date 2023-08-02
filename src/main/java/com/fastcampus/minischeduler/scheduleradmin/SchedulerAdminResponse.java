@@ -43,6 +43,7 @@ public class SchedulerAdminResponse {
     }
 
     @Data
+    @NoArgsConstructor
     public static class SchedulerAdminResponseDto {
 
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
@@ -58,7 +59,7 @@ public class SchedulerAdminResponse {
 
         @Builder
         public SchedulerAdminResponseDto(
-                User user,
+                UserDto user,
                 LocalDateTime scheduleStart,
                 LocalDateTime scheduleEnd,
                 String title,
@@ -67,13 +68,7 @@ public class SchedulerAdminResponse {
                 LocalDateTime createdAt,
                 LocalDateTime updatedAt
         ){
-            this.user = new UserDto(
-                    user.getId(),
-                    user.getFullName(),
-                    user.getSizeOfTicket(),
-                    user.getRole(),
-                    user.getProfileImage()
-            );
+            this.user = new UserDto(user);
             this.scheduleStart = scheduleStart;
             this.scheduleEnd = scheduleEnd;
             this.title = title;
@@ -81,10 +76,6 @@ public class SchedulerAdminResponse {
             this.image = image;
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
-        }
-
-        public SchedulerAdminResponseDto() {
-
         }
     }
 }

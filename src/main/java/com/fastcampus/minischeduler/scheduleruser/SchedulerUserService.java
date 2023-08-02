@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRepository;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
+import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,7 +44,7 @@ public class SchedulerUserService {
 
         for (SchedulerUser schedulerUser : schedulerUsers) {
 
-            User responseUser = schedulerUser.getUser();
+            UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerUser.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
@@ -84,7 +85,7 @@ public class SchedulerUserService {
             LocalDateTime scheduleStart = schedulerUser.getScheduleStart();
             YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
 
-            User responseUser = schedulerUser.getUser();
+            UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerUser.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
@@ -127,15 +128,16 @@ public class SchedulerUserService {
         SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(schedulerAdminId)
                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
 
-        SchedulerUser schedulerUser = SchedulerUser.builder()
-                .user(user)
-                .scheduleStart(schedulerUserRequestDto.getScheduleStart())
-                .schedulerAdmin(schedulerAdmin)
-                .createdAt(schedulerUserRequestDto.getCreatedAt())
-                .build();
+        SchedulerUser schedulerUser =
+                SchedulerUser.builder()
+                        .user(user)
+                        .scheduleStart(schedulerUserRequestDto.getScheduleStart())
+                        .schedulerAdmin(schedulerAdmin)
+                        .createdAt(schedulerUserRequestDto.getCreatedAt())
+                        .build();
         SchedulerUser saveSchedulerUser = schedulerUserRepository.save(schedulerUser);
 
-        User responseUser = saveSchedulerUser.getUser();
+        UserResponse.UserDto responseUser = new UserResponse.UserDto(saveSchedulerUser.getUser());
         responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
         responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
 
@@ -224,7 +226,7 @@ public class SchedulerUserService {
                 () -> new IllegalArgumentException("해당 티켓팅은 존재하지 않습니다.")
         );
 
-        User responseUser = schedulerUser.getUser();
+        UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerUser.getUser());
         responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
         responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
