@@ -26,11 +26,12 @@ public class User {
     @Column(unique = true, nullable = false, length = 60)
     private String email;
 
-    @Column(nullable = false, length = 60)
+    @Column(nullable = false, length = 120)
     private String password;
 
     @Column
-    private Integer sizeOfTicket;
+    @Builder.Default
+    private Integer sizeOfTicket = 0;
 
     @Column
     private String profileImage;
@@ -74,9 +75,14 @@ public class User {
         this.sizeOfTicket = sizeOfTicket;
     }
 
-    public void updateUserInfo(String password, String profileImage){
+    public void updateUserInfo(String password, String fullName){
         this.password = password;
-        this.profileImage = profileImage;
+        this.profileImage = fullName;
         onUpdate();
     }
+
+    public void updateUserProfileImage(String imageURL){
+        this.profileImage = imageURL;
+    }
+
 }

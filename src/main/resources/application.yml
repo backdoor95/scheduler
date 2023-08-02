@@ -1,4 +1,3 @@
-
 server:
   error:
     whitelabel:
@@ -8,29 +7,52 @@ server:
     encoding:
       charset: utf-8
       force: true
+  tomcat:
+    connection-timeout: -1
+
 logging:
   level:
-    '[com.fastcampus.minischeduler]': DEBUG
-    '[org.hibernate.type]': TRACE
+#    '[com.fastcampus.minischeduler]': DEBUG
+    '[com.fastcampus.minischeduler]': INFO
+#    '[org.hibernate.type]': TRACE
     org:
       hibernate:
         type:
           descriptor:
             sql: trace
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error
+cloud:
+  aws:
+    s3:
+      bucket: ${S3.BUCKET}
+    credentials:
+      accessKey: ${S3.ACCESS.KEY}
+      secretKey: ${S3.SECRET.KEY}
+    region:
+      static: ap-northeast-2
+    stack:
+      auto: false
 
 my-env:
   jwt:
-    secret: ${JWT_SECRET}
+    secret: ${JWT.SECRET}
   aes256:
-    iv: ${AES256_IV}
-    key: ${AES256_KEY}
-    alg: ${AES256_ALG}
+    iv: ${AES256.IV}
+    key: ${AES256.KEY}
+    alg: ${AES256.ALG}
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
-    username: ${DB_ID}
-    password: ${DB_PASSWORD}
-    url: jdbc:mysql://localhost:3306/minischeduler
+    username: ${RDS.USERNAME}
+    password: ${RDS.PASSWORD}
+    url: jdbc:mysql://${RDS.HOSTNAME}:${RDS.PORT}/${RDS.DB.NAME}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
@@ -50,6 +72,7 @@ spring:
     mode: HTML
     check-template-location: true
     cache: false
-
+  profiles:
+    active: aws
 file:
   dir: /Users/kilminjun/mini/scheduler/src/main/resources/static/asset/upload/

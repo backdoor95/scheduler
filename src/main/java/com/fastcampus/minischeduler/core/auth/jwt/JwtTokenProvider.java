@@ -18,9 +18,14 @@ public class JwtTokenProvider {
     public static final Long EXP = 1000L * 60 * 60 * 2; // 2시간
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
-    public static final String SECRET = "MySecretKey";
+    public static String SECRET;
 
-    public static String create(User user) {
+    @Value("${my-env.jwt.secret}")
+    public void setSECRET(String secret) {
+        SECRET = Base64.getEncoder().encodeToString(secret.getBytes());
+    }
+
+    public String create(User user) {
 
         String jwt = JWT.create()
                 .withSubject(user.getEmail())
@@ -32,13 +37,11 @@ public class JwtTokenProvider {
         return TOKEN_PREFIX + jwt;
     }
 
-    public static DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
+    public DecodedJWT verify(String jwt) throws SignatureVerificationException, TokenExpiredException {
 
-        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
+        return  JWT.require(Algorithm.HMAC512(SECRET))
                 .build()
                 .verify(jwt);
-
-        return decodedJWT;
     }
 
     public Long getUserIdFromToken(String token) {
