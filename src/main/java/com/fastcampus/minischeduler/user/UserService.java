@@ -11,6 +11,7 @@ import com.fastcampus.minischeduler.log.LoginLogRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -85,6 +86,7 @@ public class UserService {
         GetUserInfoDTO getUserInfoDTO = GetUserInfoDTO.builder()
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
                 .build();
 
         return getUserInfoDTO;
@@ -124,12 +126,15 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
-        userPS.updateUserInfo(
-                passwordEncoder.encode(updateUserInfoDTO.getPassword()),
-                updateUserInfoDTO.getProfileImage()
-        );
+        // Password encoding - 암호화
+        String encodedPassword = passwordEncoder.encode(updateUserInfoDTO.getPassword());
+
+        String fullName = updateUserInfoDTO.getFullName();
+
+        userPS.updateUserInfo(encodedPassword, fullName);//이름, 비번  수정
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+
         GetUserInfoDTO responseUser = GetUserInfoDTO.builder()
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
@@ -188,6 +193,60 @@ public class UserService {
     public void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
+
+
+    /**
+     * 유저의 프로필 사진 업데이트 로직실행
+     * @param userId
+     * @return
+     * @throws DataAccessException
+     * @throws IOException
+     */
+    @Transactional
+    public User updateUserProfileImage(
+            MultipartFile multipartFile,
+            Long userId) throws DataAccessException, IOException {
+
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
+
+        String imageURL = uploadImageToS3(multipartFile);
+
+        userPS.updateUserProfileImage(imageURL);
+
+        User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+
+        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+    }
+
+    /**
+     *  이미지 삭제
+     * @param userId
+     * @return
+     * @throws DataAccessException
+     * @throws IOException
+     */
+
+    @Transactional
+    public User deleteUserProfileImage(
+            Long userId) throws DataAccessException, IOException {
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
+
+
+        //지울때 url은 null 로 초기화
+        String imageURL = null;
+
+        userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
+
+        User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
+
+        return updatedUser; // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
+    }
+
+
+
 
     /**
      * id로 User 객체를 찾습니다.

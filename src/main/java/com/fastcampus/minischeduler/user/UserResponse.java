@@ -55,15 +55,6 @@ public class UserResponse {
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
-        public GetUserInfoDTO(User user) {
-            this.email = user.getEmail();
-            this.fullName = user.getFullName();
-            this.leftTicket = user.getSizeOfTicket();
-            this.usedTicket = user.getUsedTicket();
-            this.profileImage = user.getProfileImage();
-            this.createdAt = user.getCreatedAt();
-            this.updatedAt = user.getUpdatedAt();
-        }
     }
 
     @Data

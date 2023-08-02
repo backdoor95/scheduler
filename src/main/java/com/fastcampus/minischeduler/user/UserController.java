@@ -19,8 +19,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -76,7 +78,15 @@ public class UserController {
         }
     }
 
-    @GetMapping("/mypage/{id}")
+    /**
+     *  role에 따라서 마이페이지, 매니저 페이지로 구분됨.
+     * @param id
+     * @param role
+     * @param token
+     * @return
+     * @throws Exception
+     */
+    @GetMapping("/mypage/{id}") //
     public ResponseEntity<?> getUserInfo(
             @PathVariable Long id,
             @RequestParam("role") String role,
@@ -87,11 +97,16 @@ public class UserController {
 
         // mypage id와 로그인한 사용자 id비교
         if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-        if (role.equals("admin")) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (role.equals("admin")){// role = admin
+            Long adminId = jwtTokenProvider.getUserIdFromToken(token);
+            // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(adminId)));
+        }else{// role = user
+            Long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
+        }
 
-        return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
     }
 
     @GetMapping("/mypage/update/{id}")
@@ -108,20 +123,98 @@ public class UserController {
         return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(id)));
     }
 
+    /**
+     *  사용자 정보변경 : 이름, 비밀번호  -> 2개 변경
+     * @param id
+     * @param token
+     * @param updateUserInfoDTO
+     * @return
+     * @throws Exception
+     */
+
     @PostMapping("/mypage/update/{id}")
     public ResponseEntity<?> postUpdateUserInfo(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
             @Valid
-            UpdateUserInfoDTO updateUserInfoDTO
-    ) throws Exception {
+            UpdateUserInfoDTO updateUserInfoDTO,
+            Errors errors
+    ){
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        try {
+            if (errors.hasErrors()) return null;
 
-        // mypage update 작성자 id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-        return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
+            // mypage update 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            }
+
+            GetUserInfoDTO getUserInfoDTO = userService.updateUserInfo(updateUserInfoDTO, id);
+            // user 객체를 이용한 작업 수행
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+            //
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
+
+    /**
+     * 프로필 이미지 등록&변경 업로드.
+     * @param id
+     * @param token
+     * @param file
+     * @return
+     */
+    @PostMapping("/mypage/update/image/{id}")
+    public ResponseEntity<?> postUpdateUserProfileImage(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestParam("file") MultipartFile file
+    ) {
+        try {
+
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+            // mypage update image 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+            }
+
+            if(file.isEmpty()){// 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+                String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
+
+                User user = userService.findById(id);
+
+                user.updateUserProfileImage(defaultNameURL);
+
+                ResponseDTO<?> responseDTO = new ResponseDTO<>(user);
+
+                return ResponseEntity.ok(responseDTO);
+
+            }
+
+            User userPS = userService.updateUserProfileImage(file, id);
+            // user 객체를 이용한 작업 수행
+            ResponseDTO<?> responseDTO = new ResponseDTO<>(userPS);
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+            //
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        }
+
+    }
+
+
+
+
+
+
 }
