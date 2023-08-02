@@ -87,6 +87,10 @@ public class UserService {
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
                 .profileImage(userPS.getProfileImage())
+                .sizeOfTicket(userPS.getSizeOfTicket())
+                .usedTicket(userPS.getUsedTicket())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
                 .build();
 
         return getUserInfoDTO;
@@ -140,7 +144,7 @@ public class UserService {
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
                 .usedTicket(updatedUser.getUsedTicket())
-                .leftTicket(updatedUser.getSizeOfTicket())
+                .sizeOfTicket(updatedUser.getSizeOfTicket())
                 .updatedAt(updatedUser.getUpdatedAt())
                 .createdAt(updatedUser.getCreatedAt())
                 .build();
