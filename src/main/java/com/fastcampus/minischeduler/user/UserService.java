@@ -118,7 +118,7 @@ public class UserService {
 
         userPS.updateUserInfo(
                 passwordEncoder.encode(updateUserInfoDTO.getPassword()),
-                updateUserInfoDTO.getProfileImage()
+                updateUserInfoDTO.getFullName()
         );
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
