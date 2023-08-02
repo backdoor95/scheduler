@@ -33,7 +33,7 @@ public class User {
     @Builder.Default
     private Integer sizeOfTicket = 0;
 
-    @Column
+    @Column(length = 120)
     private String profileImage;
 
     @Column(nullable = false)
@@ -75,13 +75,14 @@ public class User {
         this.sizeOfTicket = sizeOfTicket;
     }
 
-    public void updateUserInfo(String password, String fullName){
+    public void updateUserInfo(String password, String fullName) {
+
         this.password = password;
         this.profileImage = fullName;
         onUpdate();
     }
 
-    public void updateUserProfileImage(String imageURL){
+    public void updateUserProfileImage(String imageURL) {
         this.profileImage = imageURL;
     }
 

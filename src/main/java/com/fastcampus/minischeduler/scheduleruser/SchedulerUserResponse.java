@@ -26,19 +26,13 @@ public class SchedulerUserResponse {
 
         @Builder
         public SchedulerUserResponseDto(
-                User user,
+                UserDto user,
                 SchedulerAdmin schedulerAdmin,
                 LocalDateTime scheduleStart,
                 Progress progress,
                 LocalDateTime createdAt
         ){
-            this.user = new UserDto(
-                    user.getId(),
-                    user.getFullName(),
-                    user.getSizeOfTicket(),
-                    user.getRole(),
-                    user.getProfileImage()
-            );
+            this.user = new UserDto(user);
             this.schedulerAdmin = schedulerAdmin;
             this.scheduleStart = scheduleStart;
             this.progress = progress;

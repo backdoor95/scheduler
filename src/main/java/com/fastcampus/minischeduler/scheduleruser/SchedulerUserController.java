@@ -84,7 +84,7 @@ public class SchedulerUserController {
 
         //year와 month 유효성검증
         if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다.");
-        if(month != null && (month <1 || month >12)) throw new Exception400("month", "유효하지 않은 달입니다.");
+        if(month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다.");
 
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
                 = schedulerAdminService.getSchedulerByFullName(keyword, year, month);

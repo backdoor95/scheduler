@@ -32,6 +32,12 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    /**
+     * 회원가입
+     * @param joinRequestDTO : 회원가입 시 입력한 정보
+     * @return               : UserResponse.JoinDTO
+     * @throws Exception     : 디코딩 시 에러
+     */
     @MyErrorLog
     @MyLog
     @PostMapping("/join")
@@ -52,6 +58,11 @@ public class UserController {
         return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO)));
     }
 
+    /**
+     * 로그인
+     * @param loginRequestDTO : 로그인 요청 정보
+     * @return                : 토큰
+     */
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody
@@ -76,12 +87,12 @@ public class UserController {
     }
 
     /**
-     *  role에 따라서 마이페이지, 매니저 페이지로 구분됨.
-     * @param id
-     * @param role
-     * @param token
-     * @return
-     * @throws Exception
+     * role에 따라서 마이페이지, 매니저 페이지로 구분됨.
+     * @param id         : 사용자 id
+     * @param role       : 사용자 권한
+     * @param token      : 현재 헤더에 저장되어있는 토큰
+     * @return           : UserResponse.getUserInfoDTO
+     * @throws Exception : 디코딩에 의한 에러
      */
     @GetMapping("/mypage/{id}") //
     public ResponseEntity<?> getUserInfo(
@@ -121,46 +132,35 @@ public class UserController {
     }
 
     /**
-     *  사용자 정보변경 : 이름, 비밀번호  -> 2개 변경
-     * @param id
-     * @param token
-     * @param updateUserInfoDTO
-     * @return
-     * @throws Exception
+     * 사용자 정보변경
+     * @param id                : 사용자 id
+     * @param token             : 현재 헤더에 저장되어 있는 토큰
+     * @param updateUserInfoDTO : 변경하려는 정보
+     * @return                  : UserResponse.getUserInfoDTO
+     * @throws Exception        : 디코딩 시 발생할 에러
      */
+    @PostMapping("/mypage/update/{id}")
+    public ResponseEntity<?> postUpdateUserInfo(
+            @PathVariable Long id,
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @RequestBody
+            @Valid
+            UpdateUserInfoDTO updateUserInfoDTO
+    ) {
+        try {
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-//    @PostMapping("/mypage/update/{id}")
-//    public ResponseEntity<?> postUpdateUserInfo(
-//            @PathVariable Long id,
-//            @RequestHeader(JwtTokenProvider.HEADER) String token,
-//            @RequestBody
-//            @Valid
-//            UpdateUserInfoDTO updateUserInfoDTO,
-//            Errors errors
-//    ){
-//
-//        try {
-//            if (errors.hasErrors()) return null;
-//
-//            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-//
-//            // mypage update 작성자 id와 로그인한 사용자 id비교
-//            if (!id.equals(loginUserId)) {
-//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-//            }
-//
-//            GetUserInfoDTO getUserInfoDTO = userService.updateUserInfo(updateUserInfoDTO, id);
-//            // user 객체를 이용한 작업 수행
-//            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
-//
-//            return ResponseEntity.ok(responseDTO);
-//        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
-//            //
-//            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+            // mypage update 작성자 id와 로그인한 사용자 id비교
+            if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
+
+            // user 객체를 이용한 작업 수행
+            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
+        } catch (IOException e) {
+            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     /**
      * 프로필 이미지 등록&변경 업로드.
@@ -188,15 +188,9 @@ public class UserController {
                 String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
 
                 User user = userService.findById(id);
-
                 user.updateUserProfileImage(defaultNameURL);
 
-
-
-                ResponseDTO<?> responseDTO = new ResponseDTO<>(user);
-
-                return ResponseEntity.ok(responseDTO);
-
+                return ResponseEntity.ok(new ResponseDTO<>(user));
             }
 
             UserResponse.GetUserInfoDTO getUserInfoDTO = userService.updateUserProfileImage(file, id);
@@ -204,15 +198,12 @@ public class UserController {
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
             return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
-            //
+        } catch (IOException e) {
             throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
             throw new RuntimeException("디코딩중 문제발생?");
         }
-
     }
-
 
     @PostMapping("/mypage/delete/image/{id}")// 구현중.
     public ResponseEntity<?> postDeleteUserProfileImage(
@@ -233,20 +224,10 @@ public class UserController {
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
             return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
-            //
+        } catch (IOException e) {
             throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
             throw new RuntimeException("디코딩중 문제발생?");
         }
-
-
-
     }
-
-
-
-
-
-
 }

@@ -65,8 +65,10 @@ public class UserResponse {
     }
 
     @Data
+    @NoArgsConstructor
     public static class UserDto {
         private Long id;
+        private String email;
         private String fullName;
         private int sizeOfTicket;
         private Role role;
@@ -86,8 +88,22 @@ public class UserResponse {
             this.profileImage = profileImage;
         }
 
-        public UserDto() {
+        public UserDto(User user) {
+            this.id = user.getId();
+            this.email = user.getEmail();
+            this.fullName = user.getFullName();
+            this.sizeOfTicket = user.getSizeOfTicket();
+            this.role = user.getRole();
+            this.profileImage = user.getProfileImage();
+        }
 
+        public UserDto(UserDto user) {
+            this.id = user.getId();
+            this.email = user.getEmail();
+            this.fullName = user.getFullName();
+            this.sizeOfTicket = user.getSizeOfTicket();
+            this.role = user.getRole();
+            this.profileImage = user.getProfileImage();
         }
     }
 }
