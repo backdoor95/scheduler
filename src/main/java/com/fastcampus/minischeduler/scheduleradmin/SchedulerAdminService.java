@@ -226,32 +226,36 @@ public class SchedulerAdminService {
      * @return id
      */
      @Transactional
-     public Long delete(Long id, String token) throws Exception {
-         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
-         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+     public void delete(Long id, String token) throws Exception {
+         try{
+             SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
+             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-         if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
-         SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
-                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
-         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
-         if (!schedulerUsers.isEmpty()) {
-             for (SchedulerUser schedulerUser : schedulerUsers) {
-                 User user = schedulerUser.getUser();
-                 int ticket = user.getSizeOfTicket();
-                 user.setSizeOfTicket(ticket + 1);
-                 userRepository.save(user);
+             if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
+                 throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+             SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
+                     .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
+             List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
+             if (!schedulerUsers.isEmpty()) {
+                 for (SchedulerUser schedulerUser : schedulerUsers) {
+                     User user = schedulerUser.getUser();
+                     int ticket = user.getSizeOfTicket();
+                     user.setSizeOfTicket(ticket + 1);
+                     userRepository.save(user);
+                 }
              }
+             //글 삭제시 저장된 image파일도 같이 삭제
+             String image = schedulerAdmin.getImage();
+             if (image != null && !image.isEmpty()) {
+                 int slash = image.lastIndexOf("/");
+                 String fileName = image.substring(slash + 1);
+                 deleteImage(fileName);
+             }
+             schedulerAdminRepository.deleteById(id);
+         } catch (IllegalArgumentException e){
+             e.printStackTrace();
          }
-         //글 삭제시 저장된 image파일도 같이 삭제
-         String image = schedulerAdmin.getImage();
-         if (image != null && !image.isEmpty()) {
-             int slash = image.lastIndexOf("/");
-             String fileName = image.substring(slash + 1);
-             deleteImage(fileName);
-         }
-         schedulerAdminRepository.deleteById(id);
-         return id;
+
      }
 
     /**

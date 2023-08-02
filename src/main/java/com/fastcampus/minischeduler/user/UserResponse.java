@@ -39,7 +39,6 @@ public class UserResponse {
         }
     }
 
-    @AllArgsConstructor
     @Setter
     @Getter
     @Builder

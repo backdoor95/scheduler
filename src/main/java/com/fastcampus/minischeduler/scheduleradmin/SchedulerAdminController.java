@@ -47,10 +47,11 @@ public class SchedulerAdminController {
      */
     @GetMapping("/scheduleAll")
     public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList (
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
     ) throws Exception {
-
+        jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
         //year와 month 유효성검증
@@ -114,15 +115,6 @@ public class SchedulerAdminController {
         if (schedulerAdminRequestDto.getScheduleStart() == null|| schedulerAdminRequestDto.getScheduleEnd()==null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다.");
-
-//        LocalDateTime start, end;
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-//        try {
-//            start = LocalDateTime.parse(schedulerAdminRequestDto.getScheduleStart(), formatter);
-//            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-//        } catch (DateTimeParseException e) {
-//            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
-//        }
         return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
     }
 
@@ -162,20 +154,9 @@ public class SchedulerAdminController {
         if (schedulerAdminRequestDto.getScheduleStart() == null|| schedulerAdminRequestDto.getScheduleEnd()==null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다.");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다.");
-//
-//        LocalDateTime start, end;
-//        try {
-//            start = LocalDateTime.parse(scheduleStart, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-//            end = LocalDateTime.parse(scheduleEnd, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"));
-//        } catch (DateTimeParseException e) {
-//            throw new Exception400("scheduleStart/scheduleEnd", "올바른 날짜정보를 입력하세요.");
-//        }
 
-
-            Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, image);
-            SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
-
-
+        Long updateId = schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, image);
+        SchedulerAdminResponseDto updateScheduler = schedulerAdminService.getSchedulerById(updateId);
         return ResponseEntity.ok(updateScheduler);
     }
 

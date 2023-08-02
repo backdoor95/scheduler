@@ -31,10 +31,6 @@ public class SchedulerUserController {
     private final SchedulerUserService schedulerUserService;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    @Value("${file.dir}")
-    private String fileDir;
-
     /**
      * 전체 일정 조회(메인) : 모든 기획사의 일정과 본인이 신청한 일정이 나옴
      * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴

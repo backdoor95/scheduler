@@ -34,7 +34,6 @@ public class AES256Utils {
         byte[] encrypted = cipher.doFinal(text.getBytes(StandardCharsets.UTF_8));
 
         return Base64.getEncoder().encodeToString(encrypted); // Base64 인코딩 3f
-//        return Base64Utils.encodeToUrlSafeString(encrypted); // -16
     }
 
     // 복호화
@@ -46,7 +45,6 @@ public class AES256Utils {
         cipher.init(Cipher.DECRYPT_MODE, keySpec, ivParamSpec); // Cipher 객체 초기화(복호화)
 
         byte[] decodedBytes = Base64.getDecoder().decode(cipherText); // Base64 디코딩 3f
-//        byte[] decodedBytes = Base64Utils.decodeFromUrlSafeString(cipherText); // -16
         byte[] decrypted = cipher.doFinal(decodedBytes);
 
         return new String(decrypted, StandardCharsets.UTF_8);

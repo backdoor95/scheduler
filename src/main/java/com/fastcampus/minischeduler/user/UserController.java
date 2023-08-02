@@ -129,38 +129,38 @@ public class UserController {
      * @throws Exception
      */
 
-    @PostMapping("/mypage/update/{id}")
-    public ResponseEntity<?> postUpdateUserInfo(
-            @PathVariable Long id,
-            @RequestHeader(JwtTokenProvider.HEADER) String token,
-            @RequestBody
-            @Valid
-            UpdateUserInfoDTO updateUserInfoDTO,
-            Errors errors
-    ){
-
-        try {
-            if (errors.hasErrors()) return null;
-
-            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-            // mypage update 작성자 id와 로그인한 사용자 id비교
-            if (!id.equals(loginUserId)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-            }
-
-            GetUserInfoDTO getUserInfoDTO = userService.updateUserInfo(updateUserInfoDTO, id);
-            // user 객체를 이용한 작업 수행
-            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
-
-            return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
-            //
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    @PostMapping("/mypage/update/{id}")
+//    public ResponseEntity<?> postUpdateUserInfo(
+//            @PathVariable Long id,
+//            @RequestHeader(JwtTokenProvider.HEADER) String token,
+//            @RequestBody
+//            @Valid
+//            UpdateUserInfoDTO updateUserInfoDTO,
+//            Errors errors
+//    ){
+//
+//        try {
+//            if (errors.hasErrors()) return null;
+//
+//            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+//
+//            // mypage update 작성자 id와 로그인한 사용자 id비교
+//            if (!id.equals(loginUserId)) {
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+//            }
+//
+//            GetUserInfoDTO getUserInfoDTO = userService.updateUserInfo(updateUserInfoDTO, id);
+//            // user 객체를 이용한 작업 수행
+//            ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
+//
+//            return ResponseEntity.ok(responseDTO);
+//        } catch (IOException e) {// 이 부분 어떻게 처리해야할지 물어보기.
+//            //
+//            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     /**
      * 프로필 이미지 등록&변경 업로드.
