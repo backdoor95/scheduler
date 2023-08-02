@@ -82,5 +82,9 @@ public class SchedulerAdminResponse {
             this.createdAt = createdAt;
             this.updatedAt = updatedAt;
         }
+
+        public SchedulerAdminResponseDto() {
+
+        }
     }
 }

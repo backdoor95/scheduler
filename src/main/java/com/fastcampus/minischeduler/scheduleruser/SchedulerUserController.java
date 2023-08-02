@@ -72,23 +72,6 @@ public class SchedulerUserController {
     }
 
     /**
-     * 이미지 연결
-     */
-    @GetMapping(value = "/schedule/image/{fileName}")
-    @ResponseBody
-    public byte[] getImage(@PathVariable String fileName) {
-
-        try (InputStream inputStream = new FileInputStream(fileDir + fileName)) {
-            return inputStream.readAllBytes();
-
-        } catch (FileNotFoundException e) {
-            throw new Exception401("파일을 찾을수 없습니다");
-        } catch (IOException e) {
-            throw new RuntimeException("이미지를 읽는 도중 오류가 발생했습니다", e);
-        }
-    }
-
-    /**
      * 기획사 검색: 기획사의 이름으로 검색. 검색 내용과 본인의 스케줄이 나옴
      * 정확히 일치하지 않더라도 keyword가 fullname에 포함되어있으면 출력
      * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴

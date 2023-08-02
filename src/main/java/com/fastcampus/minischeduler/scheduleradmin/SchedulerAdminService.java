@@ -1,5 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
@@ -37,14 +40,17 @@ import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse
 @RequiredArgsConstructor
 public class SchedulerAdminService {
 
-    @Value("${file.dir}")
-    private String fileDir;
+    private final AmazonS3 amazonS3;
+
+    //aws s3 버킷 이름.
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
 
     @PersistenceContext
     private EntityManager entityManager;
 
     private final HttpServletResponse httpServletResponse;
-    private final UserService userService; //
+    private final UserService userService;
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
@@ -133,16 +139,12 @@ public class SchedulerAdminService {
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
             String token,
-            MultipartFile file
+            MultipartFile image
     ) throws Exception {
-
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-
-        String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        String filePath = fileDir + filename;
-        file.transferTo(new File(filePath));
+        String imageUrl = uploadImageToS3(image);
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
@@ -150,7 +152,7 @@ public class SchedulerAdminService {
                 .scheduleEnd(schedulerAdminRequestDto.getScheduleEnd())
                 .title(schedulerAdminRequestDto.getTitle())
                 .description(schedulerAdminRequestDto.getDescription())
-                .image(filename)
+                .image(imageUrl)
                 .build();
         SchedulerAdmin saveScheduler = schedulerAdminRepository.save(scheduler);
 
@@ -168,6 +170,7 @@ public class SchedulerAdminService {
                 .createdAt(saveScheduler.getCreatedAt())
                 .updatedAt(saveScheduler.getUpdatedAt())
                 .build();
+
     }
 
     /**
@@ -179,32 +182,39 @@ public class SchedulerAdminService {
     public Long updateScheduler(
             Long id,
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            MultipartFile file
+            MultipartFile image
     ) throws IOException {
-
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
         );
-        if (file != null && !file.isEmpty()) {
-
-            String filename = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            String filePath = fileDir + filename;
-            file.transferTo(new File(filePath));
-            scheduler.update(
-                    schedulerAdminRequestDto.getScheduleStart(),
-                    schedulerAdminRequestDto.getScheduleEnd(),
-                    schedulerAdminRequestDto.getTitle(),
-                    schedulerAdminRequestDto.getDescription(),
-                    filename
-            );
-        } else {
-            scheduler.update(
-                    schedulerAdminRequestDto.getScheduleStart(),
-                    schedulerAdminRequestDto.getScheduleEnd(),
-                    schedulerAdminRequestDto.getTitle(),
-                    schedulerAdminRequestDto.getDescription(),
-                    scheduler.getImage()
-            );
+        try {
+            if (image != null && !image.isEmpty()) {
+                // 새로운 이미지가 있다면 저장소에 저장된 기존 이미지는 삭제함
+                String oldImage = scheduler.getImage();
+                if (oldImage != null && !oldImage.isEmpty()) {
+                    int slash = oldImage.lastIndexOf("/");
+                    String fileName = oldImage.substring(slash + 1);
+                    deleteImage(fileName);
+                }
+                String imageUrl = uploadImageToS3(image);
+                scheduler.update(
+                        schedulerAdminRequestDto.getScheduleStart(),
+                        schedulerAdminRequestDto.getScheduleEnd(),
+                        schedulerAdminRequestDto.getTitle(),
+                        schedulerAdminRequestDto.getDescription(),
+                        imageUrl
+                );
+            } else {
+                scheduler.update(
+                        schedulerAdminRequestDto.getScheduleStart(),
+                        schedulerAdminRequestDto.getScheduleEnd(),
+                        schedulerAdminRequestDto.getTitle(),
+                        schedulerAdminRequestDto.getDescription(),
+                        scheduler.getImage()
+                );
+            }
+        }catch (IllegalArgumentException e){
+            e.printStackTrace();
         }
         return id;
     }
@@ -214,40 +224,34 @@ public class SchedulerAdminService {
      * @param id, token
      * @return id
      */
-    @Transactional
-    public Long delete(Long id, String token) throws Exception {
+     @Transactional
+     public Long delete(Long id, String token) throws Exception {
+         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
+         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-        SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
-       Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-       if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-           throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
-
-       SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
-               .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
-
-       List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
-       if (!schedulerUsers.isEmpty()) {
-           for (SchedulerUser schedulerUser : schedulerUsers) {
-               User user = schedulerUser.getUser();
-               int ticket = user.getSizeOfTicket();
-               user.setSizeOfTicket(ticket + 1);
-               userRepository.save(user);
-           }
-       }
-
-       //글 삭제시 local에 저장된 image파일도 같이 삭제
-       String image = schedulerAdmin.getImage();
-       if (image != null && !image.isEmpty()) {
-           String filePath = fileDir + image;
-           File imgeFile = new File(filePath);
-
-           if (imgeFile.exists()) imgeFile.delete();
-       }
-
-       schedulerAdminRepository.deleteById(id);
-       return id;
-    }
+         if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
+             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+         SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
+                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
+         List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
+         if (!schedulerUsers.isEmpty()) {
+             for (SchedulerUser schedulerUser : schedulerUsers) {
+                 User user = schedulerUser.getUser();
+                 int ticket = user.getSizeOfTicket();
+                 user.setSizeOfTicket(ticket + 1);
+                 userRepository.save(user);
+             }
+         }
+         //글 삭제시 저장된 image파일도 같이 삭제
+         String image = schedulerAdmin.getImage();
+         if (image != null && !image.isEmpty()) {
+             int slash = image.lastIndexOf("/");
+             String fileName = image.substring(slash + 1);
+             deleteImage(fileName);
+         }
+         schedulerAdminRepository.deleteById(id);
+         return id;
+     }
 
     /**
      * 사용자 별 일정을 출력합니다.
@@ -590,5 +594,28 @@ public class SchedulerAdminService {
 
     public List<SchedulerUser> getAllTicketsOfThisAdmin(Long id) {
         return schedulerAdminRepository.findAllTicketsByAdminId(id);
+    }
+
+    // aws upload
+    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
+        String random = UUID.randomUUID().toString();
+        return random+originName;
+    }
+    @Transactional
+    public String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
+        String originName = image.getOriginalFilename(); //원본 이미지 이름
+        String ext = originName.substring(originName.lastIndexOf(".")); //확장자
+        String changedName = changedImageName(originName); //새로 생성된 이미지 이름
+        ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
+        metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
+        // 이미지만 받을 예정이므로 contentType은  "image/확장자"
+        PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
+                bucketName, changedName, image.getInputStream(), metadata
+        ).withCannedAcl(CannedAccessControlList.PublicRead));// getInputStream에서 exception 발생 -> controller에서 처리
+        return amazonS3.getUrl(bucketName, changedName).toString(); //데이터베이스에 저장할 이미지가 저장된 주소
+    }
+    @Transactional
+    public void deleteImage(String fileName) {
+        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
 }

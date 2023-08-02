@@ -48,7 +48,7 @@ public class UserService {
 
         // USER 는 티켓 제공, ADMIN 은 제공 안함
         if (userPS.getRole().equals(Role.USER)) userPS.setSizeOfTicket(12 - Calendar.getInstance().get(Calendar.MONTH));
-        if (userPS.getRole().equals(Role.ADMIN)) userPS.setSizeOfTicket(null);
+        if (userPS.getRole().equals(Role.ADMIN)) userPS.setSizeOfTicket(0);
 
         UserResponse.JoinDTO response = new UserResponse.JoinDTO(userPS);
         response.setFullName(aes256Utils.decryptAES256(response.getFullName()));

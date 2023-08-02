@@ -1,9 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -45,6 +42,7 @@ public class UserResponse {
     @Setter
     @Getter
     @Builder
+    @AllArgsConstructor
     public static class GetUserInfoDTO {
 
         private String email;
@@ -86,6 +84,10 @@ public class UserResponse {
             this.sizeOfTicket = sizeOfTicket;
             this.role = role;
             this.profileImage = profileImage;
+        }
+
+        public UserDto() {
+
         }
     }
 

@@ -18,7 +18,7 @@ public class JwtTokenProvider {
     public static final Long EXP = 1000L * 60 * 60 * 2; // 2시간
     public static final String TOKEN_PREFIX = "Bearer "; // 스페이스 필요함
     public static final String HEADER = "Authorization";
-    public static final String SECRET = Base64.getEncoder().encodeToString("MySecretKey".getBytes());
+    public static final String SECRET = "MySecretKey";
 
     public static String create(User user) {
 
