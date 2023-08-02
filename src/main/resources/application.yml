@@ -8,6 +8,8 @@ server:
     encoding:
       charset: utf-8
       force: true
+  tomcat:
+    connection-timeout: -1
 logging:
   level:
     '[com.fastcampus.minischeduler]': DEBUG
@@ -17,6 +19,10 @@ logging:
         type:
           descriptor:
             sql: trace
+    com:
+      amazonaws:
+        util:
+          EC2MetadataUtils: error
 
 spring:
   datasource:
@@ -42,3 +48,9 @@ spring:
     mode: HTML
     check-template-location: true
     cache: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  profiles:
+    active: aws
