@@ -7,7 +7,6 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserRepository;
-import com.fastcampus.minischeduler.user.UserResponse;
 import com.fastcampus.minischeduler.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
@@ -212,10 +211,9 @@ public class SchedulerAdminService {
     /**
      * 일정을 삭제합니다.
      * @param id, token
-     * @return id
      */
     @Transactional
-    public Long delete(Long id, String token) throws Exception {
+    public void delete(Long id, String token) throws Exception {
 
         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -246,7 +244,6 @@ public class SchedulerAdminService {
        }
 
        schedulerAdminRepository.deleteById(id);
-       return id;
     }
 
     /**
@@ -312,8 +309,8 @@ public class SchedulerAdminService {
 
     /**
      * 사용자 id로 일정을 검색합니다.
-     * @param id
-     * @return SchedulerAdminResponseDto
+     * @param id : 사용자 id
+     * @return   : SchedulerAdminResponseDto
      */
     @Transactional
     public SchedulerAdminResponseDto getSchedulerById(Long id) throws Exception {
@@ -340,8 +337,8 @@ public class SchedulerAdminService {
 
     /**
      * 사용자 id로 일정을 검색합니다.
-     * @param id
-     * @return SchedulerAdmin
+     * @param id : 사용자 id
+     * @return   : SchedulerAdmin
      */
     public SchedulerAdmin getSchedulerAdminById(Long id) {
         return schedulerAdminRepository.findById(id).orElse(null);
@@ -423,8 +420,8 @@ public class SchedulerAdminService {
     /**
      * 결재관리 페이지의 해당 기획사 공연에 티케팅한 사용자의 내역과
      * 승인현황 별 티케팅 수를 조회합니다.
-     * @param id
-     * @return
+     * @param id : 기획사 id
+     * @return   : 기획사 정보, 관련 티켓승인현황, 기획사 일정
      */
     @Transactional(readOnly = true)
     public SchedulerAdminResponse getAdminScheduleDetail(Long id) throws Exception {
@@ -433,20 +430,14 @@ public class SchedulerAdminService {
                 schedulerAdminRepository.findSchedulesWithUsersById(id);
 
         for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
-            scheduleDTO.setFullName(scheduleDTO.getFullName());
+            scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
         }
 
-        UserResponse.GetUserInfoDTO loginUser = userService.getUserInfo(id);
-        loginUser.setFullName(aes256Utils.decryptAES256(loginUser.getFullName()));
-        loginUser.setEmail(aes256Utils.decryptAES256(loginUser.getEmail()));
-
-        SchedulerAdminResponse schedulerAdminResponse = new SchedulerAdminResponse(
+        return new SchedulerAdminResponse(
                 scheduleDtoList,
                 schedulerAdminRepository.countScheduleGroupByProgressById(id),
-                loginUser
+                userService.getUserInfo(id)
         );
-
-        return schedulerAdminResponse;
     }
 
     @Transactional
@@ -456,7 +447,7 @@ public class SchedulerAdminService {
 
     /**
      * 엑셀 파일을 다운받습니다.
-     * @throws Exception
+     * @throws Exception : 에러
      */
     public void excelDownload(Long adminId) throws Exception {
 

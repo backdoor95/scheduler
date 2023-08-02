@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,8 +23,11 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
+    private JwtTokenProvider jwtTokenProvider;
+
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager) {
         super(authenticationManager);
+        if (jwtTokenProvider == null) this.jwtTokenProvider = new JwtTokenProvider();
     }
 
     @Override
@@ -44,7 +48,7 @@ public class JwtAuthenticationFilter extends BasicAuthenticationFilter {
 
         try {
             System.out.println("디버그 : 토큰 있음");
-            DecodedJWT decodedJWT = JwtTokenProvider.verify(jwt);
+            DecodedJWT decodedJWT = jwtTokenProvider.verify(jwt);
             Long id = decodedJWT.getClaim("id").asLong();
             String role = decodedJWT.getClaim("role").asString();
 

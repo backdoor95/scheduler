@@ -35,8 +35,12 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     // 엑셀 다운로드
-    implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'        // HSSFWorkbook 사용가능
     implementation group: 'org.apache.poi', name: 'poi-ooxml', version: '4.1.2'  // XSSFWorkbook 사용가능
+    implementation group: 'org.apache.poi', name: 'poi', version: '4.1.2'        // HSSFWorkbook 사용가능
+
+    // AWS
+//    implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+//    implementation 'org.springframework:spring-context:5.3.9'
 
     //aws
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
@@ -55,4 +59,9 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+//    systemProperty 'file.encoding', 'UTF-8'
 }
+
+//jar {
+//    enabled = false
+//}

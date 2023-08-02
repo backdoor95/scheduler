@@ -43,6 +43,7 @@ public class UserResponse {
     @Setter
     @Getter
     @Builder
+    @AllArgsConstructor
     public static class GetUserInfoDTO {
 
         private String email;
@@ -85,9 +86,5 @@ public class UserResponse {
             this.role = role;
             this.profileImage = profileImage;
         }
-    }
-
-    public static class ExcelDto {
-
     }
 }

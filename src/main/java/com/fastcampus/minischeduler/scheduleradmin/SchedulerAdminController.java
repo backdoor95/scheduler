@@ -27,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/admin")
@@ -236,8 +237,8 @@ public class SchedulerAdminController {
     }
 
     /**
-     * 결재관리 페이지
-     * @return
+     * 결재관리 페이지입니다.
+     * @return 기획사 일정과 티켓 승인 현황 카운트를 리턴합니다.
      */
     @GetMapping("/schedule/confirm/{id}")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
@@ -255,11 +256,12 @@ public class SchedulerAdminController {
 
     /**
      * 선택한 티켓을 승인하거나 거절합니다.
-     * @param id : 사용자(기획사) id
-     * @param schedulerUserId
-     * @param progress : 승인/거절
-     * @param myUserDetails
-     * @return
+     * @param id              : 로그인한 사용자 id
+     * @param schedulerUserId : 선택한 사용자 일정 id
+     * @param progress        : 선택된 티켓 승인 옵션
+     * @param myUserDetails   : 현재 로그인된 사용자 정보를 가져옴
+     * @param token           : 헤더의 토큰을 가져옴
+     * @return                : 메세지 응답
      */
     @PostMapping("/schedule/confirm/{id}/{schedulerUserId}")
     public ResponseEntity<?> confirmSchedule(
@@ -274,7 +276,9 @@ public class SchedulerAdminController {
         if(!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
         if(!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
-        SchedulerUser schedulerUser = schedulerUserRepository.findById(schedulerUserId).get();
+        Optional<SchedulerUser> object = schedulerUserRepository.findById(schedulerUserId);
+        if (object.isEmpty()) throw new Exception400("해당 티켓이 존재하지 않습니다");
+        SchedulerUser schedulerUser = object.get();
         User fan = schedulerUser.getUser();
         if (fan == null) throw new Exception400("해당 사용자는 존재하지 않습니다");
 
@@ -289,7 +293,6 @@ public class SchedulerAdminController {
             message = "티켓을 거절합니다.";
         } else throw new Exception404("잘못된 요청입니다");
 
-        if(schedulerUser == null) throw new Exception400(schedulerUser.toString(), "해당 티켓은 존재하지 않습니다");
         if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
         if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
 
@@ -300,9 +303,9 @@ public class SchedulerAdminController {
 
     /**
      * 기획사 id를 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
-     * @param id
-     * @param myUserDetails
-     * @throws Exception
+     * @param id            : 현재 로그인한 기획사 id
+     * @param myUserDetails : 현재 로그인한 사용자 정보
+     * @throws Exception    : AES256 디코딩 시 발생할 오류
      */
     @GetMapping("/schedule/{id}/excelDownload")
     public ResponseEntity<String> excelDownload(
