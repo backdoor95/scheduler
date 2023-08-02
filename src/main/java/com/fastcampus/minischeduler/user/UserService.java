@@ -35,7 +35,12 @@ public class UserService {
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
 
+    // Aws s3
+    private final AmazonS3 amazonS3;
 
+    //aws s3 버킷 이름.
+    @Value("${cloud.aws.s3.bucket}")
+    private String bucketName;
 
 
 
@@ -150,42 +155,45 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    // Aws s3
-    private final AmazonS3 amazonS3;
 
-    //버킷 이름.
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
+
+    /**
+     * aws upload
+     */
+
 
     private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
         String random = UUID.randomUUID().toString();
         return random+originName;
     }
 
-    private String uploadImageToS3(MultipartFile image) { //이미지를 S3에 업로드하고 이미지의 url을 반환
+    @Transactional
+    private String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
         String originName = image.getOriginalFilename(); //원본 이미지 이름
         String ext = originName.substring(originName.lastIndexOf(".")); //확장자
         String changedName = changedImageName(originName); //새로 생성된 이미지 이름
         ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
         metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
         // 이미지만 받을 예정이므로 contentType은  "image/확장자"
-        try {
-            PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
-                    bucketName, changedName, image.getInputStream(), metadata
-            ).withCannedAcl(CannedAccessControlList.PublicRead));
 
-        } catch (IOException e) {
-            throw new ImageUploadException(); //커스텀 예외 던짐.
-        }
+        PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
+                bucketName, changedName, image.getInputStream(), metadata
+        ).withCannedAcl(CannedAccessControlList.PublicRead));// getInputStream에서 exception 발생 -> controller에서 처리
+
         return amazonS3.getUrl(bucketName, changedName).toString(); //데이터베이스에 저장할 이미지가 저장된 주소
 
     }
 
+    @Transactional
     public void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
 
-
+    /**
+     * id로 User 객체를 찾습니다.
+     * @param id
+     * @return
+     */
     public User findById(Long id){
         return userRepository.findById(id).get();
     }
