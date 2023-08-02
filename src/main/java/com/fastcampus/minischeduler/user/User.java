@@ -79,4 +79,9 @@ public class User {
         this.profileImage = profileImage;
         onUpdate();
     }
+
+    public void updateUserProfileImage(String imageURL){
+        this.profileImage = imageURL;
+    }
+
 }
