@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Calendar;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -246,13 +247,18 @@ public class UserService {
     @Transactional
     public UserResponse.GetUserInfoDTO deleteUserProfileImage(
             Long userId) throws Exception {
+
+
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
+        String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
+        String url = userPS.getProfileImage();
+
+        String fileName = url.substring(url.lastIndexOf('/') + 1);
+        deleteImage(fileName);// aws에서 삭제
 
 
         //지울때 url은 기본 프로필로 초기화
-        String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
-
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
