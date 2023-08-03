@@ -195,19 +195,24 @@ public class SchedulerUserService {
      */
     public void cancel(Long id, String token) throws Exception {
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        User user = userRepository.findById(loginUserId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
-        if (!schedulerUserDto.getUser().getId().equals(loginUserId))
-            throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+        try {
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+            User user = userRepository.findById(loginUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+            SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
+            if (!schedulerUserDto.getUser().getId().equals(loginUserId))
+                throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
 
-        //삭제하면 티켓수를 다시 되돌려줌
-        int ticket = user.getSizeOfTicket() + 1;
-        user.setSizeOfTicket(ticket);
-        userRepository.save(user);
+            //삭제하면 티켓수를 다시 되돌려줌
+            int ticket = user.getSizeOfTicket() + 1;
+            user.setSizeOfTicket(ticket);
+            userRepository.save(user);
 
-        schedulerUserRepository.deleteById(id);
+            schedulerUserRepository.deleteById(id);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public void decreaseUserTicket(User user) {
