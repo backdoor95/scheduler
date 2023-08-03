@@ -269,23 +269,38 @@ public class SchedulerAdminService {
 
         YearMonth yearMonth = null;
         if (year != null && month != null) yearMonth = YearMonth.of(year, month);
-
-        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(keyword);
+        String encryptedKeyword = aes256Utils.encryptAES256(keyword);
+        System.out.println(keyword + encryptedKeyword);
+        //List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(encryptedKeyword);
+        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
+        System.out.println(schedulers);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for (SchedulerAdmin scheduler : schedulers) {
-
+            System.out.println(scheduler);
             UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+            if(responseUser.getFullName().contains(keyword)){
+                SchedulerAdminResponseDto schedulerAdminResponseDto = null;
+                if (yearMonth != null) {
+                    LocalDateTime scheduleStart = scheduler.getScheduleStart();
+                    YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
 
-            SchedulerAdminResponseDto schedulerAdminResponseDto = null;
-
-            if (yearMonth != null) {
-                LocalDateTime scheduleStart = scheduler.getScheduleStart();
-                YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
-
-                if (yearMonth.equals(scheduleYearMonth)) {
+                    if (yearMonth.equals(scheduleYearMonth)) {
+                        schedulerAdminResponseDto =
+                                SchedulerAdminResponseDto.builder()
+                                        .user(responseUser)
+                                        .scheduleStart(scheduler.getScheduleStart())
+                                        .scheduleEnd(scheduler.getScheduleEnd())
+                                        .title(scheduler.getTitle())
+                                        .description(scheduler.getDescription())
+                                        .image(scheduler.getImage())
+                                        .createdAt(scheduler.getCreatedAt())
+                                        .updatedAt(scheduler.getUpdatedAt())
+                                        .build();
+                    }
+                } else {
                     schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
                                     .user(responseUser)
@@ -298,20 +313,8 @@ public class SchedulerAdminService {
                                     .updatedAt(scheduler.getUpdatedAt())
                                     .build();
                 }
-            } else {
-                schedulerAdminResponseDto =
-                        SchedulerAdminResponseDto.builder()
-                                .user(responseUser)
-                                .scheduleStart(scheduler.getScheduleStart())
-                                .scheduleEnd(scheduler.getScheduleEnd())
-                                .title(scheduler.getTitle())
-                                .description(scheduler.getDescription())
-                                .image(scheduler.getImage())
-                                .createdAt(scheduler.getCreatedAt())
-                                .updatedAt(scheduler.getUpdatedAt())
-                                .build();
+                schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
-            schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         return schedulerAdminResponseDtoList;
     }
