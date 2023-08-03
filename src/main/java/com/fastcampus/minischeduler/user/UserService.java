@@ -49,12 +49,16 @@ public class UserService {
      * @return        : 회원가입 된 회원 정보
      */
     @Transactional
-    public UserResponse.JoinDTO signup(UserRequest.JoinDTO request) throws Exception {
+    public UserResponse.JoinDTO signup(
+            UserRequest.JoinDTO request,
+            MultipartFile image
+    ) throws Exception {
 
-        // 인코딩
+        // 인코딩 및 사진 추가
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         request.setEmail(aes256Utils.encryptAES256(request.getEmail()));
         request.setFullName(aes256Utils.encryptAES256(request.getFullName()));
+        request.setProfileImage(uploadImageToS3(image));
 
         // 회원 가입
         User userPS = userRepository.save(request.toEntity());

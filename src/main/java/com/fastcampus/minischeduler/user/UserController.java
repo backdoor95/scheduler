@@ -45,7 +45,8 @@ public class UserController {
     public ResponseEntity<?> join(
             @RequestBody
             @Valid
-            UserRequest.JoinDTO joinRequestDTO
+            UserRequest.JoinDTO joinRequestDTO,
+            @RequestPart(value = "file", required = false) MultipartFile image
     ) throws Exception {
 
         // 유효성 검사
@@ -56,7 +57,7 @@ public class UserController {
         if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
         if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception412("잘못된 접근입니다. 범위 내 권한을 입력해주세요");
 
-        return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO)));
+        return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO, image)));
     }
 
     /**
