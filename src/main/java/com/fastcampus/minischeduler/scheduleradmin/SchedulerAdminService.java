@@ -89,7 +89,8 @@ public class SchedulerAdminService {
 
     /**
      * year와 month로 해당하는 일정의 스케줄만 반환합니다
-     * @param year, month
+     * @param year
+     * @param month
      * @return SchedulerAdminResponseDto
      */
     public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(
@@ -130,17 +131,18 @@ public class SchedulerAdminService {
 
     /**
      * 일정을 등록합니다.
-     * @param schedulerAdminRequestDto, token
+     * @param schedulerAdminRequestDto
+     * @param loginUserId
+     * @param image
      * @return SchedulerAdminResponseDto
      */
     @Transactional
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            String token,
+            Long loginUserId,
             MultipartFile image
     ) throws Exception {
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         String imageUrl = uploadImageToS3(image);
@@ -169,12 +171,13 @@ public class SchedulerAdminService {
                 .createdAt(saveScheduler.getCreatedAt())
                 .updatedAt(saveScheduler.getUpdatedAt())
                 .build();
-
     }
 
     /**
      * 일정을 수정합니다.
-     * @param id, schedulerAdminRequestDto, file
+     * @param id
+     * @param schedulerAdminRequestDto
+     * @param image
      * @return id
      */
     @Transactional
@@ -222,17 +225,11 @@ public class SchedulerAdminService {
     /**
      * 일정을 삭제합니다.
      * @param id
-     * @param token
      * @throws Exception
      */
      @Transactional
-     public void delete(Long id, String token) throws Exception {
+     public void delete(Long id) throws Exception {
 
-         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
-         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-         if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
          SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
                  .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
          List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
@@ -241,7 +238,6 @@ public class SchedulerAdminService {
                  User user = schedulerUser.getUser();
                  int ticket = user.getSizeOfTicket();
                  user.setSizeOfTicket(ticket + 1);
-                 userRepository.save(user);
              }
          }
          //글 삭제시 저장된 image파일도 같이 삭제
@@ -359,17 +355,16 @@ public class SchedulerAdminService {
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
      * year와 month가 null이 아니면 각 년도와 달에 부합한 스케줄도 같이 전달합니다.
-     * @param token, year, month
+     * @param loginUserId, year, month
      * @return Map<String, Object>
      */
     public Map<String, Object> getSchedulerListById(
-            String token,
+            Long loginUserId,
             Integer year,
             Integer month
     ) throws Exception {
 
         Map<String, Object> response = new HashMap<>();
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 

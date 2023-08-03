@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.core.config;
 
-import com.fastcampus.minischeduler.scheduleradmin.LocalDateTimeEditor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -38,11 +37,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 //                .addPathPatterns("/seller/**");
     }
 
-    @InitBinder
-    public void initBinder(WebDataBinder binder){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        binder.registerCustomEditor(LocalDateTime.class, new LocalDateTimeEditor(formatter));
-    }
 
     // CORS, Interceptor, Resource, addArgumentResolvers, viewResolver, MessageConverter
 }
