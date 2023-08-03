@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +70,11 @@ public class UserController {
             @Valid
             UserRequest.LoginDTO loginRequestDTO
     ) {
+        if (loginRequestDTO.getEmail().isBlank())
+            throw new Exception400(loginRequestDTO.getEmail(), "이메일을 입력해주세요");
+        if (loginRequestDTO.getPassword().isBlank())
+            throw new Exception400(loginRequestDTO.getPassword(), "비밀번호를 입력해주세요");
+
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -82,7 +88,7 @@ public class UserController {
                     .body(new ResponseDTO<>());
 
         } catch (Exception e) {
-            throw new Exception401("아이디와 비밀번호를 확인해주세요");
+            throw new Exception500("디코딩 과정에 오류가 있습니다");
         }
     }
 

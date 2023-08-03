@@ -12,7 +12,6 @@ public class Exception500 extends RuntimeException {
         super(message);
     }
 
-
     public ResponseDTO<?> body(){
         return new ResponseDTO<>(HttpStatus.INTERNAL_SERVER_ERROR, "serverError", getMessage());
     }
