@@ -29,13 +29,12 @@ public class SchedulerUserService {
 
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
-     * @param token
+     * @param loginUserId
      * @return List<SchedulerUserResponseDto>
      */
     @Transactional
-    public List<SchedulerUserResponseDto> getSchedulerUserList(String token) throws Exception {
+    public List<SchedulerUserResponseDto> getSchedulerUserList(Long loginUserId) throws Exception {
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
@@ -43,7 +42,6 @@ public class SchedulerUserService {
         List<SchedulerUserResponseDto> schedulerUserDtoList = new ArrayList<>();
 
         for (SchedulerUser schedulerUser : schedulerUsers) {
-
             UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerUser.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
@@ -63,17 +61,18 @@ public class SchedulerUserService {
 
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule중 year와 month에 부합하는 스케줄을 반환합니다.
-     * @param token, year, month
+     * @param loginUserId
+     * @param year
+     * @param month
      * @return List<SchedulerUserResponseDto>
      */
     public List<SchedulerUserResponseDto> getSchedulerUserListByYearAndMonth(
-            String token,
+            Long loginUserId,
             Integer year,
             Integer month
     ) throws Exception {
 
         YearMonth yearMonth = YearMonth.of(year, month);
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         Long userId = user.getId();
@@ -107,23 +106,23 @@ public class SchedulerUserService {
 
     /**
      * schedule 등록 : token으로 사용자를 찾아 사용자의 티켓수를 감소시키고 내용을 저장합니다
-     * @param token, schedulerAdminId, SchedulerUserRequestDto
+     * @param schedulerAdminId
+     * @param SchedulerUserRequestDto
+     * @param loginUserId
      * @return SchedulerUserResponseDto
      */
     @Transactional
     public SchedulerUserResponseDto createSchedulerUser(
             Long schedulerAdminId,
             SchedulerUserRequest.SchedulerUserRequestDto schedulerUserRequestDto,
-            String token
+            Long loginUserId
     ) throws Exception {
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         //유저의 티켓수 1차감
         int ticket = user.getSizeOfTicket() - 1;
         user.setSizeOfTicket(ticket);
-        userRepository.save(user);
 
         SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(schedulerAdminId)
                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
@@ -165,7 +164,8 @@ public class SchedulerUserService {
 
     /**
      * 한달에 한번만 신청할수 있게 사용자의 전체 신청내역 날짜와 비교함
-     * @param userId, scheduleStart
+     * @param userId
+     * @param scheduleStart
      * @return boolean
      */
     public boolean existingSchedulerInCurrentMonth(
@@ -191,33 +191,22 @@ public class SchedulerUserService {
     /**
      * token으로 사용자를 찾고 schedule의 id로 작성한 스케줄의 userId와 비교해 권한확인을 함
      * 삭제되면 티켓수를 1개 다시 되돌려주고 삭제함
-     * @param id, token
+     * @param id
+     * @param loginUserId
      */
-    public void cancel(Long id, String token) throws Exception {
+    public void cancel(Long id, Long loginUserId) throws Exception {
+        User user = userRepository.findById(loginUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
+        if (!schedulerUserDto.getUser().getId().equals(loginUserId))
+            throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
 
-        try {
-            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-            User user = userRepository.findById(loginUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-            SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
-            if (!schedulerUserDto.getUser().getId().equals(loginUserId))
-                throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
+        //삭제하면 티켓수를 다시 되돌려줌
+        int ticket = user.getSizeOfTicket() + 1;
+        user.setSizeOfTicket(ticket);
 
-            //삭제하면 티켓수를 다시 되돌려줌
-            int ticket = user.getSizeOfTicket() + 1;
-            user.setSizeOfTicket(ticket);
-            userRepository.save(user);
+        schedulerUserRepository.deleteById(id);
 
-            schedulerUserRepository.deleteById(id);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-
-    }
-
-    public void decreaseUserTicket(User user) {
-        user.setSizeOfTicket(user.getSizeOfTicket() - 1);
-        userRepository.save(user);
     }
 
     /**
