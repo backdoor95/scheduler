@@ -131,9 +131,10 @@ public class UserService {
         // Password encoding - 암호화
         String encodedPassword = passwordEncoder.encode(updateUserInfoDTO.getPassword());
 
-        String fullName = updateUserInfoDTO.getFullName();
+        // FullName encoding - 암호화
+        String encodedFullName = aes256Utils.encryptAES256(updateUserInfoDTO.getFullName());
 
-        userPS.updateUserInfo(encodedPassword, fullName);//이름, 비번  수정
+        userPS.updateUserInfo(encodedPassword, encodedFullName);//이름, 비번  수정
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
