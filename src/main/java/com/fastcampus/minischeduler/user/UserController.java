@@ -111,7 +111,6 @@ public class UserController {
             return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(adminId)));
         }else{// role = user
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
-
             return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
         }
 
@@ -145,7 +144,7 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
             @Valid
-            UpdateUserInfoDTO updateUserInfoDTO
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO
     ) {
         try {
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);

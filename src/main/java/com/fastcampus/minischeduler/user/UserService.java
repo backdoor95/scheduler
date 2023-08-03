@@ -229,10 +229,15 @@ public class UserService {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
-
-        //지울때 url은 기본 프로필로 초기화
         String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
 
+        String url = userPS.getProfileImage();
+
+        String fileName = url.substring(url.lastIndexOf('/') + 1);
+        deleteImage(fileName);// aws에서 삭제
+
+
+        //지울때 url은 기본 프로필로 초기화
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.

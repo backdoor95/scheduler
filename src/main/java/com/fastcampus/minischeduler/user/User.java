@@ -78,7 +78,7 @@ public class User {
     public void updateUserInfo(String password, String fullName) {
 
         this.password = password;
-        this.profileImage = fullName;
+        this.fullName = fullName; // 수정 완료한 코드.
         onUpdate();
     }
 
