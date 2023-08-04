@@ -1,5 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
+import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import lombok.*;
 
@@ -109,4 +110,39 @@ public class UserResponse {
             this.profileImage = user.getProfileImage();
         }
     }
+
+    @Data
+    @NoArgsConstructor
+    @Builder
+    public static class getRoleUserTickeDTO{// role == user
+        private String title;
+        private LocalDateTime scheduleStart;// schedulerUser의 scheduleStart 를 넣어야함.
+        private Progress progress;
+
+        public getRoleUserTickeDTO(String title, LocalDateTime scheduleStart, Progress progress) {
+            this.title = title;
+            this.scheduleStart = scheduleStart;
+            this.progress = progress;
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @Builder
+    public static class getRoleAdminScheduleDTO{// role == user
+        private Progress progress;
+        private String title;
+        private LocalDateTime scheduleStart;
+        private LocalDateTime scheduleEnd;
+
+        public getRoleAdminScheduleDTO(Progress progress, String title, LocalDateTime scheduleStart, LocalDateTime scheduleEnd) {
+            this.progress = progress;
+            this.title = title;
+            this.scheduleStart = scheduleStart;
+            this.scheduleEnd = scheduleEnd;
+        }
+    }
+
+
+
 }

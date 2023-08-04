@@ -104,7 +104,8 @@ public class UserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다"); //권한없음\
+
         if (role.equals("admin")){// role = admin
             Long adminId = jwtTokenProvider.getUserIdFromToken(token);
             // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.

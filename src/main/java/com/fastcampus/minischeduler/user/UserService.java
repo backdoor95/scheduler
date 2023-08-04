@@ -181,8 +181,8 @@ public class UserService {
                         .withCannedAcl(CannedAccessControlList.PublicRead));
 
         //데이터베이스에 저장할 이미지가 저장된 주소
-//        return amazonS3.getUrl(bucketName, changedName).toString();
-        return changedName;
+        return amazonS3.getUrl(bucketName, changedName).toString();
+        //return changedName;
 
     }
 
