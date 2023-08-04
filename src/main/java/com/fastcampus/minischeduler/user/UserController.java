@@ -111,6 +111,7 @@ public class UserController {
             return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(adminId)));
         }else{// role = user
             Long userId = jwtTokenProvider.getUserIdFromToken(token);
+
             return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
         }
 

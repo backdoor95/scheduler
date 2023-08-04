@@ -1,8 +1,10 @@
 package com.fastcampus.minischeduler.user;
 
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class UserResponse {
 
@@ -52,6 +54,7 @@ public class UserResponse {
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private List<SchedulerUser> schedulerUserList;
         public GetUserInfoDTO(User user) {
             this.email = user.getEmail();
             this.fullName = user.getFullName();

@@ -8,6 +8,8 @@ import com.fastcampus.minischeduler.core.exception.ImageUploadException;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -35,6 +38,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
+    private final SchedulerUserRepository schedulerUserRepository;
 
     // Aws s3
     private final AmazonS3 amazonS3;
@@ -82,6 +86,9 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
+        List<SchedulerUser> userScheduleList = schedulerUserRepository.findByUserId(userId);
+
+
         return GetUserInfoDTO.builder()
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
@@ -91,6 +98,7 @@ public class UserService {
                 .profileImage(userPS.getProfileImage())
                 .createdAt(userPS.getCreatedAt())
                 .updatedAt(userPS.getUpdatedAt())
+                .schedulerUserList(userScheduleList)
                 .build();
     }
 
