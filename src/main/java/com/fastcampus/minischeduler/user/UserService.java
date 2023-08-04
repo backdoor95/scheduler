@@ -4,7 +4,8 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
-import com.fastcampus.minischeduler.core.exception.ImageUploadException;
+import com.fastcampus.minischeduler.core.exception.Exception413;
+import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
@@ -20,9 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.util.Calendar;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -43,6 +42,10 @@ public class UserService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    public String getBucketName() {
+        return this.bucketName;
+    }
+
     /**
      * 회원가입 메서드입니다.
      * Controller에서 유효성 검사가 완료된 DTO를 받아 비밀번호를 BCrypt 인코딩 후 사용자 정보 테이블(user_tb)에 저장합니다.
@@ -50,12 +53,16 @@ public class UserService {
      * @return        : 회원가입 된 회원 정보
      */
     @Transactional
-    public UserResponse.JoinDTO signup(UserRequest.JoinDTO request) throws Exception {
+    public UserResponse.JoinDTO signup(
+            UserRequest.JoinDTO request,
+            MultipartFile image
+    ) throws Exception {
 
-        // 인코딩
+        // 인코딩 및 사진 추가
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         request.setEmail(aes256Utils.encryptAES256(request.getEmail()));
         request.setFullName(aes256Utils.encryptAES256(request.getFullName()));
+        if (image != null) request.setProfileImage(uploadImageToS3(image));
 
         // 회원 가입
         User userPS = userRepository.save(request.toEntity());
@@ -100,7 +107,7 @@ public class UserService {
      * @return               : 토큰
      */
     @Transactional
-    public String signin(Authentication authentication) {
+    public Map<String, Object> signin(Authentication authentication) throws Exception {
 
         MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
         User loginUser = myUserDetails.getUser();
@@ -117,7 +124,20 @@ public class UserService {
                         .build()
         );
 
-        return jwtTokenProvider.create(loginUser);
+        // 프론트 요청으로 유저 정보 리턴
+        UserResponse.UserDto responseUserInfo = new UserResponse.UserDto(loginUser);
+        responseUserInfo.setId(loginUser.getId());
+        responseUserInfo.setFullName(aes256Utils.decryptAES256(loginUser.getFullName()));
+        responseUserInfo.setEmail(aes256Utils.decryptAES256(loginUser.getEmail()));
+        responseUserInfo.setRole(loginUser.getRole());
+        responseUserInfo.setProfileImage(loginUser.getProfileImage());
+        responseUserInfo.setSizeOfTicket(loginUser.getSizeOfTicket());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", jwtTokenProvider.create(loginUser));
+        response.put("userInfo", responseUserInfo);
+
+        return response;
     }
 
     @Transactional
@@ -151,16 +171,17 @@ public class UserService {
     /**
      * aws upload
      */
-    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
+    private String changedImageName(String originName) { // 이미지 이름 중복 방지를 위해 랜덤으로 생성
         String random = UUID.randomUUID().toString();
-        return random+originName;
+        return random + originName;
     }
 
     @Transactional
-    private String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
+    public String uploadImageToS3(MultipartFile image) throws IOException { // 이미지를 S3에 업로드하고 이미지의 url을 반환
 
-        String originName = image.getOriginalFilename(); //원본 이미지 이름
-        String changedName = changedImageName(originName.substring(originName.lastIndexOf("."))); //새로 생성된 이미지 이름
+        String originName = image.getOriginalFilename(); // 원본 이미지 이름
+        originName.substring(originName.lastIndexOf(".")); // 확장자
+        String changedName = changedImageName(originName); // 새로 생성된 이미지 이름
 
         ObjectMetadata metadata = new ObjectMetadata(); // 메타데이터
         metadata.setContentType(image.getContentType()); // putObject의 인자로 들어갈 메타데이터를 생성.
@@ -172,16 +193,13 @@ public class UserService {
                         .withCannedAcl(CannedAccessControlList.PublicRead));
 
         //데이터베이스에 저장할 이미지가 저장된 주소
-//        return amazonS3.getUrl(bucketName, changedName).toString();
-        return changedName;
-
+        return amazonS3.getUrl(bucketName, changedName).toString();
     }
 
     @Transactional
-    private void deleteImage(String fileName) {
+    public void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
-
 
     /**
      * 유저의 프로필 사진 업데이트 로직실행
@@ -258,4 +276,11 @@ public class UserService {
         return userRepository.findById(id).get();
     }
 
+    public Optional<User> getAuthentication(String email, String password) throws Exception {
+
+        return userRepository.findByEmailAndPassword(
+                aes256Utils.encryptAES256(email),
+                passwordEncoder.encode(password)
+        );
+    }
 }

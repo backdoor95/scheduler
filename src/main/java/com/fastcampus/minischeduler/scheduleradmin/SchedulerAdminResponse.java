@@ -15,9 +15,9 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SchedulerAdminResponse {
 
+    private UserDto userDto;
     private List<ScheduleDTO> scheduleDto;
     private CountProcessDTO countProcessDto;
-    private UserResponse.GetUserInfoDTO userInfoDTO;
 
     public interface ScheduleDTO {
 

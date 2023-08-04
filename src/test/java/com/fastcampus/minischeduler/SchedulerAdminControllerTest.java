@@ -1,11 +1,9 @@
 package com.fastcampus.minischeduler;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
-import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminController;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
 import com.fastcampus.minischeduler.user.Role;
-import com.fastcampus.minischeduler.user.UserRepository;
 import com.fastcampus.minischeduler.user.UserResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,17 +12,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-import reactor.core.publisher.Flux;
-import static org.mockito.Mockito.when;
-
-
-import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -124,8 +121,8 @@ public class SchedulerAdminControllerTest {
         LinkedHashMap<String, Object> response = new LinkedHashMap<>();
         response.put("schedulerAdminListByYearAndMonth", dummySchedulers);
 
-        when(schedulerAdminService.getSchedulerListById(token, year, month))
-                .thenReturn(response);
+//        when(schedulerAdminService.getSchedulerListById(token, year, month))
+//                .thenReturn(response);
 
         mockMvc.perform(get("/schedule")
                         .header(JwtTokenProvider.HEADER, token)

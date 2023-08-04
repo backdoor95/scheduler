@@ -26,4 +26,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
     List<User> update12TicketsOfAllFans();
+
+    @Query(
+            value = "SELECT * FROM user_tb AS u WHERE u.email = :email AND u.password = :password",
+            nativeQuery = true
+    )
+    Optional<User> findByEmailAndPassword(@Param("email") String email, @Param("password") String password);
 }
