@@ -80,4 +80,13 @@ public class MyExceptionAdvice {
         Exception400 badRequestException = new Exception400(variableName, message);
         return ResponseEntity.status(badRequestException.status()).body(badRequestException.body());
     }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> methodValidException(MethodArgumentNotValidException e) {
+        ExceptionValid ev = new ExceptionValid(
+                e.getBindingResult().getFieldError().getCode(),
+                e.getBindingResult().getFieldError().getDefaultMessage()
+        );
+        return new ResponseEntity<>(ev.body(), ev.status());
+    }
 }

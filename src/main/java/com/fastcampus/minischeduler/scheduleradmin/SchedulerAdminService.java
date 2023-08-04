@@ -3,6 +3,8 @@ package com.fastcampus.minischeduler.scheduleradmin;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception413;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
@@ -52,8 +54,9 @@ public class SchedulerAdminService {
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AES256Utils aes256Utils;
+
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 전체 일정 목록을 출력합니다.
@@ -144,8 +147,11 @@ public class SchedulerAdminService {
     ) throws Exception {
 
         User user = userRepository.findById(loginUserId)
-                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        String imageUrl = uploadImageToS3(image);
+                .orElseThrow(()->new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
+
+        if (image != null && image.getSize() > 1000000)
+            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+        String imageUrl = userService.uploadImageToS3(image);
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
@@ -188,7 +194,7 @@ public class SchedulerAdminService {
     ) throws IOException {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
-                ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
+                ()-> new Exception400(id.toString(), "스케쥴러를 찾을 수 없습니다")
         );
         try {
             if (image != null && !image.isEmpty()) {
@@ -199,7 +205,7 @@ public class SchedulerAdminService {
                     String fileName = oldImage.substring(slash + 1);
                     deleteImage(fileName);
                 }
-                String imageUrl = uploadImageToS3(image);
+                String imageUrl = userService.uploadImageToS3(image);
                 scheduler.update(
                         schedulerAdminRequestDto.getScheduleStart(),
                         schedulerAdminRequestDto.getScheduleEnd(),
@@ -228,10 +234,10 @@ public class SchedulerAdminService {
      * @throws Exception
      */
      @Transactional
-     public void delete(Long id) throws Exception {
+     public void delete(Long id) {
 
          SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
-                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
+                 .orElseThrow(() -> new Exception400(id.toString(), "스케줄을 찾을 수 없습니다"));
          List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
          if (!schedulerUsers.isEmpty()) {
              for (SchedulerUser schedulerUser : schedulerUsers) {
@@ -324,7 +330,7 @@ public class SchedulerAdminService {
     public SchedulerAdminResponseDto getSchedulerById(Long id) throws Exception {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
+                () -> new Exception400(id.toString(), "해당 게시글이 존재하지 않습니다.")
         );
 
         UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
@@ -427,23 +433,28 @@ public class SchedulerAdminService {
     /**
      * 결재관리 페이지의 해당 기획사 공연에 티케팅한 사용자의 내역과
      * 승인현황 별 티케팅 수를 조회합니다.
-     * @param id : 기획사 id
      * @return   : 기획사 정보, 관련 티켓승인현황, 기획사 일정
      */
     @Transactional(readOnly = true)
-    public SchedulerAdminResponse getAdminScheduleDetail(Long id) throws Exception {
+    public SchedulerAdminResponse getAdminScheduleDetail(String token) throws Exception {
+
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        UserResponse.UserDto userDto = jwtTokenProvider.getUserInfo(token);
 
         List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList =
-                schedulerAdminRepository.findSchedulesWithUsersById(id);
+                schedulerAdminRepository.findSchedulesWithUsersById(loginUserId);
 
         for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
             scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
         }
 
+        userDto.setFullName(aes256Utils.decryptAES256(userDto.getFullName()));
+        userDto.setEmail(aes256Utils.decryptAES256(userDto.getEmail()));
+
         return new SchedulerAdminResponse(
+                userDto,
                 scheduleDtoList,
-                schedulerAdminRepository.countScheduleGroupByProgressById(id),
-                userService.getUserInfo(id)
+                schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId)
         );
     }
 
@@ -590,26 +601,8 @@ public class SchedulerAdminService {
         return schedulerAdminRepository.findAllTicketsByAdminId(id);
     }
 
-    // aws upload
-    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
-        String random = UUID.randomUUID().toString();
-        return random+originName;
-    }
-    @Transactional
-    public String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
-        String originName = image.getOriginalFilename(); //원본 이미지 이름
-        String ext = originName.substring(originName.lastIndexOf(".")); //확장자
-        String changedName = changedImageName(originName); //새로 생성된 이미지 이름
-        ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
-        metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
-        // 이미지만 받을 예정이므로 contentType은  "image/확장자"
-        PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
-                bucketName, changedName, image.getInputStream(), metadata
-        ).withCannedAcl(CannedAccessControlList.PublicRead));// getInputStream에서 exception 발생 -> controller에서 처리
-        return amazonS3.getUrl(bucketName, changedName).toString(); //데이터베이스에 저장할 이미지가 저장된 주소
-    }
     @Transactional
     public void deleteImage(String fileName) {
-        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
+        amazonS3.deleteObject(new DeleteObjectRequest(userService.getBucketName(), fileName));
     }
 }
