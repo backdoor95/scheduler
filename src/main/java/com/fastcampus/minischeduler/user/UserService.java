@@ -136,7 +136,11 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
-        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketDTOList = userRepository.findSchedulerInfoById(userId);
+        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketListDTO = userRepository.findRoleUserTicketListById(userId);
+
+        System.out.println(getRoleUserTicketListDTO);
+
+
 
 
         return UserResponse.GetRoleUserInfoDTO.builder()
@@ -148,7 +152,7 @@ public class UserService {
                 .profileImage(userPS.getProfileImage())
                 .createdAt(userPS.getCreatedAt())
                 .updatedAt(userPS.getUpdatedAt())
-                .schedulerRoleUserList(getRoleUserTicketDTOList)
+                .schedulerRoleUserList(getRoleUserTicketListDTO)
                 .build();
     }
 
