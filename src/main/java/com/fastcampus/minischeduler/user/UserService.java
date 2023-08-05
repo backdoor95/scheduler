@@ -4,11 +4,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
-import com.fastcampus.minischeduler.core.exception.ImageUploadException;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
-import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -133,7 +131,7 @@ public class UserService {
      * @throws Exception
      */
     @Transactional
-    public GetUserInfoDTO getRoleUserInfo(Long userId) throws Exception {
+    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(Long userId) throws Exception {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
@@ -141,7 +139,7 @@ public class UserService {
         List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketDTOList = userRepository.findSchedulerInfoById(userId);
 
 
-        return GetUserInfoDTO.builder()
+        return UserResponse.GetRoleUserInfoDTO.builder()
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
                 .profileImage(userPS.getProfileImage())
@@ -163,14 +161,25 @@ public class UserService {
      * @throws Exception
      */
     @Transactional
-    public GetUserInfoDTO getRoleAdminInfo(Long userId){
+    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(Long userId) throws Exception {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        // 미완성. repository에 쿼리작성해서 만들기.
+        // 방안 1. 쿼리 만들기
+        // 방안 2. 기존에 있던 findby .. 이용
 
-        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketDTOList = userRepository.findSchedulerInfoById(userId);
+        List<UserResponse.GetRoleAdminScheduleDTO> getRoleUserTicketDTOList = null;
 
-        return null;
+        return UserResponse.GetRoleAdminInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .profileImage(userPS.getProfileImage())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .schedulerRoleAdminList(getRoleUserTicketDTOList)
+                .build();
 
     }
 

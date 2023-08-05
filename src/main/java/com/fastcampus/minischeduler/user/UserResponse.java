@@ -1,7 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
-import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -55,8 +54,6 @@ public class UserResponse {
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-        private List<GetRoleUserTicketDTO> schedulerRoleUserList;
-        private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList;
         public GetUserInfoDTO(User user) {
             this.email = user.getEmail();
             this.fullName = user.getFullName();
@@ -164,8 +161,6 @@ public class UserResponse {
 
         private String email;
         private String fullName;
-        private Integer usedTicket;
-        private Integer sizeOfTicket;
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
@@ -182,8 +177,6 @@ public class UserResponse {
         public GetRoleAdminInfoDTO(User user) {
             this.email = user.getEmail();
             this.fullName = user.getFullName();
-            this.sizeOfTicket = user.getSizeOfTicket();
-            this.usedTicket = user.getUsedTicket();
             this.profileImage = user.getProfileImage();
             this.createdAt = user.getCreatedAt();
             this.updatedAt = user.getUpdatedAt();

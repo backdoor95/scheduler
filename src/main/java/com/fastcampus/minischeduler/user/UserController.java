@@ -9,7 +9,6 @@ import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception412;
 import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
-import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,13 +106,13 @@ public class UserController {
         // mypage id와 로그인한 사용자 id비교
         if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다"); //권한없음\
 
-        if (role.equals("admin")){// role = admin
+        if (role.equals("admin")){// role == admin
             Long adminId = loginUserId;
             // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.
             return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(adminId)));
         }
 
-        if (role.equals("user")){// role = user
+        if (role.equals("user")){// role == user
             Long userId = loginUserId;
             try {
                 return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
@@ -203,7 +202,7 @@ public class UserController {
             try {
                 getUserInfoDTO = userService.updateUserProfileImage(file, id);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new Exception500("암호화 에러");
             }
             // user 객체를 이용한 작업 수행
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
