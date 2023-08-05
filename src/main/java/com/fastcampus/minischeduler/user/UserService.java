@@ -126,23 +126,20 @@ public class UserService {
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
      * Role = user 일때
-     * @param userId    : 사용자 id
+     * @param roleUserId    : 사용자 id
      * @return          : user의 정보, 나의 티켓 리스트 목록리스트 반환.
      * @throws Exception
      */
     @Transactional
-    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(Long userId) throws Exception {
+    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(Long roleUserId) throws Exception {
 
-        User userPS = userRepository.findById(userId)
+        User userPS = userRepository.findById(roleUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
-        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketListDTO = userRepository.findRoleUserTicketListById(userId);
-
+        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketListDTO = userRepository.findRoleUserTicketListById(roleUserId);
+        System.out.println("00000000000000000000000");
         System.out.println(getRoleUserTicketListDTO);
-
-
-
-
+        System.out.println("00000000000000000000000");
         return UserResponse.GetRoleUserInfoDTO.builder()
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))

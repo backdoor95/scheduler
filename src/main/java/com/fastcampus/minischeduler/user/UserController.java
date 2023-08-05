@@ -114,11 +114,7 @@ public class UserController {
 
         if (role.equals("user")){// role == user
             Long userId = loginUserId;
-            try {
-                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
-            } catch (Exception e) { // 디코딩 에러
-                throw new Exception500("디코딩 에러발생");
-            }
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
         }
 
         return ResponseEntity.ok("유효한 role이 아닙니다.");

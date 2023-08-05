@@ -137,19 +137,12 @@ public class UserResponse {
     }
 
 
-    @Data
-    @NoArgsConstructor
-    public static class GetRoleUserTicketDTO{// role == user
 
-        private String title;
-        private LocalDateTime scheduleStart;// schedulerUser의 scheduleStart 를 넣어야함.
-        private Progress progress;
-        @Builder
-        public GetRoleUserTicketDTO(String title, LocalDateTime scheduleStart, Progress progress) {
-            this.title = title;
-            this.scheduleStart = scheduleStart;
-            this.progress = progress;
-        }
+    public interface GetRoleUserTicketDTO{// role == user
+
+        String getTitle();
+        String getScheduleStart();
+        Progress getProgress();
     }
 
 
