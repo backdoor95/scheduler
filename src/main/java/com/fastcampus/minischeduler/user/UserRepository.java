@@ -26,4 +26,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
     List<User> update12TicketsOfAllFans();
+
+    @Query("SELECT sa.title, su.scheduleStart, su.progress " +
+            "FROM SchedulerUser su " +
+            "INNER JOIN su.schedulerAdmin sa " +
+            "WHERE su.id = :id")
+    List<UserResponse.GetRoleUserTicketDTO> findSchedulerInfoById(@Param("id") Long id);
+
+
+
+
+
+
+
 }

@@ -74,33 +74,6 @@ public class UserService {
         return response;
     }
 
-    /**
-     * 사용자 정보를 조회합니다.
-     * @param userId     : 사용자 id
-     * @return           : 사용자 정보 DTO
-     * @throws Exception : 디코딩 에러
-     */
-    @Transactional
-    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
-
-        User userPS = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-
-        List<SchedulerUser> userScheduleList = schedulerUserRepository.findByUserId(userId);
-
-
-        return GetUserInfoDTO.builder()
-                .email(aes256Utils.decryptAES256(userPS.getEmail()))
-                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
-                .profileImage(userPS.getProfileImage())
-                .sizeOfTicket(userPS.getSizeOfTicket())
-                .usedTicket(userPS.getUsedTicket())
-                .profileImage(userPS.getProfileImage())
-                .createdAt(userPS.getCreatedAt())
-                .updatedAt(userPS.getUpdatedAt())
-                .schedulerUserList(userScheduleList)
-                .build();
-    }
 
     /**
      * 로그인합니다.
@@ -127,6 +100,87 @@ public class UserService {
 
         return jwtTokenProvider.create(loginUser);
     }
+
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 미포함된 DTO를 반환함.
+     * @param userId     : 사용자 id
+     * @return           : 사용자 정보 DTO
+     * @throws Exception : 디코딩 에러
+     */
+    @Transactional
+    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        return GetUserInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .sizeOfTicket(userPS.getSizeOfTicket())
+                .usedTicket(userPS.getUsedTicket())
+                .profileImage(userPS.getProfileImage())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .build();
+    }
+
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
+     * Role = user 일때
+     * @param userId    : 사용자 id
+     * @return          : user의 정보, 나의 티켓 리스트 목록리스트 반환.
+     * @throws Exception
+     */
+    @Transactional
+    public GetUserInfoDTO getRoleUserInfo(Long userId) throws Exception {
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketDTOList = userRepository.findSchedulerInfoById(userId);
+
+
+        return GetUserInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .sizeOfTicket(userPS.getSizeOfTicket())
+                .usedTicket(userPS.getUsedTicket())
+                .profileImage(userPS.getProfileImage())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .schedulerRoleUserList(getRoleUserTicketDTOList)
+                .build();
+    }
+
+
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
+     * Role = admin 일때
+     * @param userId    : Admin사용자 id
+     * @return          : Admin의 정보, 나의 티켓 리스트 목록리스트 반환.
+     * @throws Exception
+     */
+    @Transactional
+    public GetUserInfoDTO getRoleAdminInfo(Long userId){
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketDTOList = userRepository.findSchedulerInfoById(userId);
+
+        return null;
+
+    }
+
+
+
+
+
+
+
+
 
     @Transactional
     public GetUserInfoDTO updateUserInfo(
@@ -160,13 +214,13 @@ public class UserService {
     /**
      * aws upload
      */
-    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
+    public String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
         String random = UUID.randomUUID().toString();
         return random+originName;
     }
 
     @Transactional
-    private String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
+    public String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
 
         String originName = image.getOriginalFilename(); //원본 이미지 이름
         String changedName = changedImageName(originName.substring(originName.lastIndexOf("."))); //새로 생성된 이미지 이름
@@ -187,7 +241,7 @@ public class UserService {
     }
 
     @Transactional
-    private void deleteImage(String fileName) {
+    public void deleteImage(String fileName) {
         amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
     }
 
@@ -244,7 +298,6 @@ public class UserService {
 
         String fileName = url.substring(url.lastIndexOf('/') + 1);
         deleteImage(fileName);// aws에서 삭제
-
 
         //지울때 url은 기본 프로필로 초기화
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장

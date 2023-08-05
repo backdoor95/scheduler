@@ -7,6 +7,7 @@ import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception412;
+import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import lombok.RequiredArgsConstructor;
@@ -99,7 +100,7 @@ public class UserController {
             @PathVariable Long id,
             @RequestParam("role") String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) throws Exception {
+    )throws Exception{
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -107,14 +108,21 @@ public class UserController {
         if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다"); //권한없음\
 
         if (role.equals("admin")){// role = admin
-            Long adminId = jwtTokenProvider.getUserIdFromToken(token);
+            Long adminId = loginUserId;
             // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(adminId)));
-        }else{// role = user
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
-
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(adminId)));
         }
+
+        if (role.equals("user")){// role = user
+            Long userId = loginUserId;
+            try {
+                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
+            } catch (Exception e) { // 디코딩 에러
+                throw new Exception500("디코딩 에러발생");
+            }
+        }
+
+        return ResponseEntity.ok("유효한 role이 아닙니다.");
 
     }
 
@@ -125,7 +133,6 @@ public class UserController {
     ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         // mypage id와 로그인한 사용자 id비교
         if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
 
@@ -153,7 +160,6 @@ public class UserController {
 
             // mypage update 작성자 id와 로그인한 사용자 id비교
             if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
-
             // user 객체를 이용한 작업 수행
             return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
         } catch (IOException e) {
@@ -176,7 +182,6 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam("file") MultipartFile file
     ) {
-        try {
 
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -185,28 +190,29 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
             }
 
-            if(file.isEmpty()){// 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+            // 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+            if(file.isEmpty()){
                 String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
-
                 User user = userService.findById(id);
                 user.updateUserProfileImage(defaultNameURL);
 
                 return ResponseEntity.ok(new ResponseDTO<>(user));
             }
 
-            UserResponse.GetUserInfoDTO getUserInfoDTO = userService.updateUserProfileImage(file, id);
+            UserResponse.GetUserInfoDTO getUserInfoDTO = null;
+            try {
+                getUserInfoDTO = userService.updateUserProfileImage(file, id);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             // user 객체를 이용한 작업 수행
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
             return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
-        } catch (Exception e) {
-            throw new RuntimeException("디코딩중 문제발생?");
-        }
+
     }
 
-    @PostMapping("/mypage/delete/image/{id}")// 구현중.
+    @PostMapping("/mypage/delete/image/{id}")
     public ResponseEntity<?> postDeleteUserProfileImage(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
