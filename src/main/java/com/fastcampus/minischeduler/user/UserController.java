@@ -4,10 +4,7 @@ import com.fastcampus.minischeduler.core.annotation.MyErrorLog;
 import com.fastcampus.minischeduler.core.annotation.MyLog;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
-import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception401;
-import com.fastcampus.minischeduler.core.exception.Exception412;
-import com.fastcampus.minischeduler.core.exception.Exception500;
+import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -104,21 +101,20 @@ public class UserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다"); //권한없음\
+        if (!id.equals(loginUserId)) throw new Exception403("권한이 없습니다"); //권한없음\
 
-        if (role.equals("admin")){// role == admin
+        if(!role.equals("admin")&&!role.equals("user"))
+            throw new Exception400("role", "유효하지 않은 role입니다.");
+
+        if (role.equals("admin")){
+            // role == admin
             Long adminId = loginUserId;
-            // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.
             return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(adminId)));
-        }
-
-        if (role.equals("user")){// role == user
+        }else {
+            // role == user
             Long userId = loginUserId;
             return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
         }
-
-        return ResponseEntity.ok("유효한 role이 아닙니다.");
-
     }
 
     @GetMapping("/mypage/update/{id}")

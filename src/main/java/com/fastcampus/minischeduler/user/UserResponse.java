@@ -146,9 +146,10 @@ public class UserResponse {
     }
 
 
-    @Setter
-    @Getter
+
+    @Data
     @Builder
+    @NoArgsConstructor
     @AllArgsConstructor
     public static class GetRoleAdminInfoDTO {
 
@@ -178,24 +179,21 @@ public class UserResponse {
     }
 
 
+    public interface GetRoleAdminScheduleDTO{// role == user
 
-    @Data
-    @NoArgsConstructor
-    public static class GetRoleAdminScheduleDTO{// role == user
-        private Progress progress;
-        private String title;
-        private LocalDateTime scheduleStart;
-        private LocalDateTime scheduleEnd;
+        String getTitle();
+        String getDescription();
+        LocalDateTime getScheduleStart();
+        LocalDateTime getScheduleEnd();
 
-        @Builder
-        public GetRoleAdminScheduleDTO(Progress progress, String title, LocalDateTime scheduleStart, LocalDateTime scheduleEnd) {
-            this.progress = progress;
-            this.title = title;
-            this.scheduleStart = scheduleStart;
-            this.scheduleEnd = scheduleEnd;
-        }
     }
 
+    public interface GetRoleAdminCountProgressDTO {
 
+        // 승인 현황 별 count
+        Integer getWaiting();
+        Integer getAccepted();
+        Integer getRefused();
+    }
 
 }

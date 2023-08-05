@@ -126,7 +126,7 @@ public class UserService {
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
      * Role = user 일때
-     * @param roleUserId    : 사용자 id
+     * @param roleUserId    : user사용자 id
      * @return          : user의 정보, 나의 티켓 리스트 목록리스트 반환.
      * @throws Exception
      */
@@ -157,39 +157,37 @@ public class UserService {
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
      * Role = admin 일때
-     * @param userId    : Admin사용자 id
-     * @return          : Admin의 정보, 나의 티켓 리스트 목록리스트 반환.
+     * @param roleAdminId    : Admin사용자 id
+     * @return          : Admin의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
      * @throws Exception
      */
     @Transactional
-    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(Long userId) throws Exception {
+    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(Long roleAdminId) throws Exception {
 
-        User userPS = userRepository.findById(userId)
+        User userPS = userRepository.findById(roleAdminId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         // 미완성. repository에 쿼리작성해서 만들기.
         // 방안 1. 쿼리 만들기
         // 방안 2. 기존에 있던 findby .. 이용
 
-        List<UserResponse.GetRoleAdminScheduleDTO> getRoleUserTicketDTOList = null;
+        List<UserResponse.GetRoleAdminScheduleDTO> getRoleUserTicketDTOList = userRepository.findRoleAdminScheduleListById(roleAdminId);
+        Integer registeredEventCount = userRepository.countAdminScheduleRegisteredEvent(roleAdminId);
+        UserResponse.GetRoleAdminCountProgressDTO countProgressDTO = userRepository.countAllScheduleUserProgresseByAdminId(roleAdminId);
 
         return UserResponse.GetRoleAdminInfoDTO.builder()
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
                 .profileImage(userPS.getProfileImage())
-                .profileImage(userPS.getProfileImage())
+                .registeredEventCount(registeredEventCount)
+                .waitingCount(countProgressDTO.getWaiting())
+                .acceptedCount(countProgressDTO.getAccepted())
+                .refusedCount(countProgressDTO.getRefused())
                 .createdAt(userPS.getCreatedAt())
                 .updatedAt(userPS.getUpdatedAt())
                 .schedulerRoleAdminList(getRoleUserTicketDTOList)
                 .build();
 
     }
-
-
-
-
-
-
-
 
 
     @Transactional

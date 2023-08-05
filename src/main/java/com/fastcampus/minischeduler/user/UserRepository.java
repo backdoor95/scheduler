@@ -28,14 +28,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
     List<User> update12TicketsOfAllFans();
 
-
-    // 이상하게 에러가 발생어디가 문제인지 모르겠슴다...---> 이부분은 나중에 공부
-//    @Query(value = "SELECT su " +
-//            "FROM SchedulerUser su " +
-//            "WHERE su.id = :id")
-//    List<SchedulerUser> findSchedulerInfoById(@Param("id") Long id);
-
-
     @Query(value = "SELECT " +
             "sa.title AS title, " +
             "su.schedule_start AS scheduleStart, " +
@@ -43,10 +35,34 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM scheduler_user_tb AS su " +
             "INNER JOIN scheduler_admin_tb AS sa " +
             "ON sa.id = su.scheduler_admin_id "+
-            "WHERE su.user_id = :id"
-    ,nativeQuery=true)
+            "WHERE su.user_id = :id",
+            nativeQuery=true)
     List<UserResponse.GetRoleUserTicketDTO> findRoleUserTicketListById(@Param("id") Long id);
 
+    @Query(value = "SELECT " +
+            "sa.title AS title, " +
+            "sa.description AS description" +
+            "sa.schedule_start AS scheduleStart, " +
+            "sa.schedule_start AS scheduleEnd " +
+            "FROM scheduler_admin_tb AS sa " +
+            "WHERE sa.user_id = :id",
+            nativeQuery=true)
+    List<UserResponse.GetRoleAdminScheduleDTO> findRoleAdminScheduleListById(@Param("id") Long id);
 
 
+    @Query(value = "SELECT COUNT(*) " +
+            "FROM scheduler_admin_tb " +
+            "WHERE user_id = :id",
+            nativeQuery = true)
+    Integer countAdminScheduleRegisteredEvent(@Param("id") Long id);
+
+
+    @Query(value = "SELECT " +
+            "SUM(CASE WHEN progress = 'WAITING' THEN 1 END) AS waiting, " +
+            "SUM(CASE WHEN progress = 'ACCEPT' THEN 1 END) AS accepted, " +
+            "SUM(CASE WHEN progress = 'REFUSE' THEN 1 END) AS refused " +
+            "FROM scheduler_user_tb " +
+            "WHERE scheduler_admin_id = :id",
+            nativeQuery = true)
+    UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgresseByAdminId(@Param("id") Long id);
 }
