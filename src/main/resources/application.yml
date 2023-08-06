@@ -2,7 +2,7 @@ server:
   error:
     whitelabel:
       enabled: false
-  port: 8080
+  port: 5000
   servlet:
     encoding:
       charset: utf-8
@@ -12,14 +12,12 @@ server:
 
 logging:
   level:
-#    '[com.fastcampus.minischeduler]': DEBUG
     '[com.fastcampus.minischeduler]': INFO
-#    '[org.hibernate.type]': TRACE
     org:
       hibernate:
         type:
           descriptor:
-            sql: trace
+#            sql: trace
     com:
       amazonaws:
         util:
@@ -58,7 +56,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none
     properties:
       hibernate:
         format_sql: true
@@ -75,5 +73,3 @@ spring:
     cache: false
   profiles:
     active: aws
-file:
-  dir: /Users/kilminjun/mini/scheduler/src/main/resources/static/asset/upload/

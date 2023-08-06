@@ -38,13 +38,16 @@
             </tr>
             <tr>
                 <td width="180">
-                    게시판 조회,<br />스케쥴러 리팩토링,<br />사용자 예외 페이지,<br />화면 구현<br />페이징, 검색 기능
+                    -게시판 조회,<br />-스케쥴러 리팩토링,<br />-사용자 예외 페이지,<br />-화면 구현<br />-페이징, 검색 기능
                 </td>
                 <td width="180">
-                    gradle multi module 적용,<br />관리자 api,<br />세션 기반 로그인,<br />예외처리 등<br />관리자<br />api 및 화면 일체
+                    -회원가입, JWT 이용한 로그인<br />-승인결재 페이지 및 기능 API<br />-개인정보 AES256 인/디코딩<br />
+                    -엑셀파일 다운로드 API<br />-로그인 로그 기록<br />-Eleastic Beanstalk 배포<br />
+                    -500에러 파일 출력(log back)<br />-팀 일정 계획, 깃헙 Repo 관리<br />-API명세서 정리<br />-코드 스타일 정리
                 </td>
                 <td width="180">
-                    댓글 기능 구현,<br />게시판 CRUD 구현,<br />게시판 상세보기 구현,<br />게시판 신고 기능 구현,<br />로컬 저장소를 통한 이미지 관리,<br />깃허브 관리
+                    -댓글 기능 구현,<br />-게시판 CRUD 구현,<br />-게시판 상세보기 구현,<br />-게시판 신고 기능 구현,<br />
+                    -로컬 저장소를 통한 이미지 관리,<br />-깃허브 관리
                 </td>
             </tr>
         </tbody>
@@ -77,7 +80,7 @@ create table login_log_tb (
     user_agent varchar(255),
     user_id bigint,
     primary key (id),
-    foreign key (user_id) references user(id)
+    foreign key (user_id) references user_tb(id)
 ) engine=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```
 

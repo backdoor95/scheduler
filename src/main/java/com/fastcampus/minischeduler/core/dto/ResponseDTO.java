@@ -30,4 +30,10 @@ public class ResponseDTO<T> {
         this.status = HttpStatus.OK.value();
         this.msg = msg;
     }
+
+    public ResponseDTO(T data, String msg){
+        this.status = HttpStatus.OK.value();
+        this.msg = msg; // 에러 제목
+        this.data = data; // 에러 내용
+    }
 }

@@ -1,8 +1,6 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.scheduleruser.Progress;
-import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserResponse;
 import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
@@ -56,26 +54,5 @@ public class SchedulerAdminResponse {
         private String image;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-
-        @Builder
-        public SchedulerAdminResponseDto(
-                UserDto user,
-                LocalDateTime scheduleStart,
-                LocalDateTime scheduleEnd,
-                String title,
-                String description,
-                String image,
-                LocalDateTime createdAt,
-                LocalDateTime updatedAt
-        ){
-            this.user = new UserDto(user);
-            this.scheduleStart = scheduleStart;
-            this.scheduleEnd = scheduleEnd;
-            this.title = title;
-            this.description = description;
-            this.image = image;
-            this.createdAt = createdAt;
-            this.updatedAt = updatedAt;
-        }
     }
 }

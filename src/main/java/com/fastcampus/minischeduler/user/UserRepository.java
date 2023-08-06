@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.user;
 
-import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,18 +11,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmail(@Param("email") String email);
-
-//    @Modifying(clearAutomatically = true)
-//    @Query("UPDATE User u SET" +
-//            " u.password = :password," +
-//            " u.profileImage = :profileImage," +
-//            " u.updatedAt = :updatedAt WHERE u.id = :id")
-//    int updateUserInfo(
-//            @Param("password") String password,
-//            @Param("profileImage") String profileImage,
-//            @Param("updatedAt") LocalDateTime updatedAt,
-//            @Param("id") Long id
-//    );
 
     @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
     List<User> update12TicketsOfAllFans();
@@ -64,11 +51,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM scheduler_user_tb " +
             "WHERE scheduler_admin_id = :id",
             nativeQuery = true)
-    UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgresseByAdminId(@Param("id") Long id);
-
-    @Query(
-            value = "SELECT * FROM user_tb AS u WHERE u.email = :email AND u.password = :password",
-            nativeQuery = true
-    )
-    Optional<User> findByEmailAndPassword(@Param("email") String email, @Param("password") String password);
+    UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgressByAdminId(@Param("id") Long id);
 }
