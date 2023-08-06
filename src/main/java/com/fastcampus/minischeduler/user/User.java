@@ -33,7 +33,7 @@ public class User {
     @Builder.Default
     private Integer sizeOfTicket = 0;
 
-    @Column(length = 120)
+    @Column(length = 200)
     private String profileImage;
 
     @Column(nullable = false)

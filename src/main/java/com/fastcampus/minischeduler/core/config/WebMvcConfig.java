@@ -1,16 +1,10 @@
 package com.fastcampus.minischeduler.core.config;
 
-import com.fastcampus.minischeduler.scheduleradmin.LocalDateTimeEditor;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -38,11 +32,6 @@ public class WebMvcConfig implements WebMvcConfigurer {
 //                .addPathPatterns("/seller/**");
     }
 
-    @InitBinder
-    public void initBinder(WebDataBinder binder){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        binder.registerCustomEditor(LocalDateTime.class, new LocalDateTimeEditor(formatter));
-    }
 
     // CORS, Interceptor, Resource, addArgumentResolvers, viewResolver, MessageConverter
 }

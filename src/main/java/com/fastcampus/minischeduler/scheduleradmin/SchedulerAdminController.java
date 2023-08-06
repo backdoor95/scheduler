@@ -10,12 +10,14 @@ import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -41,7 +43,6 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer month
     ) throws Exception {
 
-        jwtTokenProvider.verify(token.replace(JwtTokenProvider.TOKEN_PREFIX, ""));
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
 
         //year와 month 유효성검증
@@ -74,15 +75,19 @@ public class SchedulerAdminController {
             throw new Exception400("year", "유효하지 않은 년도입니다.");
         if (month != null && (month < 1 || month > 12))
             throw new Exception400("month", "유효하지 않은 달입니다.");
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-        return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
+        return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(loginUserId, year, month));
     }
 
     /** 삭제 예정
      * 공연 상세보기 : 공연의 정보를 상세하게 봄
      */
     @GetMapping("/schedule/{id}")
-    public ResponseEntity<SchedulerAdmin> scheduleDetail(@PathVariable Long id){
+    public ResponseEntity<SchedulerAdmin> scheduleDetail(
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
+            @PathVariable Long id
+    ){
 
         if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다");
 
@@ -106,7 +111,9 @@ public class SchedulerAdminController {
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
 
-        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, loginUserId, image));
     }
 
     /**
@@ -120,7 +127,13 @@ public class SchedulerAdminController {
 
         if(id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다");
 
-        schedulerAdminService.delete(id, token);
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        SchedulerAdminResponseDto schedulerAdminResponseDto = schedulerAdminService.getSchedulerById(id);
+
+        if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
+            throw new Exception403("스케줄을 삭제할 권한이 없습니다.");
+
+        schedulerAdminService.delete(id);
 
         return ResponseEntity.ok("스케줄 삭제 완료");
     }
@@ -142,7 +155,7 @@ public class SchedulerAdminController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // 스케줄 작성자 id와 로그인한 사용자 id비교
-        if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception401("권한이 존재하지 않습니다"); //권한없음
+        if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403("권한이 존재하지 않습니다"); //권한없음
         if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
@@ -159,6 +172,7 @@ public class SchedulerAdminController {
      */
     @GetMapping("/schedule/search")
     public ResponseEntity<List<SchedulerAdminResponseDto>> searchScheduler(
+            @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam String keyword,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
@@ -172,21 +186,19 @@ public class SchedulerAdminController {
     }
 
     /**
-     * 결재관리 페이지입니다.
-     * @return 기획사 일정과 티켓 승인 현황 카운트를 리턴합니다.
+     *
+     * @param token : 토큰
+     * @return : SchedulerAdminResponse
      */
-    @GetMapping("/schedule/confirm/{id}")
+    @GetMapping("/schedule/confirm")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
-            @PathVariable Long id,
-            @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) throws Exception {
-
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        if (!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
-        if (!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
-
-        return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(id)));
+    ) {
+        try {
+            return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(token)));
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
     }
 
     /**
@@ -241,22 +253,26 @@ public class SchedulerAdminController {
      * 기획사 id를 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
      * @param id            : 현재 로그인한 기획사 id
      * @param myUserDetails : 현재 로그인한 사용자 정보
-     * @throws Exception    : AES256 디코딩 시 발생할 오류
      */
     @GetMapping("/schedule/{id}/excelDownload")
     public ResponseEntity<String> excelDownload(
             @PathVariable Long id,
             @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) throws Exception {
+    ) {
 
         // 유효성 검사
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         if (!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
         if (!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
 
-        schedulerAdminService.excelDownload(id);
+        try {
+            schedulerAdminService.excelDownload(id);
 
-        return ResponseEntity.ok("다운로드 완료");
+            return ResponseEntity.ok("다운로드 완료");
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
+
     }
 }

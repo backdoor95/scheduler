@@ -12,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -32,33 +34,38 @@ public class UserController {
     /**
      * 회원가입
      * @param joinRequestDTO : 회원가입 시 입력한 정보
+     * @param image          : 프로필 사진
      * @return               : UserResponse.JoinDTO
-     * @throws Exception     : 디코딩 시 에러
      */
     @MyErrorLog
     @MyLog
     @PostMapping("/join")
     public ResponseEntity<?> join(
-            @RequestBody
-            @Valid
-            UserRequest.JoinDTO joinRequestDTO
+            @Valid @RequestPart(value = "dto") UserRequest.JoinDTO joinRequestDTO,
+            @RequestPart(value = "file", required = false) MultipartFile image
     ) throws Exception {
 
         // 유효성 검사
-        if (userRepository.findByEmail(joinRequestDTO.getEmail()).isPresent())
-            throw new Exception400("email", "이미 존재하는 이메일입니다."); // 중복 계정 검사
+        if (userRepository.findByEmail(aes256Utils.encryptAES256(joinRequestDTO.getEmail())).isPresent())
+            throw new Exception400(joinRequestDTO.getEmail(), "이미 존재하는 이메일입니다."); // 중복 계정 검사
         // joinRequestDTO의 Enum 타입 Role 에 대한 유효성 검사는 컨트롤러 단에서 할 수 없어서 String으로 받기로.
         String role = joinRequestDTO.getRole();
         if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
         if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception412("잘못된 접근입니다. 범위 내 권한을 입력해주세요");
+        if (image != null && image.getSize() > 1000000)
+            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
 
-        return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO)));
+        try {
+            return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO, image)));
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
     }
 
     /**
      * 로그인
      * @param loginRequestDTO : 로그인 요청 정보
-     * @return                : 토큰
+     * @return                : 토큰 및 로그인한 사용자 정보
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -69,14 +76,17 @@ public class UserController {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            aes256Utils.encryptAES256(loginRequestDTO.getEmail()),
+                            loginRequestDTO.getEmail(),
                             loginRequestDTO.getPassword()
                     )
             );
 
+            // 프론트 요청으로 사용자 정보 함께 리턴
+            Map<String, Object> response = userService.signin(authentication);
+
             return ResponseEntity.ok()
-                    .header(JwtTokenProvider.HEADER, userService.signin(authentication))
-                    .body(new ResponseDTO<>());
+                    .header(JwtTokenProvider.HEADER, (String) response.get("token"))
+                    .body(new ResponseDTO<>(response.get("userInfo")));
 
         } catch (Exception e) {
             throw new Exception401("아이디와 비밀번호를 확인해주세요");

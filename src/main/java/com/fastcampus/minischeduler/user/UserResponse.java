@@ -68,27 +68,16 @@ public class UserResponse {
 
     @Data
     @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
     public static class UserDto {
+
         private Long id;
         private String email;
         private String fullName;
         private int sizeOfTicket;
         private Role role;
         private String profileImage;
-
-        public UserDto(
-                Long id,
-                String fullName,
-                int sizeOfTicket,
-                Role role,
-                String profileImage
-        ){
-            this.id = id;
-            this.fullName = fullName;
-            this.sizeOfTicket = sizeOfTicket;
-            this.role = role;
-            this.profileImage = profileImage;
-        }
 
         public UserDto(User user) {
             this.id = user.getId();

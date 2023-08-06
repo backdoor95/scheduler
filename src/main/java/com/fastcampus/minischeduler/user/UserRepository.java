@@ -65,4 +65,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "WHERE scheduler_admin_id = :id",
             nativeQuery = true)
     UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgresseByAdminId(@Param("id") Long id);
+
+    @Query(
+            value = "SELECT * FROM user_tb AS u WHERE u.email = :email AND u.password = :password",
+            nativeQuery = true
+    )
+    Optional<User> findByEmailAndPassword(@Param("email") String email, @Param("password") String password);
 }
