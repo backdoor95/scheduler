@@ -41,7 +41,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query(value = "SELECT " +
             "sa.title AS title, " +
-            "sa.description AS description" +
+            "sa.description AS description, " +
             "sa.schedule_start AS scheduleStart, " +
             "sa.schedule_start AS scheduleEnd " +
             "FROM scheduler_admin_tb AS sa " +
@@ -50,7 +50,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<UserResponse.GetRoleAdminScheduleDTO> findRoleAdminScheduleListById(@Param("id") Long id);
 
 
-    @Query(value = "SELECT COUNT(*) " +
+    @Query(value = "SELECT COUNT(*) AS registeredEventCount " +
             "FROM scheduler_admin_tb " +
             "WHERE user_id = :id",
             nativeQuery = true)

@@ -117,6 +117,14 @@ public class UserController {
         }
     }
 
+    /**
+     * mypage를 업데이트를 할때, 필요한 user 정보를 반환합니다.
+     * @param id
+     * @param token
+     * @return
+     * @throws Exception
+     */
+
     @GetMapping("/mypage/update/{id}")
     public ResponseEntity<?> getUpdateUserInfo(
             @PathVariable Long id,
@@ -125,7 +133,7 @@ public class UserController {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         // mypage id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
+        if (!id.equals(loginUserId)) throw new Exception403("권한이 없습니다");
 
         return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(id)));
     }
@@ -202,6 +210,13 @@ public class UserController {
             return ResponseEntity.ok(responseDTO);
 
     }
+
+    /**
+     * 프로필 이미지를 삭제합니다.
+     * @param id
+     * @param token
+     * @return
+     */
 
     @PostMapping("/mypage/delete/image/{id}")
     public ResponseEntity<?> postDeleteUserProfileImage(
