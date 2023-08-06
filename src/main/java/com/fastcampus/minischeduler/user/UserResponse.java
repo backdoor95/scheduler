@@ -54,16 +54,6 @@ public class UserResponse {
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-        public GetUserInfoDTO(User user) {
-            this.email = user.getEmail();
-            this.fullName = user.getFullName();
-            this.sizeOfTicket = user.getSizeOfTicket();
-            this.usedTicket = user.getUsedTicket();
-            this.profileImage = user.getProfileImage();
-            this.createdAt = user.getCreatedAt();
-            this.updatedAt = user.getUpdatedAt();
-        }
-
     }
 
     @Data
@@ -98,7 +88,6 @@ public class UserResponse {
         }
     }
 
-
     @Getter
     @Builder
     @AllArgsConstructor
@@ -113,28 +102,14 @@ public class UserResponse {
         private LocalDateTime updatedAt;
         // mypage에서 role이 user 일때. 유저가 그동안 신청했던 티켓들 리스트
         private List<GetRoleUserTicketDTO> schedulerRoleUserList;
-        public GetRoleUserInfoDTO(User user) {
-            this.email = user.getEmail();
-            this.fullName = user.getFullName();
-            this.sizeOfTicket = user.getSizeOfTicket();
-            this.usedTicket = user.getUsedTicket();
-            this.profileImage = user.getProfileImage();
-            this.createdAt = user.getCreatedAt();
-            this.updatedAt = user.getUpdatedAt();
-        }
-
     }
 
-
-
-    public interface GetRoleUserTicketDTO{// role == user
+    public interface GetRoleUserTicketDTO{ // role == user
 
         String getTitle();
         String getScheduleStart();
         Progress getProgress();
     }
-
-
 
     @Data
     @Builder
@@ -147,34 +122,21 @@ public class UserResponse {
         private String profileImage;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
-        // 등록한 행사수
-        private Integer registeredEventCount;
-        // 승인 대기 인원수
-        private Integer waitingCount;
-        // 승인 완료 인원수
-        private Integer acceptedCount;
-        // 취소한 인원수
-        private Integer refusedCount;
-        // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
-        private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList;
-        public GetRoleAdminInfoDTO(User user) {
-            this.email = user.getEmail();
-            this.fullName = user.getFullName();
-            this.profileImage = user.getProfileImage();
-            this.createdAt = user.getCreatedAt();
-            this.updatedAt = user.getUpdatedAt();
-        }
 
+        private Integer registeredEventCount; // 등록한 행사수
+        private Integer waitingCount; // 승인 대기 인원수
+        private Integer acceptedCount; // 승인 완료 인원수
+        private Integer refusedCount; // 취소한 인원수
+        private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
     }
 
 
-    public interface GetRoleAdminScheduleDTO{// role == user
+    public interface GetRoleAdminScheduleDTO{ // role == user
 
         String getTitle();
         String getDescription();
         LocalDateTime getScheduleStart();
         LocalDateTime getScheduleEnd();
-
     }
 
     public interface GetRoleAdminCountProgressDTO {

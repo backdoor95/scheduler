@@ -439,7 +439,7 @@ public class SchedulerAdminService {
     public SchedulerAdminResponse getAdminScheduleDetail(String token) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        UserResponse.UserDto userDto = jwtTokenProvider.getUserInfo(token);
+        UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
 
         List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList =
                 schedulerAdminRepository.findSchedulesWithUsersById(loginUserId);
@@ -448,19 +448,35 @@ public class SchedulerAdminService {
             scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
         }
 
-        userDto.setFullName(aes256Utils.decryptAES256(userDto.getFullName()));
-        userDto.setEmail(aes256Utils.decryptAES256(userDto.getEmail()));
+        userInfo.setFullName(aes256Utils.decryptAES256(userInfo.getFullName()));
+        userInfo.setEmail(aes256Utils.decryptAES256(userInfo.getEmail()));
 
         return new SchedulerAdminResponse(
-                userDto,
-                scheduleDtoList,
-                schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId)
+                userInfo, // "userDto"
+                scheduleDtoList, // "scheduleDto"
+                schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId) // "countProcessDto"
         );
     }
 
     @Transactional
-    public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
+    public UserResponse.UserDto updateUserSchedule(
+            Long schedulerAdminId,
+            Progress progress,
+            String token
+    ) throws Exception {
+
+        UserResponse.UserDto responseUserInfo = jwtTokenProvider.getUserInfo(token);
+
+        responseUserInfo.setId(responseUserInfo.getId());
+        responseUserInfo.setFullName(aes256Utils.decryptAES256(responseUserInfo.getFullName()));
+        responseUserInfo.setEmail(aes256Utils.decryptAES256(responseUserInfo.getEmail()));
+        responseUserInfo.setRole(responseUserInfo.getRole());
+        responseUserInfo.setProfileImage(responseUserInfo.getProfileImage());
+        responseUserInfo.setSizeOfTicket(responseUserInfo.getSizeOfTicket());
+
         schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
+
+        return responseUserInfo;
     }
 
     /**

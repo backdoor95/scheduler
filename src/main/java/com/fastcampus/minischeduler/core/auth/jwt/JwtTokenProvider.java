@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserResponse;

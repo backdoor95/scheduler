@@ -5,9 +5,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Calendar;
 
 @Getter
 @Setter
@@ -30,8 +28,7 @@ public class User {
     private String password;
 
     @Column
-    @Builder.Default
-    private Integer sizeOfTicket = 0;
+    private Integer sizeOfTicket;
 
     @Column(length = 200)
     private String profileImage;

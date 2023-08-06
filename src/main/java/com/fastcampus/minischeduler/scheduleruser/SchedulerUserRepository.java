@@ -10,7 +10,6 @@ import java.util.List;
 public interface SchedulerUserRepository extends JpaRepository<SchedulerUser, Long> {
 
     List<SchedulerUser> findByUserId(Long userId);
-    boolean existsByUserAndCreatedAtBetween(User user, LocalDateTime startOfMonth, LocalDateTime endOfMonth);
 
     List<SchedulerUser> findBySchedulerAdmin(SchedulerAdmin schedulerAdmin);
 }

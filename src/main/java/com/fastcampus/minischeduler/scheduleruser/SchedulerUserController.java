@@ -2,23 +2,18 @@ package com.fastcampus.minischeduler.scheduleruser;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception403;
 import com.fastcampus.minischeduler.core.exception.Exception404;
+import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse.SchedulerAdminResponseDto;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminService;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRequest.SchedulerUserRequestDto;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserResponse.SchedulerUserResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +37,7 @@ public class SchedulerUserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ) throws Exception {
-
+    ) {
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList;
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
@@ -52,20 +46,23 @@ public class SchedulerUserController {
         if (month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다.");
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        if (year != null && month != null) {
-            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
-            schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
-        } else {
-            schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-            schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
+        try {
+            if (year != null && month != null) {
+                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
+                schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
+            } else {
+                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
+                schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("schedulerAdmin", schedulerAdminResponseDtoList);
+            response.put("schedulerUser", schedulerUserDtoList);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
         }
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminResponseDtoList);
-        response.put("schedulerUser", schedulerUserDtoList);
-
-        return ResponseEntity.ok(response);
-
     }
 
     /**
@@ -81,26 +78,30 @@ public class SchedulerUserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month
-    ) throws Exception {
+    ) {
 
         //year와 month 유효성검증
         if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다.");
         if(month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다.");
 
-        List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
-                = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
-        List<SchedulerUserResponseDto> schedulerUserDtoList;
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        try {
+            List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
+                    = schedulerAdminService.getSchedulerByFullName(keyword, year, month);
+            List<SchedulerUserResponseDto> schedulerUserDtoList;
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-        if (year != null && month != null)
-            schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
-        else schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
+            if (year != null && month != null)
+                schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
+            else schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
-        response.put("schedulerUser", schedulerUserDtoList);
+            Map<String, Object> response = new HashMap<>();
+            response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
+            response.put("schedulerUser", schedulerUserDtoList);
 
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
     }
 
     /**
@@ -112,7 +113,7 @@ public class SchedulerUserController {
             @PathVariable Long id
     ) {
 
-        if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다.");
+        if (id == null || id <= 0) throw new Exception400(id.toString(), "유효하지 않은 id값입니다.");
 
         SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
         if (schedulerAdmin == null) throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
@@ -129,18 +130,19 @@ public class SchedulerUserController {
             @RequestBody SchedulerUserRequestDto schedulerUserDto,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam Long schedulerAdminId
-    ) throws Exception {
+    ) {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
         if (userTicketCount > 1 &&
-                !schedulerUserService.existingSchedulerInCurrentMonth(
-                        loginUserId,
-                        schedulerUserDto.getScheduleStart()
-                )
+                !schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())
         ) {
-            return ResponseEntity
-                    .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
+            try {
+                return ResponseEntity
+                        .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
+            } catch (Exception e) {
+                throw new Exception500("디코딩에 실패하였습니다");
+            }
         } else throw new Exception403("티켓이 부족합니다.");
     }
 
@@ -151,12 +153,17 @@ public class SchedulerUserController {
     public ResponseEntity<String> cancelScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) throws Exception {
+    ) {
 
         if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다.");
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        schedulerUserService.cancel(id, loginUserId);
 
-        return ResponseEntity.ok("티켓팅 취소 완료");
+        try {
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+            schedulerUserService.cancel(id, loginUserId);
+
+            return ResponseEntity.ok("티켓팅 취소 완료");
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
     }
 }
