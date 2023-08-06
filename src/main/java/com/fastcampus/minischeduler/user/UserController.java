@@ -6,7 +6,6 @@ import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
-import com.fastcampus.minischeduler.user.UserRequest.UpdateUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,22 +106,34 @@ public class UserController {
             @PathVariable Long id,
             @RequestParam("role") String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
-    ) throws Exception {
+    )throws Exception{
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         // mypage id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
-        if (role.equals("admin")){// role = admin
-            Long adminId = jwtTokenProvider.getUserIdFromToken(token);
-            // admin 구현을 해야함. 아직 미완성. 아래코드 고쳐야함.
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(adminId)));
-        }else{// role = user
-            Long userId = jwtTokenProvider.getUserIdFromToken(token);
+        if (!id.equals(loginUserId)) throw new Exception403("권한이 없습니다"); //권한없음\
 
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(userId)));
+        if(!role.equals("admin")&&!role.equals("user"))
+            throw new Exception400("role", "유효하지 않은 role입니다.");
+
+        if (role.equals("admin")){
+            // role == admin
+            Long adminId = loginUserId;
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(adminId)));
+        }else {
+            // role == user
+            Long userId = loginUserId;
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(userId)));
         }
     }
+
+    /**
+     * mypage를 업데이트를 할때, 필요한 user 정보를 반환합니다.
+     * @param id
+     * @param token
+     * @return
+     * @throws Exception
+     */
 
     @GetMapping("/mypage/update/{id}")
     public ResponseEntity<?> getUpdateUserInfo(
@@ -131,9 +142,8 @@ public class UserController {
     ) throws Exception {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         // mypage id와 로그인한 사용자 id비교
-        if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
+        if (!id.equals(loginUserId)) throw new Exception403("권한이 없습니다");
 
         return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(id)));
     }
@@ -152,20 +162,19 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestBody
             @Valid
-            UpdateUserInfoDTO updateUserInfoDTO
+            UserRequest.UpdateUserInfoDTO updateUserInfoDTO
     ) {
         try {
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
             // mypage update 작성자 id와 로그인한 사용자 id비교
             if (!id.equals(loginUserId)) throw new Exception401("권한이 없습니다");
-
             // user 객체를 이용한 작업 수행
             return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
         } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+            throw new Exception500("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new Exception500("디코딩중 문제발생");
         }
     }
 
@@ -181,38 +190,45 @@ public class UserController {
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam("file") MultipartFile file
-    ) {
-        try {
+    ) throws Exception {
 
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
             // mypage update image 작성자 id와 로그인한 사용자 id비교
             if (!id.equals(loginUserId)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+                throw new Exception401("권한이 없습니다"); //권한없음
             }
 
-            if(file.isEmpty()){// 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+            // 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
+            if(file.isEmpty()){
                 String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
-
                 User user = userService.findById(id);
                 user.updateUserProfileImage(defaultNameURL);
 
                 return ResponseEntity.ok(new ResponseDTO<>(user));
             }
 
-            UserResponse.GetUserInfoDTO getUserInfoDTO = userService.updateUserProfileImage(file, id);
+            UserResponse.GetUserInfoDTO getUserInfoDTO = null;
+            try {
+                getUserInfoDTO = userService.updateUserProfileImage(file, id);
+            } catch (Exception e) {
+                throw new Exception500("디코딩중 문제발생");
+            }
             // user 객체를 이용한 작업 수행
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
 
             return ResponseEntity.ok(responseDTO);
-        } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
-        } catch (Exception e) {
-            throw new RuntimeException("디코딩중 문제발생?");
-        }
+
     }
 
-    @PostMapping("/mypage/delete/image/{id}")// 구현중.
+    /**
+     * 프로필 이미지를 삭제합니다.
+     * @param id
+     * @param token
+     * @return
+     */
+
+    @PostMapping("/mypage/delete/image/{id}")
     public ResponseEntity<?> postDeleteUserProfileImage(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
@@ -232,9 +248,9 @@ public class UserController {
 
             return ResponseEntity.ok(responseDTO);
         } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+            throw new Exception500("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
-            throw new RuntimeException("디코딩중 문제발생?");
+            throw new Exception500("디코딩중 문제발생");
         }
     }
 }

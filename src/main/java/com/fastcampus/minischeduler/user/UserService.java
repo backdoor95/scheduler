@@ -4,11 +4,14 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
+
 import com.fastcampus.minischeduler.core.exception.Exception413;
 import com.fastcampus.minischeduler.core.exception.Exception500;
+
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.log.LoginLog;
 import com.fastcampus.minischeduler.log.LoginLogRepository;
+import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +24,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+
+import java.util.Calendar;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
+
 import java.util.*;
+
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +44,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final LoginLogRepository loginLogRepository;
     private final HttpServletRequest httpServletRequest;
+    private final SchedulerUserRepository schedulerUserRepository;
 
     // Aws s3
     private final AmazonS3 amazonS3;
@@ -77,29 +88,6 @@ public class UserService {
         return response;
     }
 
-    /**
-     * 사용자 정보를 조회합니다.
-     * @param userId     : 사용자 id
-     * @return           : 사용자 정보 DTO
-     * @throws Exception : 디코딩 에러
-     */
-    @Transactional
-    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
-
-        User userPS = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-
-        return GetUserInfoDTO.builder()
-                .email(aes256Utils.decryptAES256(userPS.getEmail()))
-                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
-                .profileImage(userPS.getProfileImage())
-                .sizeOfTicket(userPS.getSizeOfTicket())
-                .usedTicket(userPS.getUsedTicket())
-                .profileImage(userPS.getProfileImage())
-                .createdAt(userPS.getCreatedAt())
-                .updatedAt(userPS.getUpdatedAt())
-                .build();
-    }
 
     /**
      * 로그인합니다.
@@ -140,6 +128,93 @@ public class UserService {
         return response;
     }
 
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 미포함된 DTO를 반환함.
+     * @param userId     : 사용자 id
+     * @return           : 사용자 정보 DTO
+     * @throws Exception : 디코딩 에러
+     */
+    @Transactional
+    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
+
+        User userPS = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        return GetUserInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .sizeOfTicket(userPS.getSizeOfTicket())
+                .usedTicket(userPS.getUsedTicket())
+                .profileImage(userPS.getProfileImage())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .build();
+    }
+
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
+     * Role = user 일때
+     * @param roleUserId    : user사용자 id
+     * @return          : user의 정보, 나의 티켓 리스트 목록리스트 반환.
+     * @throws Exception
+     */
+    @Transactional
+    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(Long roleUserId) throws Exception {
+
+        User userPS = userRepository.findById(roleUserId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+
+        List<UserResponse.GetRoleUserTicketDTO> getRoleUserTicketListDTO = userRepository.findRoleUserTicketListById(roleUserId);
+
+        return UserResponse.GetRoleUserInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .sizeOfTicket(userPS.getSizeOfTicket())
+                .usedTicket(userPS.getUsedTicket())
+                .profileImage(userPS.getProfileImage())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .schedulerRoleUserList(getRoleUserTicketListDTO)
+                .build();
+    }
+
+    /**
+     * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
+     * Role = admin 일때
+     * @param roleAdminId    : Admin사용자 id
+     * @return          : Admin의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
+     * @throws Exception
+     */
+    @Transactional
+    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(Long roleAdminId) throws Exception {
+
+        User userPS = userRepository.findById(roleAdminId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
+        // 미완성. repository에 쿼리작성해서 만들기.
+        // 방안 1. 쿼리 만들기
+        // 방안 2. 기존에 있던 findby .. 이용
+
+        List<UserResponse.GetRoleAdminScheduleDTO> getRoleUserTicketDTOList = userRepository.findRoleAdminScheduleListById(roleAdminId);
+        Integer registeredEventCount = userRepository.countAdminScheduleRegisteredEvent(roleAdminId);
+        UserResponse.GetRoleAdminCountProgressDTO countProgressDTO = userRepository.countAllScheduleUserProgresseByAdminId(roleAdminId);
+
+        return UserResponse.GetRoleAdminInfoDTO.builder()
+                .email(aes256Utils.decryptAES256(userPS.getEmail()))
+                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
+                .profileImage(userPS.getProfileImage())
+                .registeredEventCount(registeredEventCount)
+                .waitingCount(countProgressDTO.getWaiting())
+                .acceptedCount(countProgressDTO.getAccepted())
+                .refusedCount(countProgressDTO.getRefused())
+                .createdAt(userPS.getCreatedAt())
+                .updatedAt(userPS.getUpdatedAt())
+                .schedulerRoleAdminList(getRoleUserTicketDTOList)
+                .build();
+    }
+
+
     @Transactional
     public GetUserInfoDTO updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
@@ -148,12 +223,11 @@ public class UserService {
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
-        // Password encoding - 암호화
+        // encoding
         String encodedPassword = passwordEncoder.encode(updateUserInfoDTO.getPassword());
+        String encodedFullName = aes256Utils.encryptAES256(updateUserInfoDTO.getFullName());
 
-        String fullName = updateUserInfoDTO.getFullName();
-
-        userPS.updateUserInfo(encodedPassword, fullName);//이름, 비번  수정
+        userPS.updateUserInfo(encodedPassword, encodedFullName);//이름, 비번  수정
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
@@ -171,7 +245,7 @@ public class UserService {
     /**
      * aws upload
      */
-    private String changedImageName(String originName) { // 이미지 이름 중복 방지를 위해 랜덤으로 생성
+    public String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
         String random = UUID.randomUUID().toString();
         return random + originName;
     }
@@ -247,10 +321,15 @@ public class UserService {
 
         User userPS = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
-
-        //지울때 url은 기본 프로필로 초기화
         String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
 
+        String url = userPS.getProfileImage();
+
+        String fileName = url.substring(url.lastIndexOf('/') + 1);
+        if(!fileName.equals("default.jpg")) {
+            deleteImage(fileName);// aws에서 삭제
+        }
+        //지울때 url은 기본 프로필로 초기화
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.

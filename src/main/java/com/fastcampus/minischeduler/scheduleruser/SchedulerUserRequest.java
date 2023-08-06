@@ -5,12 +5,14 @@ import com.fastcampus.minischeduler.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 public class SchedulerUserRequest {
 
     @Data
+    @NoArgsConstructor
     public static class SchedulerUserRequestDto {
 
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
