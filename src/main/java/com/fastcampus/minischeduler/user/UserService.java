@@ -305,8 +305,9 @@ public class UserService {
         String url = userPS.getProfileImage();
 
         String fileName = url.substring(url.lastIndexOf('/') + 1);
-        deleteImage(fileName);// aws에서 삭제
-
+        if(!fileName.equals("default.jpg")) {
+            deleteImage(fileName);// aws에서 삭제
+        }
         //지울때 url은 기본 프로필로 초기화
         userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
 

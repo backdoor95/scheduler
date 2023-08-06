@@ -162,9 +162,9 @@ public class UserController {
             // user 객체를 이용한 작업 수행
             return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, id)));
         } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+            throw new Exception500("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new Exception500("디코딩중 문제발생");
         }
     }
 
@@ -180,13 +180,13 @@ public class UserController {
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam("file") MultipartFile file
-    ) {
+    ) throws Exception {
 
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
             // mypage update image 작성자 id와 로그인한 사용자 id비교
             if (!id.equals(loginUserId)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build(); //권한없음
+                throw new Exception401("권한이 없습니다"); //권한없음
             }
 
             // 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
@@ -202,7 +202,7 @@ public class UserController {
             try {
                 getUserInfoDTO = userService.updateUserProfileImage(file, id);
             } catch (Exception e) {
-                throw new Exception500("암호화 에러");
+                throw new Exception500("디코딩중 문제발생");
             }
             // user 객체를 이용한 작업 수행
             ResponseDTO<?> responseDTO = new ResponseDTO<>(getUserInfoDTO);
@@ -238,9 +238,9 @@ public class UserController {
 
             return ResponseEntity.ok(responseDTO);
         } catch (IOException e) {
-            throw new RuntimeException("프로필 이름, 비밀번호 변경 실패");
+            throw new Exception500("프로필 이름, 비밀번호 변경 실패");
         } catch (Exception e) {
-            throw new RuntimeException("디코딩중 문제발생?");
+            throw new Exception500("디코딩중 문제발생");
         }
     }
 }

@@ -84,6 +84,7 @@ public class User {
 
     public void updateUserProfileImage(String imageURL) {
         this.profileImage = imageURL;
+        onUpdate();
     }
 
 }
