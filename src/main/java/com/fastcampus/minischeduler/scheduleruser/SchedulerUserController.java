@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +61,7 @@ public class SchedulerUserController {
             response.put("schedulerUser", schedulerUserDtoList);
 
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -99,7 +100,7 @@ public class SchedulerUserController {
             response.put("schedulerUser", schedulerUserDtoList);
 
             return ResponseEntity.ok(response);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -107,16 +108,17 @@ public class SchedulerUserController {
     /**
      * 공연 상세보기 : 공연의 정보를 상세하게 봄
      */
-    @GetMapping("/schedule/{id}")
+    @GetMapping("/schedule/{adminScheduleId}")
     public ResponseEntity<SchedulerAdmin> scheduleDetail(
             @RequestHeader(JwtTokenProvider.HEADER) String token,
-            @PathVariable Long id
+            @PathVariable Long adminScheduleId
     ) {
 
-        if (id == null || id <= 0) throw new Exception400(id.toString(), "유효하지 않은 id값입니다.");
+        if (adminScheduleId == null || adminScheduleId <= 0)
+            throw new Exception400("adminScheduleId", "잘못된 요청입니다");
 
-        SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
-        if (schedulerAdmin == null) throw new Exception404("해당하는 공연의 정보를 찾을 수 없습니다.");
+        SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(adminScheduleId);
+        if (schedulerAdmin == null) throw new Exception400("schedulerAdmin", "해당하는 공연의 정보를 찾을 수 없습니다");
 
         return ResponseEntity.ok(schedulerAdmin);
     }
@@ -140,7 +142,7 @@ public class SchedulerUserController {
             try {
                 return ResponseEntity
                         .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
-            } catch (Exception e) {
+            } catch (GeneralSecurityException gse) {
                 throw new Exception500("디코딩에 실패하였습니다");
             }
         } else throw new Exception403("티켓이 부족합니다.");
@@ -162,7 +164,7 @@ public class SchedulerUserController {
             schedulerUserService.cancel(id, loginUserId);
 
             return ResponseEntity.ok("티켓팅 취소 완료");
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }

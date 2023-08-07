@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -33,7 +34,7 @@ public class SchedulerUserService {
      * @return List<SchedulerUserResponseDto>
      */
     @Transactional
-    public List<SchedulerUserResponseDto> getSchedulerUserList(Long loginUserId) throws Exception {
+    public List<SchedulerUserResponseDto> getSchedulerUserList(Long loginUserId) throws GeneralSecurityException {
 
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
@@ -71,7 +72,7 @@ public class SchedulerUserService {
             Long loginUserId,
             Integer year,
             Integer month
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         YearMonth yearMonth = YearMonth.of(year, month);
         User user = userRepository.findById(loginUserId)
@@ -109,7 +110,6 @@ public class SchedulerUserService {
     /**
      * schedule 등록 : token으로 사용자를 찾아 사용자의 티켓수를 감소시키고 내용을 저장합니다
      * @param schedulerAdminId
-     * @param SchedulerUserRequestDto
      * @param loginUserId
      * @return SchedulerUserResponseDto
      */
@@ -118,7 +118,7 @@ public class SchedulerUserService {
             Long schedulerAdminId,
             SchedulerUserRequest.SchedulerUserRequestDto schedulerUserRequestDto,
             Long loginUserId
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
@@ -197,7 +197,7 @@ public class SchedulerUserService {
      * @param id
      * @param loginUserId
      */
-    public void cancel(Long id, Long loginUserId) throws Exception {
+    public void cancel(Long id, Long loginUserId) throws GeneralSecurityException {
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
@@ -217,7 +217,7 @@ public class SchedulerUserService {
      * @param id
      * @return SchedulerUserResponseDto
      */
-    public SchedulerUserResponseDto getSchedulerById(Long id) throws Exception {
+    public SchedulerUserResponseDto getSchedulerById(Long id) throws GeneralSecurityException {
 
         SchedulerUser schedulerUser = schedulerUserRepository.findById(id).orElseThrow(
                 () -> new IllegalArgumentException("해당 티켓팅은 존재하지 않습니다.")

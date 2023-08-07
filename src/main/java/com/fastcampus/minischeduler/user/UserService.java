@@ -10,7 +10,6 @@ import com.fastcampus.minischeduler.log.LoginLogRepository;
 import com.fastcampus.minischeduler.user.UserResponse.GetUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -54,7 +54,7 @@ public class UserService {
     public UserResponse.JoinDTO signup(
             UserRequest.JoinDTO request,
             MultipartFile image
-    ) throws Exception {
+    ) throws GeneralSecurityException, IOException {
 
         // 인코딩 및 사진 추가
         request.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -82,7 +82,7 @@ public class UserService {
      * @return               : 토큰
      */
     @Transactional
-    public Map<String, Object> signin(Authentication authentication) throws Exception {
+    public Map<String, Object> signin(Authentication authentication) throws GeneralSecurityException {
 
         MyUserDetails myUserDetails = (MyUserDetails) authentication.getPrincipal();
         User loginUser = myUserDetails.getUser();
@@ -117,17 +117,18 @@ public class UserService {
 
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 미포함된 DTO를 반환함.
-     * @param userId     : 사용자 id
      * @return           : 사용자 정보 DTO
      */
     @Transactional
-    public GetUserInfoDTO getUserInfo(Long userId) throws Exception {
+    public GetUserInfoDTO getUserInfo(String token) throws GeneralSecurityException {
 
-        User userPS = userRepository.findById(userId)
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        User userPS = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
         return GetUserInfoDTO.builder()
-                .id(userId)
+                .id(loginUserId)
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
                 .profileImage(userPS.getProfileImage())
@@ -141,13 +142,14 @@ public class UserService {
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
      * Role = user 일때
-     * @param roleUserId : user사용자 id
      * @return           : user의 정보, 나의 티켓 리스트 목록리스트 반환.
      */
     @Transactional
-    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(Long roleUserId) throws Exception {
+    public UserResponse.GetRoleUserInfoDTO getRoleUserInfo(String token) throws GeneralSecurityException {
 
-        User userPS = userRepository.findById(roleUserId)
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        User userPS = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
         GetUserInfoDTO getUserInfoDTO = new GetUserInfoDTO(userPS);
@@ -156,46 +158,47 @@ public class UserService {
 
         return UserResponse.GetRoleUserInfoDTO.builder()
                 .getUserInfoDTO(getUserInfoDTO)
-                .schedulerRoleUserList(userRepository.findRoleUserTicketListById(roleUserId))
+                .schedulerRoleUserList(userRepository.findRoleUserTicketListById(loginUserId))
                 .build();
     }
 
-    /** // count DTO 있음.
+    /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
      * Role = admin 일때
-     * @param roleAdminId : Admin사용자 id
      * @return            : Admin의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
      */
     @Transactional
-    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(Long roleAdminId) throws Exception {
+    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(String token) throws GeneralSecurityException {
 
-        User userPS = userRepository.findById(roleAdminId)
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        User userPS = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
         // 미완성. repository에 쿼리작성해서 만들기.
         // 방안 1. 쿼리 만들기
         // 방안 2. 기존에 있던 findby .. 이용
 
-        UserResponse.GetRoleAdminCountProgressDTO countProgressDTO =
-                userRepository.countAllScheduleUserProgressByAdminId(roleAdminId);
         UserResponse.UserDto userDto = new UserResponse.UserDto(userPS);
         userDto.setEmail(aes256Utils.decryptAES256(userPS.getEmail()));
         userDto.setFullName(aes256Utils.decryptAES256(userPS.getFullName()));
 
         return UserResponse.GetRoleAdminInfoDTO.builder()
                 .userDto(userDto)
-                .getRoleAdminCountProgressDTO(countProgressDTO)
-                .registeredEventCount(userRepository.countAdminScheduleRegisteredEvent(roleAdminId))
-                .schedulerRoleAdminList(userRepository.findRoleAdminScheduleListById(roleAdminId))
+                .getRoleAdminCountProgressDTO(userRepository.countAllScheduleUserProgressByAdminId(loginUserId))
+                .registeredEventCount(userRepository.countAdminScheduleRegisteredEvent(loginUserId))
+                .schedulerRoleAdminList(userRepository.findRoleAdminScheduleListById(loginUserId))
                 .build();
     }
 
     @Transactional
     public GetUserInfoDTO updateUserInfo(
             UserRequest.UpdateUserInfoDTO updateUserInfoDTO,
-            Long userId
-    ) throws Exception {
+            String token
+    ) throws GeneralSecurityException {
 
-        User userPS = userRepository.findById(userId)
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        User userPS = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
         // encoding
@@ -207,7 +210,7 @@ public class UserService {
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
         return GetUserInfoDTO.builder() // 업데이트되고 DB에 반영된 UserDTO를 반환합니다.
-                .id(userId)
+                .id(loginUserId)
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
@@ -236,10 +239,10 @@ public class UserService {
         metadata.setContentType(image.getContentType()); // putObject의 인자로 들어갈 메타데이터를 생성.
         // 이미지만 받을 예정이므로 contentType은  "image/확장자"
 
-        PutObjectResult putObjectResult = amazonS3
-                .putObject(new PutObjectRequest(bucketName, changedName, image.getInputStream(), metadata)
-                        // getInputStream에서 exception 발생 -> controller에서 처리
+        amazonS3.putObject(
+                new PutObjectRequest(bucketName, changedName, image.getInputStream(), metadata)
                         .withCannedAcl(CannedAccessControlList.PublicRead));
+                        // getInputStream에서 exception 발생 -> controller에서 처리
 
         //데이터베이스에 저장할 이미지가 저장된 주소
         return amazonS3.getUrl(bucketName, changedName).toString();
@@ -255,10 +258,12 @@ public class UserService {
     @Transactional
     public UserResponse.GetUserInfoDTO updateUserProfileImage(
             MultipartFile multipartFile,
-            Long userId
-    ) throws Exception {
+            String token
+    ) throws GeneralSecurityException, IOException {
 
-        User userPS = userRepository.findById(userId)
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        User userPS = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
 
         String imageURL = uploadImageToS3(multipartFile);
@@ -269,7 +274,7 @@ public class UserService {
 
         // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
         return GetUserInfoDTO.builder()
-                .id(userId)
+                .id(loginUserId)
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
@@ -286,7 +291,7 @@ public class UserService {
      * @throws Exception : 디코딩 에러
      */
     @Transactional
-    public UserResponse.GetUserInfoDTO deleteUserProfileImage(String token) throws Exception {
+    public UserResponse.GetUserInfoDTO deleteUserProfileImage(String token) throws GeneralSecurityException {
 
         User userPS = userRepository.findById(jwtTokenProvider.getUserIdFromToken(token))
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
@@ -316,11 +321,12 @@ public class UserService {
 
     /**
      * id로 User 객체를 찾습니다.
-     * @param id
      * @return
      */
-    public User findById(Long id) {
-        return userRepository.findById(id).get();
+    public User findById(String token) {
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
+        return userRepository.findById(loginUserId).get();
     }
 
 }

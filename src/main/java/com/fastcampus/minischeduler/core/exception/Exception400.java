@@ -3,10 +3,12 @@ package com.fastcampus.minischeduler.core.exception;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.dto.ValidDTO;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 
 // 유효성 검사 실패, 잘못된 파라메터 요청
 @Getter
+@NoArgsConstructor
 public class Exception400 extends RuntimeException {
 
     private String key;
