@@ -76,7 +76,6 @@ public class UserService {
         return response;
     }
 
-
     /**
      * 로그인합니다.
      * @param authentication : 인증된 계정 정보
@@ -320,7 +319,7 @@ public class UserService {
      * @param id
      * @return
      */
-    public User findById(Long id){
+    public User findById(Long id) {
         return userRepository.findById(id).get();
     }
 

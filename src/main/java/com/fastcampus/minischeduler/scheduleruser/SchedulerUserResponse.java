@@ -19,6 +19,7 @@ public class SchedulerUserResponse {
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
         private SchedulerAdmin schedulerAdmin;
 
+        private Long id;
         private LocalDateTime scheduleStart;
         private Progress progress;
         private LocalDateTime createdAt;
@@ -26,12 +27,14 @@ public class SchedulerUserResponse {
         @Builder
         public SchedulerUserResponseDto(
                 UserDto user,
+                Long id,
                 SchedulerAdmin schedulerAdmin,
                 LocalDateTime scheduleStart,
                 Progress progress,
                 LocalDateTime createdAt
         ){
             this.user = new UserDto(user);
+            this.id = id;
             this.schedulerAdmin = schedulerAdmin;
             this.scheduleStart = scheduleStart;
             this.progress = progress;

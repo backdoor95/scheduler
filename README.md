@@ -1,5 +1,5 @@
 <div align=center>
-    <img src="https://capsule-render.vercel.app/api?type=waving&color=642BF6&height=250&section=header&text=MINI PROJECT 12 BACK-END&fontSize=50&fontColor=ffffff" />
+    <img src="https://capsule-render.vercel.app/api?type=waving&color=642BF6&height=250&section=header&text=MINI%20PROJECT%2012%20BACK-END&fontSize=50&fontColor=ffffff" />
 </div>
 <div align=center><h1>📚 STACKS</h1>
     <img src="https://img.shields.io/badge/java 11-007396?style=for-the-badge&logo=java&logoColor=white">
@@ -37,18 +37,18 @@
                 </td>
             </tr>
             <tr>
-                <td width="180">
-                    -게시판 조회,<br />-스케쥴러 리팩토링,<br />-사용자 예외 페이지,<br />-화면 구현<br />-페이징, 검색 기능
-                </td>
-                <td width="180">
-                    -회원가입, JWT 이용한 로그인<br />-승인결재 페이지 및 기능 API<br />-개인정보 AES256 인/디코딩<br />
+                <td width="180"><font size=1>
+                    - 유저&기획사 메인 페이지,<br />- 유저 티켓팅 신청&취소,<br />- 기획사 검색,<br />- 행사 등록&취소&수정<br />
+                </font></td>
+                <td width="180"><font size=1>
+                    -회원가입, JWT 로그인<br />-승인결재 페이지 및 기능 API<br />-AES256 인/디코딩<br />
                     -엑셀파일 다운로드 API<br />-로그인 로그 기록<br />-Eleastic Beanstalk 배포<br />
                     -500에러 파일 출력(log back)<br />-팀 일정 계획, 깃헙 Repo 관리<br />-API명세서 정리<br />-코드 스타일 정리
-                </td>
-                <td width="180">
+                </font></td>
+                <td width="180"><font size=1>
                     -댓글 기능 구현,<br />-게시판 CRUD 구현,<br />-게시판 상세보기 구현,<br />-게시판 신고 기능 구현,<br />
                     -로컬 저장소를 통한 이미지 관리,<br />-깃허브 관리
-                </td>
+                </font></td>
             </tr>
         </tbody>
     </table>

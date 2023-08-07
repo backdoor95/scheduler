@@ -4,7 +4,9 @@ import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.user.UserResponse.UserDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.sql.ConnectionBuilder;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -42,10 +44,14 @@ public class SchedulerAdminResponse {
 
     @Data
     @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
     public static class SchedulerAdminResponseDto {
 
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
         private UserDto user;
+
+        private Long id;
         private LocalDateTime scheduleStart;
         private LocalDateTime scheduleEnd;
         private String title;

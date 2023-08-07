@@ -85,22 +85,6 @@ public class SchedulerAdminController {
         }
     }
 
-    /** 삭제 예정
-     * 공연 상세보기 : 공연의 정보를 상세하게 봄
-     */
-    @GetMapping("/schedule/{id}")
-    public ResponseEntity<SchedulerAdmin> scheduleDetail(
-            @RequestHeader(JwtTokenProvider.HEADER) String token,
-            @PathVariable Long id
-    ) {
-        if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다");
-
-        SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(id);
-        if (schedulerAdmin == null) throw new Exception404("해당하는 공연 정보를 찾을 수 없습니다");
-
-        return ResponseEntity.ok(schedulerAdmin);
-    }
-
     /**
      * 공연 등록 : 기획사가 공연을 등록함
      */
@@ -112,15 +96,18 @@ public class SchedulerAdminController {
     ) {
         if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
+        if (image != null && image.getSize() > 10000000)
+            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         try {
-            return ResponseEntity.ok(schedulerAdminService.createScheduler(
-                    schedulerAdminRequestDto,
-                    loginUserId,
-                    image
+            return ResponseEntity.ok(
+                    schedulerAdminService.createScheduler(
+                            schedulerAdminRequestDto,
+                            loginUserId,
+                            image
                     )
             );
         } catch (Exception e) {
@@ -137,7 +124,8 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
 
-        if(adminScheduleId == null || adminScheduleId <= 0) throw new Exception400("id", "유효하지 않은 id값입니다");
+        if(adminScheduleId == null || adminScheduleId <= 0)
+            throw new Exception400(adminScheduleId.toString(), "유효하지 않은 id값입니다");
 
         try {
             SchedulerAdminResponseDto schedulerAdminResponseDto =
@@ -145,7 +133,7 @@ public class SchedulerAdminController {
 
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
             if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-                throw new Exception403("스케줄을 삭제할 권한이 없습니다.");
+                throw new Exception403("권한이 없습니다");
 
             schedulerAdminService.delete(adminScheduleId);
 
@@ -171,8 +159,11 @@ public class SchedulerAdminController {
             //로그인한 사용자 id조회
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
+            if (image != null && image.getSize() > 10000000)
+                throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+
             // 스케줄 작성자 id와 로그인한 사용자 id비교
-            if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403("권한이 존재하지 않습니다"); //권한없음
+            if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403("권한이 없습니다"); //권한없음
             if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
                 throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
             if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
@@ -228,22 +219,23 @@ public class SchedulerAdminController {
 
     /**
      * 선택한 티켓을 승인하거나 거절합니다.
-     * @param schedulerUserId : 선택한 사용자 일정 id
+     * @param userSchedulerId : 선택한 사용자 일정 id
      * @param progress        : 선택된 티켓 승인 옵션
      * @param token           : 헤더의 토큰을 가져옴
      * @return                : 메세지 응답
      */
-    @PostMapping("/schedule/confirm/{schedulerUserId}")
+    @PostMapping("/schedule/confirm/{userSchedulerId}")
     public ResponseEntity<?> confirmSchedule(
-            @PathVariable Long schedulerUserId,
+            @PathVariable Long userSchedulerId,
             @RequestParam(required = false) String progress,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         // 유효성 검사
-        if (progress == null || progress.isBlank()) throw new Exception404("'승인' 또는 '거절'을 선택해주세요");
+        Optional<SchedulerUser> object = schedulerUserRepository.findById(userSchedulerId);
+        if (object.isEmpty()) throw new Exception400(userSchedulerId.toString(), "해당 티켓이 존재하지 않습니다");
 
-        Optional<SchedulerUser> object = schedulerUserRepository.findById(schedulerUserId);
-        if (object.isEmpty()) throw new Exception400("해당 티켓이 존재하지 않습니다");
+        if (progress == null || progress.isBlank()) throw new Exception400("'승인' 또는 '거절'을 선택해주세요");
+
         SchedulerUser schedulerUser = object.get();
         if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
         if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
@@ -251,10 +243,10 @@ public class SchedulerAdminController {
 
         String message = null;
         Progress confirmProgress = null;
-        if (progress.equals("accept")) {
+        if (progress.equals("ACCEPT")) {
             confirmProgress = Progress.ACCEPT;
             message = "티켓을 승인합니다";
-        } else if(progress.equals("refuse")) {
+        } else if(progress.equals("REFUSE")) {
             fan.setSizeOfTicket(fan.getSizeOfTicket() + 1);
             confirmProgress = Progress.REFUSE;
             message = "티켓을 거절합니다.";
@@ -263,7 +255,7 @@ public class SchedulerAdminController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>(
-                            schedulerAdminService.updateUserSchedule(schedulerUserId, confirmProgress, token),
+                            schedulerAdminService.updateUserSchedule(userSchedulerId, confirmProgress, token),
                             message
                     )
             );
@@ -296,6 +288,5 @@ public class SchedulerAdminController {
         } catch (Exception e) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
-
     }
 }

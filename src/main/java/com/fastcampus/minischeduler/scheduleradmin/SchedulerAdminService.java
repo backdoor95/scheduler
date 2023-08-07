@@ -1,7 +1,7 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception413;
@@ -16,7 +16,6 @@ import com.fastcampus.minischeduler.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,10 +40,6 @@ import static com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminResponse
 public class SchedulerAdminService {
 
     private final AmazonS3 amazonS3;
-
-    //aws s3 버킷 이름.
-    @Value("${cloud.aws.s3.bucket}")
-    private String bucketName;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -77,6 +72,7 @@ public class SchedulerAdminService {
             SchedulerAdminResponseDto schedulerAdminResponseDto =
                     SchedulerAdminResponseDto.builder()
                             .user(responseUser)
+                            .id(scheduler.getId())
                             .scheduleStart(scheduler.getScheduleStart())
                             .scheduleEnd(scheduler.getScheduleEnd())
                             .title(scheduler.getTitle())
@@ -118,6 +114,7 @@ public class SchedulerAdminService {
                 SchedulerAdminResponseDto schedulerAdminResponseDto =
                         SchedulerAdminResponseDto.builder()
                                 .user(responseUser)
+                                .id(scheduler.getId())
                                 .scheduleStart(scheduler.getScheduleStart())
                                 .scheduleEnd(scheduler.getScheduleEnd())
                                 .title(scheduler.getTitle())
@@ -147,10 +144,8 @@ public class SchedulerAdminService {
     ) throws Exception {
 
         User user = userRepository.findById(loginUserId)
-                .orElseThrow(()->new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
+                .orElseThrow(()-> new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
 
-        if (image != null && image.getSize() > 1000000)
-            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
         String imageUrl = userService.uploadImageToS3(image);
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
@@ -169,6 +164,7 @@ public class SchedulerAdminService {
 
         return SchedulerAdminResponseDto.builder()
                 .user(responseUser)
+                .id(saveScheduler.getId())
                 .scheduleStart(saveScheduler.getScheduleStart())
                 .scheduleEnd(saveScheduler.getScheduleEnd())
                 .title(saveScheduler.getTitle())
@@ -291,21 +287,9 @@ public class SchedulerAdminService {
 
                     if (yearMonth.equals(scheduleYearMonth)) {
                         schedulerAdminResponseDto =
-                                SchedulerAdminResponseDto.builder()
-                                        .user(responseUser)
-                                        .scheduleStart(scheduler.getScheduleStart())
-                                        .scheduleEnd(scheduler.getScheduleEnd())
-                                        .title(scheduler.getTitle())
-                                        .description(scheduler.getDescription())
-                                        .image(scheduler.getImage())
-                                        .createdAt(scheduler.getCreatedAt())
-                                        .updatedAt(scheduler.getUpdatedAt())
-                                        .build();
-                    }
-                } else {
-                    schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
                                     .user(responseUser)
+                                    .id(scheduler.getId())
                                     .scheduleStart(scheduler.getScheduleStart())
                                     .scheduleEnd(scheduler.getScheduleEnd())
                                     .title(scheduler.getTitle())
@@ -314,6 +298,20 @@ public class SchedulerAdminService {
                                     .createdAt(scheduler.getCreatedAt())
                                     .updatedAt(scheduler.getUpdatedAt())
                                     .build();
+                    }
+                } else {
+                    schedulerAdminResponseDto =
+                        SchedulerAdminResponseDto.builder()
+                                .user(responseUser)
+                                .id(scheduler.getId())
+                                .scheduleStart(scheduler.getScheduleStart())
+                                .scheduleEnd(scheduler.getScheduleEnd())
+                                .title(scheduler.getTitle())
+                                .description(scheduler.getDescription())
+                                .image(scheduler.getImage())
+                                .createdAt(scheduler.getCreatedAt())
+                                .updatedAt(scheduler.getUpdatedAt())
+                                .build();
                 }
                 schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
@@ -339,6 +337,7 @@ public class SchedulerAdminService {
 
         return SchedulerAdminResponseDto.builder()
                 .user(responseUser)
+                .id(scheduler.getId())
                 .scheduleStart(scheduler.getScheduleStart())
                 .scheduleEnd(scheduler.getScheduleEnd())
                 .title(scheduler.getTitle())
@@ -390,16 +389,17 @@ public class SchedulerAdminService {
 
                 if (yearMonth.equals(scheduleYearMonth)) {
                     SchedulerAdminResponseDto schedulerAdminResponseDto =
-                            SchedulerAdminResponseDto.builder()
-                                    .user(responseUser)
-                                    .scheduleStart(schedulerAdmin.getScheduleStart())
-                                    .scheduleEnd(schedulerAdmin.getScheduleEnd())
-                                    .title(schedulerAdmin.getTitle())
-                                    .description(schedulerAdmin.getDescription())
-                                    .image(schedulerAdmin.getImage())
-                                    .createdAt(schedulerAdmin.getCreatedAt())
-                                    .updatedAt(schedulerAdmin.getUpdatedAt())
-                                    .build();
+                        SchedulerAdminResponseDto.builder()
+                                .user(responseUser)
+                                .id(schedulerAdmin.getId())
+                                .scheduleStart(schedulerAdmin.getScheduleStart())
+                                .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                                .title(schedulerAdmin.getTitle())
+                                .description(schedulerAdmin.getDescription())
+                                .image(schedulerAdmin.getImage())
+                                .createdAt(schedulerAdmin.getCreatedAt())
+                                .updatedAt(schedulerAdmin.getUpdatedAt())
+                                .build();
                     schedulerAdminResponseDtoListByYearAndMonth.add(schedulerAdminResponseDto);
                 }
             }
@@ -413,16 +413,17 @@ public class SchedulerAdminService {
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
             SchedulerAdminResponseDto schedulerAdminResponseDto =
-                    SchedulerAdminResponseDto.builder()
-                            .user(responseUser)
-                            .scheduleStart(schedulerAdmin.getScheduleStart())
-                            .scheduleEnd(schedulerAdmin.getScheduleEnd())
-                            .title(schedulerAdmin.getTitle())
-                            .description(schedulerAdmin.getDescription())
-                            .image(schedulerAdmin.getImage())
-                            .createdAt(schedulerAdmin.getCreatedAt())
-                            .updatedAt(schedulerAdmin.getUpdatedAt())
-                            .build();
+                SchedulerAdminResponseDto.builder()
+                        .user(responseUser)
+                        .id(schedulerAdmin.getId())
+                        .scheduleStart(schedulerAdmin.getScheduleStart())
+                        .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                        .title(schedulerAdmin.getTitle())
+                        .description(schedulerAdmin.getDescription())
+                        .image(schedulerAdmin.getImage())
+                        .createdAt(schedulerAdmin.getCreatedAt())
+                        .updatedAt(schedulerAdmin.getUpdatedAt())
+                        .build();
             schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         response.put("schedulerAdminList", schedulerAdminResponseDtoList);
@@ -444,8 +445,10 @@ public class SchedulerAdminService {
         List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList =
                 schedulerAdminRepository.findSchedulesWithUsersById(loginUserId);
 
-        for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
-            scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
+        if (!scheduleDtoList.isEmpty()) {
+            for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
+                scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
+            }
         }
 
         userInfo.setFullName(aes256Utils.decryptAES256(userInfo.getFullName()));
