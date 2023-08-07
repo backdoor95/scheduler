@@ -1,9 +1,6 @@
 package com.fastcampus.minischeduler.user;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -13,6 +10,8 @@ public class UserRequest {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class LoginDTO {
 
         @NotBlank(message = "이메일을 입력해주세요")

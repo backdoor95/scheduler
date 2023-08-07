@@ -11,6 +11,7 @@ public class UserResponse {
     @Getter
     @Setter
     public static class JoinDTO {
+
         private Long id;
         private String email;
         private String fullName;
@@ -47,13 +48,25 @@ public class UserResponse {
     @AllArgsConstructor
     public static class GetUserInfoDTO {
 
+        private Long id;
         private String email;
         private String fullName;
         private Integer usedTicket;
         private Integer sizeOfTicket;
         private String profileImage;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private Role role;
+
+        public GetUserInfoDTO(User user) {
+            this.id = user.getId();
+            this.email = user.getEmail();
+            this.fullName = user.getFullName();
+            this.usedTicket = user.getUsedTicket();
+            this.sizeOfTicket = user.getSizeOfTicket();
+            this.profileImage = user.getProfileImage();
+            this.role = user.getRole();
+        }
+
+
     }
 
     @Data
@@ -93,13 +106,7 @@ public class UserResponse {
     @AllArgsConstructor
     public static class GetRoleUserInfoDTO {
 
-        private String email;
-        private String fullName;
-        private Integer usedTicket;
-        private Integer sizeOfTicket;
-        private String profileImage;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private GetUserInfoDTO getUserInfoDTO;
         // mypage에서 role이 user 일때. 유저가 그동안 신청했던 티켓들 리스트
         private List<GetRoleUserTicketDTO> schedulerRoleUserList;
     }
@@ -117,16 +124,13 @@ public class UserResponse {
     @AllArgsConstructor
     public static class GetRoleAdminInfoDTO {
 
-        private String email;
-        private String fullName;
-        private String profileImage;
-        private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
+        private UserDto userDto;
+
+        // 승인 대기, 승인 완료, 취소 인원수가 들어있는 DTO
+        private GetRoleAdminCountProgressDTO getRoleAdminCountProgressDTO;
 
         private Integer registeredEventCount; // 등록한 행사수
-        private Integer waitingCount; // 승인 대기 인원수
-        private Integer acceptedCount; // 승인 완료 인원수
-        private Integer refusedCount; // 취소한 인원수
+
         private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
     }
 
