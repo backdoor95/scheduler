@@ -3,6 +3,8 @@ package com.fastcampus.minischeduler.scheduleradmin;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.*;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
+import com.fastcampus.minischeduler.core.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception413;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
@@ -52,8 +54,9 @@ public class SchedulerAdminService {
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AES256Utils aes256Utils;
+
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 전체 일정 목록을 출력합니다.
@@ -89,7 +92,8 @@ public class SchedulerAdminService {
 
     /**
      * year와 month로 해당하는 일정의 스케줄만 반환합니다
-     * @param year, month
+     * @param year
+     * @param month
      * @return SchedulerAdminResponseDto
      */
     public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(
@@ -130,20 +134,24 @@ public class SchedulerAdminService {
 
     /**
      * 일정을 등록합니다.
-     * @param schedulerAdminRequestDto, token
+     * @param schedulerAdminRequestDto
+     * @param loginUserId
+     * @param image
      * @return SchedulerAdminResponseDto
      */
     @Transactional
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            String token,
+            Long loginUserId,
             MultipartFile image
     ) throws Exception {
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
-                .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        String imageUrl = uploadImageToS3(image);
+                .orElseThrow(()->new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
+
+        if (image != null && image.getSize() > 1000000)
+            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+        String imageUrl = userService.uploadImageToS3(image);
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
@@ -169,12 +177,13 @@ public class SchedulerAdminService {
                 .createdAt(saveScheduler.getCreatedAt())
                 .updatedAt(saveScheduler.getUpdatedAt())
                 .build();
-
     }
 
     /**
      * 일정을 수정합니다.
-     * @param id, schedulerAdminRequestDto, file
+     * @param id
+     * @param schedulerAdminRequestDto
+     * @param image
      * @return id
      */
     @Transactional
@@ -185,7 +194,7 @@ public class SchedulerAdminService {
     ) throws IOException {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
-                ()-> new IllegalStateException("스케쥴러를 찾을 수 없습니다")
+                ()-> new Exception400(id.toString(), "스케쥴러를 찾을 수 없습니다")
         );
         try {
             if (image != null && !image.isEmpty()) {
@@ -196,7 +205,7 @@ public class SchedulerAdminService {
                     String fileName = oldImage.substring(slash + 1);
                     deleteImage(fileName);
                 }
-                String imageUrl = uploadImageToS3(image);
+                String imageUrl = userService.uploadImageToS3(image);
                 scheduler.update(
                         schedulerAdminRequestDto.getScheduleStart(),
                         schedulerAdminRequestDto.getScheduleEnd(),
@@ -222,26 +231,19 @@ public class SchedulerAdminService {
     /**
      * 일정을 삭제합니다.
      * @param id
-     * @param token
      * @throws Exception
      */
      @Transactional
-     public void delete(Long id, String token) throws Exception {
+     public void delete(Long id) {
 
-         SchedulerAdminResponseDto schedulerAdminResponseDto = getSchedulerById(id);
-         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-         if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
          SchedulerAdmin schedulerAdmin = schedulerAdminRepository.findById(id)
-                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
+                 .orElseThrow(() -> new Exception400(id.toString(), "스케줄을 찾을 수 없습니다"));
          List<SchedulerUser> schedulerUsers = schedulerUserRepository.findBySchedulerAdmin(schedulerAdmin);
          if (!schedulerUsers.isEmpty()) {
              for (SchedulerUser schedulerUser : schedulerUsers) {
                  User user = schedulerUser.getUser();
                  int ticket = user.getSizeOfTicket();
                  user.setSizeOfTicket(ticket + 1);
-                 userRepository.save(user);
              }
          }
          //글 삭제시 저장된 image파일도 같이 삭제
@@ -269,23 +271,38 @@ public class SchedulerAdminService {
 
         YearMonth yearMonth = null;
         if (year != null && month != null) yearMonth = YearMonth.of(year, month);
-
-        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(keyword);
+        String encryptedKeyword = aes256Utils.encryptAES256(keyword);
+        System.out.println(keyword + encryptedKeyword);
+        //List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(encryptedKeyword);
+        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
+        System.out.println(schedulers);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
         for (SchedulerAdmin scheduler : schedulers) {
-
+            System.out.println(scheduler);
             UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
+            if(responseUser.getFullName().contains(keyword)){
+                SchedulerAdminResponseDto schedulerAdminResponseDto = null;
+                if (yearMonth != null) {
+                    LocalDateTime scheduleStart = scheduler.getScheduleStart();
+                    YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
 
-            SchedulerAdminResponseDto schedulerAdminResponseDto = null;
-
-            if (yearMonth != null) {
-                LocalDateTime scheduleStart = scheduler.getScheduleStart();
-                YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
-
-                if (yearMonth.equals(scheduleYearMonth)) {
+                    if (yearMonth.equals(scheduleYearMonth)) {
+                        schedulerAdminResponseDto =
+                                SchedulerAdminResponseDto.builder()
+                                        .user(responseUser)
+                                        .scheduleStart(scheduler.getScheduleStart())
+                                        .scheduleEnd(scheduler.getScheduleEnd())
+                                        .title(scheduler.getTitle())
+                                        .description(scheduler.getDescription())
+                                        .image(scheduler.getImage())
+                                        .createdAt(scheduler.getCreatedAt())
+                                        .updatedAt(scheduler.getUpdatedAt())
+                                        .build();
+                    }
+                } else {
                     schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
                                     .user(responseUser)
@@ -298,20 +315,8 @@ public class SchedulerAdminService {
                                     .updatedAt(scheduler.getUpdatedAt())
                                     .build();
                 }
-            } else {
-                schedulerAdminResponseDto =
-                        SchedulerAdminResponseDto.builder()
-                                .user(responseUser)
-                                .scheduleStart(scheduler.getScheduleStart())
-                                .scheduleEnd(scheduler.getScheduleEnd())
-                                .title(scheduler.getTitle())
-                                .description(scheduler.getDescription())
-                                .image(scheduler.getImage())
-                                .createdAt(scheduler.getCreatedAt())
-                                .updatedAt(scheduler.getUpdatedAt())
-                                .build();
+                schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
-            schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         return schedulerAdminResponseDtoList;
     }
@@ -325,7 +330,7 @@ public class SchedulerAdminService {
     public SchedulerAdminResponseDto getSchedulerById(Long id) throws Exception {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다.")
+                () -> new Exception400(id.toString(), "해당 게시글이 존재하지 않습니다.")
         );
 
         UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
@@ -356,17 +361,16 @@ public class SchedulerAdminService {
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
      * year와 month가 null이 아니면 각 년도와 달에 부합한 스케줄도 같이 전달합니다.
-     * @param token, year, month
+     * @param loginUserId, year, month
      * @return Map<String, Object>
      */
     public Map<String, Object> getSchedulerListById(
-            String token,
+            Long loginUserId,
             Integer year,
             Integer month
     ) throws Exception {
 
         Map<String, Object> response = new HashMap<>();
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
@@ -429,29 +433,50 @@ public class SchedulerAdminService {
     /**
      * 결재관리 페이지의 해당 기획사 공연에 티케팅한 사용자의 내역과
      * 승인현황 별 티케팅 수를 조회합니다.
-     * @param id : 기획사 id
      * @return   : 기획사 정보, 관련 티켓승인현황, 기획사 일정
      */
     @Transactional(readOnly = true)
-    public SchedulerAdminResponse getAdminScheduleDetail(Long id) throws Exception {
+    public SchedulerAdminResponse getAdminScheduleDetail(String token) throws Exception {
+
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+        UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
 
         List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList =
-                schedulerAdminRepository.findSchedulesWithUsersById(id);
+                schedulerAdminRepository.findSchedulesWithUsersById(loginUserId);
 
         for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
             scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
         }
 
+        userInfo.setFullName(aes256Utils.decryptAES256(userInfo.getFullName()));
+        userInfo.setEmail(aes256Utils.decryptAES256(userInfo.getEmail()));
+
         return new SchedulerAdminResponse(
-                scheduleDtoList,
-                schedulerAdminRepository.countScheduleGroupByProgressById(id),
-                userService.getUserInfo(id)
+                userInfo, // "userDto"
+                scheduleDtoList, // "scheduleDto"
+                schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId) // "countProcessDto"
         );
     }
 
     @Transactional
-    public void updateUserSchedule(Long schedulerAdminId, Progress progress) {
+    public UserResponse.UserDto updateUserSchedule(
+            Long schedulerAdminId,
+            Progress progress,
+            String token
+    ) throws Exception {
+
+        UserResponse.UserDto responseUserInfo = jwtTokenProvider.getUserInfo(token);
+
+        responseUserInfo.setId(responseUserInfo.getId());
+        responseUserInfo.setFullName(aes256Utils.decryptAES256(responseUserInfo.getFullName()));
+        responseUserInfo.setEmail(aes256Utils.decryptAES256(responseUserInfo.getEmail()));
+        responseUserInfo.setRole(responseUserInfo.getRole());
+        responseUserInfo.setProfileImage(responseUserInfo.getProfileImage());
+        responseUserInfo.setSizeOfTicket(responseUserInfo.getSizeOfTicket());
+
         schedulerAdminRepository.updateUserScheduleById(schedulerAdminId, progress);
+
+        return responseUserInfo;
     }
 
     /**
@@ -592,26 +617,8 @@ public class SchedulerAdminService {
         return schedulerAdminRepository.findAllTicketsByAdminId(id);
     }
 
-    // aws upload
-    private String changedImageName(String originName) { //이미지 이름 중복 방지를 위해 랜덤으로 생성
-        String random = UUID.randomUUID().toString();
-        return random+originName;
-    }
-    @Transactional
-    public String uploadImageToS3(MultipartFile image) throws IOException { //이미지를 S3에 업로드하고 이미지의 url을 반환
-        String originName = image.getOriginalFilename(); //원본 이미지 이름
-        String ext = originName.substring(originName.lastIndexOf(".")); //확장자
-        String changedName = changedImageName(originName); //새로 생성된 이미지 이름
-        ObjectMetadata metadata = new ObjectMetadata(); //메타데이터
-        metadata.setContentType(image.getContentType()); //putObject의 인자로 들어갈 메타데이터를 생성.
-        // 이미지만 받을 예정이므로 contentType은  "image/확장자"
-        PutObjectResult putObjectResult = amazonS3.putObject(new PutObjectRequest(
-                bucketName, changedName, image.getInputStream(), metadata
-        ).withCannedAcl(CannedAccessControlList.PublicRead));// getInputStream에서 exception 발생 -> controller에서 처리
-        return amazonS3.getUrl(bucketName, changedName).toString(); //데이터베이스에 저장할 이미지가 저장된 주소
-    }
     @Transactional
     public void deleteImage(String fileName) {
-        amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName));
+        amazonS3.deleteObject(new DeleteObjectRequest(userService.getBucketName(), fileName));
     }
 }

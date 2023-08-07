@@ -4,6 +4,7 @@ import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,50 +13,56 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
 @Slf4j
 @RequiredArgsConstructor
 @RestControllerAdvice
 public class MyExceptionAdvice {
 
     @ExceptionHandler(Exception400.class)
-    public ResponseEntity<?> badRequest(Exception400 e){
+    public ResponseEntity<?> badRequest(Exception400 e) {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception401.class)
-    public ResponseEntity<?> unAuthorized(Exception401 e){
+    public ResponseEntity<?> unAuthorized(Exception401 e) {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception403.class)
-    public ResponseEntity<?> forbidden(Exception403 e){
+    public ResponseEntity<?> forbidden(Exception403 e) {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception404.class)
-    public ResponseEntity<?> notFound(Exception404 e){
+    public ResponseEntity<?> notFound(Exception404 e) {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception412.class)
-    public ResponseEntity<?> preconditionFailed(Exception412 e){
+    public ResponseEntity<?> preconditionFailed(Exception412 e) {
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception500.class)
-    public ResponseEntity<?> serverError(Exception500 e){
+    public ResponseEntity<?> serverError(Exception500 e) {
+        log.error(e.getMessage(), e);
         return new ResponseEntity<>(e.body(), e.status());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<?> unknownServerError(Exception e){
+    public ResponseEntity<?> unknownServerError(Exception e) {
 
         ApiUtils.ApiResult<?> apiResult =
                 ApiUtils.error(
                         e.getMessage(),
                         HttpStatus.INTERNAL_SERVER_ERROR
                 );
-
+        log.error(e.getMessage(), e);
         return new ResponseEntity<>(apiResult, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -72,5 +79,14 @@ public class MyExceptionAdvice {
         String message = "경로 변수가 누락되었습니다 : " + variableName;
         Exception400 badRequestException = new Exception400(variableName, message);
         return ResponseEntity.status(badRequestException.status()).body(badRequestException.body());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<?> methodValidException(MethodArgumentNotValidException e) {
+        ExceptionValid ev = new ExceptionValid(
+                e.getBindingResult().getFieldError().getCode(),
+                e.getBindingResult().getFieldError().getDefaultMessage()
+        );
+        return new ResponseEntity<>(ev.body(), ev.status());
     }
 }

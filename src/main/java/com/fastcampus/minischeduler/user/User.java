@@ -5,9 +5,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
-import java.util.Calendar;
 
 @Getter
 @Setter
@@ -30,10 +28,9 @@ public class User {
     private String password;
 
     @Column
-    @Builder.Default
-    private Integer sizeOfTicket = 0;
+    private Integer sizeOfTicket;
 
-    @Column(length = 120)
+    @Column(length = 200)
     private String profileImage;
 
     @Column(nullable = false)
@@ -78,12 +75,13 @@ public class User {
     public void updateUserInfo(String password, String fullName) {
 
         this.password = password;
-        this.profileImage = fullName;
+        this.fullName = fullName; // 수정 완료한 코드.
         onUpdate();
     }
 
     public void updateUserProfileImage(String imageURL) {
         this.profileImage = imageURL;
+        onUpdate();
     }
 
 }

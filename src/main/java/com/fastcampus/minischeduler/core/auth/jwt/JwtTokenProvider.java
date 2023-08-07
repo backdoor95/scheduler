@@ -5,7 +5,10 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.fastcampus.minischeduler.core.utils.AES256Utils;
+import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -32,6 +35,9 @@ public class JwtTokenProvider {
                 .withExpiresAt(new Date(System.currentTimeMillis() + EXP))
                 .withClaim("id", user.getId())
                 .withClaim("role", user.getRole().name())
+                .withClaim("email", user.getEmail())
+                .withClaim("fullName", user.getFullName())
+                .withClaim("profileImage", user.getProfileImage())
                 .sign(Algorithm.HMAC512(SECRET));
 
         return TOKEN_PREFIX + jwt;
@@ -49,5 +55,19 @@ public class JwtTokenProvider {
                 .build()
                 .verify(token.replace(TOKEN_PREFIX, ""));
         return decodedJWT.getClaim("id").asLong();
+    }
+
+    public UserResponse.UserDto getUserInfo(String token) {
+        DecodedJWT decodedJWT = JWT.require(Algorithm.HMAC512(SECRET))
+                .build()
+                .verify(token.replace(TOKEN_PREFIX, ""));
+
+        return UserResponse.UserDto.builder()
+                .id(decodedJWT.getClaim("id").asLong())
+                .email(decodedJWT.getClaim("email").asString())
+                .fullName(decodedJWT.getClaim("fullName").asString())
+                .role(Role.valueOf(decodedJWT.getClaim("role").asString()))
+                .profileImage(decodedJWT.getClaim("profileImage").asString())
+                .build();
     }
 }
