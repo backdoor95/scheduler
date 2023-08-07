@@ -130,7 +130,6 @@ public class UserResponse {
         private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
     }
 
-
     public interface GetRoleAdminScheduleDTO{ // role == user
 
         String getTitle();

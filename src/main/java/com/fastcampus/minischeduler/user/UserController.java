@@ -29,6 +29,20 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    @GetMapping("/api")
+    public ResponseEntity<?> api(@RequestHeader(JwtTokenProvider.HEADER) String token) {
+
+        UserResponse.UserDto response = jwtTokenProvider.getUserInfo(token);
+        try {
+            response.setEmail(aes256Utils.decryptAES256(response.getEmail()));
+            response.setFullName(aes256Utils.decryptAES256(response.getFullName()));
+
+            return ResponseEntity.ok(new ResponseDTO<>(response));
+        } catch (Exception e) {
+            throw new Exception500("디코딩에 실패하였습니다");
+        }
+    }
+
     /**
      * 회원가입
      * @param joinRequestDTO : 회원가입 시 입력한 정보
@@ -42,6 +56,9 @@ public class UserController {
             @Valid @RequestPart(value = "dto") UserRequest.JoinDTO joinRequestDTO,
             @RequestPart(value = "file", required = false) MultipartFile image
     ) {
+        if (image != null && image.getSize() > 10000000)
+            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+
         try { // 중복검사 시 Exception이 발동하는지 확인 2023-08-06
             // 유효성 검사
             if (userRepository.findByEmail(aes256Utils.encryptAES256(joinRequestDTO.getEmail())).isPresent())
@@ -51,8 +68,6 @@ public class UserController {
             if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
             if (!role.equals("USER") && !role.equals("ADMIN"))
                 throw new Exception412("잘못된 접근입니다. 범위 내 권한을 입력해주세요");
-            if (image != null && image.getSize() > 1000000)
-                throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
 
             return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO, image)));
         } catch (Exception e) {
@@ -132,7 +147,6 @@ public class UserController {
         } catch (Exception e) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
-
     }
 
     /**
@@ -189,7 +203,6 @@ public class UserController {
      * @param token : 사용자 토큰
      * @return      : GetUserInfoDTO
      */
-
     @PostMapping("/mypage/delete/image")
     public ResponseEntity<?> postDeleteUserProfileImage(
             @RequestHeader(JwtTokenProvider.HEADER) String token
