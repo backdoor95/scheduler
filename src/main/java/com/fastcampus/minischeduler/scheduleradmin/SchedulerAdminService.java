@@ -77,6 +77,7 @@ public class SchedulerAdminService {
             SchedulerAdminResponseDto schedulerAdminResponseDto =
                     SchedulerAdminResponseDto.builder()
                             .user(responseUser)
+                            .id(scheduler.getId())
                             .scheduleStart(scheduler.getScheduleStart())
                             .scheduleEnd(scheduler.getScheduleEnd())
                             .title(scheduler.getTitle())
@@ -118,6 +119,7 @@ public class SchedulerAdminService {
                 SchedulerAdminResponseDto schedulerAdminResponseDto =
                         SchedulerAdminResponseDto.builder()
                                 .user(responseUser)
+                                .id(scheduler.getId())
                                 .scheduleStart(scheduler.getScheduleStart())
                                 .scheduleEnd(scheduler.getScheduleEnd())
                                 .title(scheduler.getTitle())
@@ -169,6 +171,7 @@ public class SchedulerAdminService {
 
         return SchedulerAdminResponseDto.builder()
                 .user(responseUser)
+                .id(saveScheduler.getId())
                 .scheduleStart(saveScheduler.getScheduleStart())
                 .scheduleEnd(saveScheduler.getScheduleEnd())
                 .title(saveScheduler.getTitle())
@@ -291,21 +294,9 @@ public class SchedulerAdminService {
 
                     if (yearMonth.equals(scheduleYearMonth)) {
                         schedulerAdminResponseDto =
-                                SchedulerAdminResponseDto.builder()
-                                        .user(responseUser)
-                                        .scheduleStart(scheduler.getScheduleStart())
-                                        .scheduleEnd(scheduler.getScheduleEnd())
-                                        .title(scheduler.getTitle())
-                                        .description(scheduler.getDescription())
-                                        .image(scheduler.getImage())
-                                        .createdAt(scheduler.getCreatedAt())
-                                        .updatedAt(scheduler.getUpdatedAt())
-                                        .build();
-                    }
-                } else {
-                    schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
                                     .user(responseUser)
+                                    .id(scheduler.getId())
                                     .scheduleStart(scheduler.getScheduleStart())
                                     .scheduleEnd(scheduler.getScheduleEnd())
                                     .title(scheduler.getTitle())
@@ -314,6 +305,20 @@ public class SchedulerAdminService {
                                     .createdAt(scheduler.getCreatedAt())
                                     .updatedAt(scheduler.getUpdatedAt())
                                     .build();
+                    }
+                } else {
+                    schedulerAdminResponseDto =
+                        SchedulerAdminResponseDto.builder()
+                                .user(responseUser)
+                                .id(scheduler.getId())
+                                .scheduleStart(scheduler.getScheduleStart())
+                                .scheduleEnd(scheduler.getScheduleEnd())
+                                .title(scheduler.getTitle())
+                                .description(scheduler.getDescription())
+                                .image(scheduler.getImage())
+                                .createdAt(scheduler.getCreatedAt())
+                                .updatedAt(scheduler.getUpdatedAt())
+                                .build();
                 }
                 schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
             }
@@ -339,6 +344,7 @@ public class SchedulerAdminService {
 
         return SchedulerAdminResponseDto.builder()
                 .user(responseUser)
+                .id(scheduler.getId())
                 .scheduleStart(scheduler.getScheduleStart())
                 .scheduleEnd(scheduler.getScheduleEnd())
                 .title(scheduler.getTitle())
@@ -390,16 +396,17 @@ public class SchedulerAdminService {
 
                 if (yearMonth.equals(scheduleYearMonth)) {
                     SchedulerAdminResponseDto schedulerAdminResponseDto =
-                            SchedulerAdminResponseDto.builder()
-                                    .user(responseUser)
-                                    .scheduleStart(schedulerAdmin.getScheduleStart())
-                                    .scheduleEnd(schedulerAdmin.getScheduleEnd())
-                                    .title(schedulerAdmin.getTitle())
-                                    .description(schedulerAdmin.getDescription())
-                                    .image(schedulerAdmin.getImage())
-                                    .createdAt(schedulerAdmin.getCreatedAt())
-                                    .updatedAt(schedulerAdmin.getUpdatedAt())
-                                    .build();
+                        SchedulerAdminResponseDto.builder()
+                                .user(responseUser)
+                                .id(schedulerAdmin.getId())
+                                .scheduleStart(schedulerAdmin.getScheduleStart())
+                                .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                                .title(schedulerAdmin.getTitle())
+                                .description(schedulerAdmin.getDescription())
+                                .image(schedulerAdmin.getImage())
+                                .createdAt(schedulerAdmin.getCreatedAt())
+                                .updatedAt(schedulerAdmin.getUpdatedAt())
+                                .build();
                     schedulerAdminResponseDtoListByYearAndMonth.add(schedulerAdminResponseDto);
                 }
             }
@@ -413,16 +420,17 @@ public class SchedulerAdminService {
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
             SchedulerAdminResponseDto schedulerAdminResponseDto =
-                    SchedulerAdminResponseDto.builder()
-                            .user(responseUser)
-                            .scheduleStart(schedulerAdmin.getScheduleStart())
-                            .scheduleEnd(schedulerAdmin.getScheduleEnd())
-                            .title(schedulerAdmin.getTitle())
-                            .description(schedulerAdmin.getDescription())
-                            .image(schedulerAdmin.getImage())
-                            .createdAt(schedulerAdmin.getCreatedAt())
-                            .updatedAt(schedulerAdmin.getUpdatedAt())
-                            .build();
+                SchedulerAdminResponseDto.builder()
+                        .user(responseUser)
+                        .id(schedulerAdmin.getId())
+                        .scheduleStart(schedulerAdmin.getScheduleStart())
+                        .scheduleEnd(schedulerAdmin.getScheduleEnd())
+                        .title(schedulerAdmin.getTitle())
+                        .description(schedulerAdmin.getDescription())
+                        .image(schedulerAdmin.getImage())
+                        .createdAt(schedulerAdmin.getCreatedAt())
+                        .updatedAt(schedulerAdmin.getUpdatedAt())
+                        .build();
             schedulerAdminResponseDtoList.add(schedulerAdminResponseDto);
         }
         response.put("schedulerAdminList", schedulerAdminResponseDtoList);
