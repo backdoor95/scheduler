@@ -28,6 +28,7 @@ import javax.persistence.metamodel.EntityType;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
@@ -58,7 +59,7 @@ public class SchedulerAdminService {
      * @return schedulerAdminResponseDtoList
      */
     @Transactional
-    public List<SchedulerAdminResponseDto> getSchedulerList() throws Exception {
+    public List<SchedulerAdminResponseDto> getSchedulerList() throws GeneralSecurityException {
 
         List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
@@ -95,7 +96,7 @@ public class SchedulerAdminService {
     public List<SchedulerAdminResponseDto> getSchedulerListByYearAndMonth(
             Integer year,
             Integer month
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         YearMonth yearMonth = YearMonth.of(year, month);
 
@@ -141,7 +142,7 @@ public class SchedulerAdminService {
             SchedulerAdminRequestDto schedulerAdminRequestDto,
             Long loginUserId,
             MultipartFile image
-    ) throws Exception {
+    ) throws GeneralSecurityException, IOException {
 
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()-> new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
@@ -192,34 +193,30 @@ public class SchedulerAdminService {
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new Exception400(id.toString(), "스케쥴러를 찾을 수 없습니다")
         );
-        try {
-            if (image != null && !image.isEmpty()) {
-                // 새로운 이미지가 있다면 저장소에 저장된 기존 이미지는 삭제함
-                String oldImage = scheduler.getImage();
-                if (oldImage != null && !oldImage.isEmpty()) {
-                    int slash = oldImage.lastIndexOf("/");
-                    String fileName = oldImage.substring(slash + 1);
-                    deleteImage(fileName);
-                }
-                String imageUrl = userService.uploadImageToS3(image);
-                scheduler.update(
-                        schedulerAdminRequestDto.getScheduleStart(),
-                        schedulerAdminRequestDto.getScheduleEnd(),
-                        schedulerAdminRequestDto.getTitle(),
-                        schedulerAdminRequestDto.getDescription(),
-                        imageUrl
-                );
-            } else {
-                scheduler.update(
-                        schedulerAdminRequestDto.getScheduleStart(),
-                        schedulerAdminRequestDto.getScheduleEnd(),
-                        schedulerAdminRequestDto.getTitle(),
-                        schedulerAdminRequestDto.getDescription(),
-                        scheduler.getImage()
-                );
+        if (image != null && !image.isEmpty()) {
+            // 새로운 이미지가 있다면 저장소에 저장된 기존 이미지는 삭제함
+            String oldImage = scheduler.getImage();
+            if (oldImage != null && !oldImage.isEmpty()) {
+                int slash = oldImage.lastIndexOf("/");
+                String fileName = oldImage.substring(slash + 1);
+                deleteImage(fileName);
             }
-        }catch (IllegalArgumentException e){
-            e.printStackTrace();
+            String imageUrl = userService.uploadImageToS3(image);
+            scheduler.update(
+                    schedulerAdminRequestDto.getScheduleStart(),
+                    schedulerAdminRequestDto.getScheduleEnd(),
+                    schedulerAdminRequestDto.getTitle(),
+                    schedulerAdminRequestDto.getDescription(),
+                    imageUrl
+            );
+        } else {
+            scheduler.update(
+                    schedulerAdminRequestDto.getScheduleStart(),
+                    schedulerAdminRequestDto.getScheduleEnd(),
+                    schedulerAdminRequestDto.getTitle(),
+                    schedulerAdminRequestDto.getDescription(),
+                    scheduler.getImage()
+            );
         }
         return id;
     }
@@ -263,7 +260,7 @@ public class SchedulerAdminService {
             String keyword,
             Integer year,
             Integer month
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         YearMonth yearMonth = null;
         if (year != null && month != null) yearMonth = YearMonth.of(year, month);
@@ -325,7 +322,7 @@ public class SchedulerAdminService {
      * @return   : SchedulerAdminResponseDto
      */
     @Transactional
-    public SchedulerAdminResponseDto getSchedulerById(Long id) throws Exception {
+    public SchedulerAdminResponseDto getSchedulerById(Long id) throws GeneralSecurityException {
 
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 () -> new Exception400(id.toString(), "해당 게시글이 존재하지 않습니다.")
@@ -367,7 +364,7 @@ public class SchedulerAdminService {
             Long loginUserId,
             Integer year,
             Integer month
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         Map<String, Object> response = new HashMap<>();
         User user = userRepository.findById(loginUserId)
@@ -437,7 +434,7 @@ public class SchedulerAdminService {
      * @return   : 기획사 정보, 관련 티켓승인현황, 기획사 일정
      */
     @Transactional(readOnly = true)
-    public SchedulerAdminResponse getAdminScheduleDetail(String token) throws Exception {
+    public SchedulerAdminResponse getAdminScheduleDetail(String token) throws GeneralSecurityException {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
@@ -466,7 +463,7 @@ public class SchedulerAdminService {
             Long schedulerAdminId,
             Progress progress,
             String token
-    ) throws Exception {
+    ) throws GeneralSecurityException {
 
         UserResponse.UserDto responseUserInfo = jwtTokenProvider.getUserInfo(token);
 
@@ -486,7 +483,7 @@ public class SchedulerAdminService {
      * 엑셀 파일을 다운받습니다.
      * @throws Exception : 에러
      */
-    public void excelDownload(Long adminId) throws Exception {
+    public void excelDownload(Long adminId) throws GeneralSecurityException, IllegalAccessException, IOException {
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("티케팅 현황"); // 엑셀 시트 생성

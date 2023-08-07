@@ -16,6 +16,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,7 +58,7 @@ public class SchedulerAdminController {
                 schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
 
             return ResponseEntity.ok(schedulerAdminResponseDtoList);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -80,7 +82,7 @@ public class SchedulerAdminController {
 
         try {
             return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(loginUserId, year, month));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -110,8 +112,10 @@ public class SchedulerAdminController {
                             image
                     )
             );
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
+        } catch (IOException ioe) {
+            throw new Exception500("이미지 파일 전송에 실패하였습니다");
         }
     }
 
@@ -125,7 +129,7 @@ public class SchedulerAdminController {
     ) {
 
         if(adminScheduleId == null || adminScheduleId <= 0)
-            throw new Exception400(adminScheduleId.toString(), "유효하지 않은 id값입니다");
+            throw new Exception400("adminScheduleId", "유효하지 않은 id값입니다");
 
         try {
             SchedulerAdminResponseDto schedulerAdminResponseDto =
@@ -138,7 +142,7 @@ public class SchedulerAdminController {
             schedulerAdminService.delete(adminScheduleId);
 
             return ResponseEntity.ok("스케줄 삭제 완료");
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -171,8 +175,10 @@ public class SchedulerAdminController {
             return ResponseEntity
                     .ok(schedulerAdminService.getSchedulerById(
                             schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, image)));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
+        } catch (IOException ioe) {
+            throw new Exception500("이미지 파일 전송에 실패하였습니다");
         }
     }
 
@@ -196,7 +202,7 @@ public class SchedulerAdminController {
 
         try {
             return ResponseEntity.ok(schedulerAdminService.getSchedulerByFullName(keyword, year, month));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -212,7 +218,7 @@ public class SchedulerAdminController {
     ) {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(token)));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -259,7 +265,7 @@ public class SchedulerAdminController {
                             message
                     )
             );
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -285,8 +291,12 @@ public class SchedulerAdminController {
             schedulerAdminService.excelDownload(id);
 
             return ResponseEntity.ok("다운로드 완료");
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
+        } catch (IOException ioe) {
+            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+        } catch (IllegalAccessException iae) {
+            throw new Exception500("잘못된 접근입니다");
         }
     }
 }

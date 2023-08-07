@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.Map;
 
 @RestController
@@ -38,7 +40,7 @@ public class UserController {
             response.setFullName(aes256Utils.decryptAES256(response.getFullName()));
 
             return ResponseEntity.ok(new ResponseDTO<>(response));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -56,22 +58,22 @@ public class UserController {
             @Valid @RequestPart(value = "dto") UserRequest.JoinDTO joinRequestDTO,
             @RequestPart(value = "file", required = false) MultipartFile image
     ) {
-        if (image != null && image.getSize() > 10000000)
-            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
-
         try { // 중복검사 시 Exception이 발동하는지 확인 2023-08-06
             // 유효성 검사
             if (userRepository.findByEmail(aes256Utils.encryptAES256(joinRequestDTO.getEmail())).isPresent())
-                throw new Exception400(joinRequestDTO.getEmail(), "이미 존재하는 이메일입니다."); // 중복 계정 검사
+                throw new Exception400(joinRequestDTO.getEmail(), "이미 존재하는 이메일입니다"); // 중복 계정 검사
             // joinRequestDTO의 Enum 타입 Role 에 대한 유효성 검사는 컨트롤러 단에서 할 수 없어서 String으로 받기로.
             String role = joinRequestDTO.getRole();
             if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
-            if (!role.equals("USER") && !role.equals("ADMIN"))
-                throw new Exception412("잘못된 접근입니다. 범위 내 권한을 입력해주세요");
+            if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception404("잘못된 요청입니다");
+            if (image != null && image.getSize() > 10000000)
+                throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
 
             return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO, image)));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
+        } catch (IOException ioe) {
+            throw new Exception500("이미지 파일 전송에 실패하였습니다");
         }
     }
 
@@ -100,7 +102,7 @@ public class UserController {
                     .body(new ResponseDTO<>(response.get("userInfo")));
         } catch (AuthenticationException ae) {
             throw new Exception401("아이디와 비밀번호를 확인해주세요");
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -116,17 +118,14 @@ public class UserController {
             @RequestParam(required = false) String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-        if (role == null || role.isBlank()) throw new Exception404("'기획사' 또는 '팬'을 선택해주세요");
-        if(!role.equals("ADMIN") && !role.equals("USER"))
-            throw new Exception404("잘못된 요청입니다");
+        if (role == null || role.isBlank()) throw new Exception400("role", "'기획사' 또는 '팬'을 선택해주세요");
+        if(!role.equals("ADMIN") && !role.equals("USER")) throw new Exception404("잘못된 요청입니다");
 
         try {
             if (role.equals("ADMIN"))
-                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(loginUserId)));
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(loginUserId)));
-        } catch (Exception e) {
+                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(token)));
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(token)));
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -140,11 +139,9 @@ public class UserController {
     public ResponseEntity<?> getUpdateUserInfo(
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         try {
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(loginUserId)));
-        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(token)));
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -161,10 +158,8 @@ public class UserController {
             @RequestBody @Valid UserRequest.UpdateUserInfoDTO updateUserInfoDTO
     ) {
         try {
-            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
-            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, loginUserId)));
-        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, token)));
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
@@ -180,21 +175,21 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam("file") MultipartFile file
     ) {
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         // 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
         if (file.isEmpty()) {
             String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
-            User user = userService.findById(loginUserId);
+            User user = userService.findById(token);
             user.updateUserProfileImage(defaultNameURL);
 
             return ResponseEntity.ok(new ResponseDTO<>(user));
         }
         try {
             // user 객체를 이용한 작업 수행
-            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserProfileImage(file, loginUserId)));
-        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserProfileImage(file, token)));
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
+        } catch (IOException ioe) {
+            throw new Exception500("이미지 파일 전송에 실패하였습니다");
         }
     }
 
@@ -209,7 +204,7 @@ public class UserController {
     ) {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(userService.deleteUserProfileImage(token)));
-        } catch (Exception e) {
+        } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
     }
