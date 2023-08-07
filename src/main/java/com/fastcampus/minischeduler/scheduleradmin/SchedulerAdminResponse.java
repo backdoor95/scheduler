@@ -46,7 +46,6 @@ public class SchedulerAdminResponse {
 
         @JsonIgnoreProperties({"hibernateLazyInitializer"})
         private UserDto user;
-
         private LocalDateTime scheduleStart;
         private LocalDateTime scheduleEnd;
         private String title;
@@ -54,5 +53,17 @@ public class SchedulerAdminResponse {
         private String image;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+
+        @Builder
+        public SchedulerAdminResponseDto(UserDto user, LocalDateTime scheduleStart, LocalDateTime scheduleEnd, String title, String description, String image, LocalDateTime createdAt, LocalDateTime updatedAt) {
+            this.user = user;
+            this.scheduleStart = scheduleStart;
+            this.scheduleEnd = scheduleEnd;
+            this.title = title;
+            this.description = description;
+            this.image = image;
+            this.createdAt = createdAt;
+            this.updatedAt = updatedAt;
+        }
     }
 }

@@ -128,14 +128,14 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
         return GetUserInfoDTO.builder()
+                .id(userId)
                 .email(aes256Utils.decryptAES256(userPS.getEmail()))
                 .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
                 .profileImage(userPS.getProfileImage())
                 .sizeOfTicket(userPS.getSizeOfTicket())
                 .usedTicket(userPS.getUsedTicket())
                 .profileImage(userPS.getProfileImage())
-                .createdAt(userPS.getCreatedAt())
-                .updatedAt(userPS.getUpdatedAt())
+                .role(userPS.getRole())
                 .build();
     }
 
@@ -151,15 +151,12 @@ public class UserService {
         User userPS = userRepository.findById(roleUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
+        GetUserInfoDTO getUserInfoDTO = new GetUserInfoDTO(userPS);
+        getUserInfoDTO.setEmail(aes256Utils.decryptAES256(userPS.getEmail()));
+        getUserInfoDTO.setFullName(aes256Utils.decryptAES256(userPS.getFullName()));
+
         return UserResponse.GetRoleUserInfoDTO.builder()
-                .email(aes256Utils.decryptAES256(userPS.getEmail()))
-                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
-                .profileImage(userPS.getProfileImage())
-                .sizeOfTicket(userPS.getSizeOfTicket())
-                .usedTicket(userPS.getUsedTicket())
-                .profileImage(userPS.getProfileImage())
-                .createdAt(userPS.getCreatedAt())
-                .updatedAt(userPS.getUpdatedAt())
+                .getUserInfoDTO(getUserInfoDTO)
                 .schedulerRoleUserList(userRepository.findRoleUserTicketListById(roleUserId))
                 .build();
     }
@@ -181,17 +178,14 @@ public class UserService {
 
         UserResponse.GetRoleAdminCountProgressDTO countProgressDTO =
                 userRepository.countAllScheduleUserProgressByAdminId(roleAdminId);
+        UserResponse.UserDto userDto = new UserResponse.UserDto(userPS);
+        userDto.setEmail(aes256Utils.decryptAES256(userPS.getEmail()));
+        userDto.setFullName(aes256Utils.decryptAES256(userPS.getFullName()));
 
         return UserResponse.GetRoleAdminInfoDTO.builder()
-                .email(aes256Utils.decryptAES256(userPS.getEmail()))
-                .fullName(aes256Utils.decryptAES256(userPS.getFullName()))
-                .profileImage(userPS.getProfileImage())
+                .userDto(userDto)
+                .getRoleAdminCountProgressDTO(countProgressDTO)
                 .registeredEventCount(userRepository.countAdminScheduleRegisteredEvent(roleAdminId))
-                .waitingCount(countProgressDTO.getWaiting())
-                .acceptedCount(countProgressDTO.getAccepted())
-                .refusedCount(countProgressDTO.getRefused())
-                .createdAt(userPS.getCreatedAt())
-                .updatedAt(userPS.getUpdatedAt())
                 .schedulerRoleAdminList(userRepository.findRoleAdminScheduleListById(roleAdminId))
                 .build();
     }
@@ -214,13 +208,13 @@ public class UserService {
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 
         return GetUserInfoDTO.builder() // 업데이트되고 DB에 반영된 UserDTO를 반환합니다.
+                .id(userId)
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
                 .usedTicket(updatedUser.getUsedTicket())
                 .sizeOfTicket(updatedUser.getSizeOfTicket())
-                .updatedAt(updatedUser.getUpdatedAt())
-                .createdAt(updatedUser.getCreatedAt())
+                .role(updatedUser.getRole())
                 .build();
     }
 
@@ -276,13 +270,13 @@ public class UserService {
 
         // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
         return GetUserInfoDTO.builder()
+                .id(userId)
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
                 .usedTicket(updatedUser.getUsedTicket())
                 .sizeOfTicket(updatedUser.getSizeOfTicket())
-                .updatedAt(updatedUser.getUpdatedAt())
-                .createdAt(updatedUser.getCreatedAt())
+                .role(updatedUser.getRole())
                 .build();
     }
 
@@ -311,13 +305,13 @@ public class UserService {
 
         // 업데이트되고 DB에 반영된 User 객체를 반환합니다.
         return GetUserInfoDTO.builder()
+                .id(updatedUser.getId())
                 .fullName(aes256Utils.decryptAES256(updatedUser.getFullName()))
                 .email(aes256Utils.decryptAES256(updatedUser.getEmail()))
                 .profileImage(updatedUser.getProfileImage())
                 .usedTicket(updatedUser.getUsedTicket())
                 .sizeOfTicket(updatedUser.getSizeOfTicket())
-                .updatedAt(updatedUser.getUpdatedAt())
-                .createdAt(updatedUser.getCreatedAt())
+                .role(updatedUser.getRole())
                 .build();
     }
 
