@@ -3,10 +3,16 @@ package com.fastcampus.minischeduler.core.utils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 @Component
@@ -24,8 +30,15 @@ public class AES256Utils {
     }
 
     // 암호화
-    public String encryptAES256(String text) throws Exception {
-
+    public String encryptAES256(String text)
+            throws
+            NoSuchPaddingException,
+            NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException,
+            InvalidKeyException,
+            IllegalBlockSizeException,
+            BadPaddingException
+    {
         Cipher cipher = Cipher.getInstance(alg); // Cipher 객체 인스턴스화(Java에서는 PKCS#5 = PKCS#7이랑 동일)
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES"); // 비밀키
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
@@ -37,8 +50,15 @@ public class AES256Utils {
     }
 
     // 복호화
-    public String decryptAES256(String cipherText) throws Exception {
-
+    public String decryptAES256(String cipherText)
+            throws
+            NoSuchPaddingException,
+            NoSuchAlgorithmException,
+            InvalidAlgorithmParameterException,
+            InvalidKeyException,
+            IllegalBlockSizeException,
+            BadPaddingException
+    {
         Cipher cipher = Cipher.getInstance(alg); // Cipher 객체 인스턴스화(Java에서는 PKCS#5 = PKCS#7이랑 동일)
         SecretKeySpec keySpec = new SecretKeySpec(key.getBytes(), "AES"); // 비밀키
         IvParameterSpec ivParamSpec = new IvParameterSpec(iv.getBytes());
