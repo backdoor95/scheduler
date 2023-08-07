@@ -4,7 +4,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception413;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
@@ -135,16 +134,17 @@ public class SchedulerAdminService {
     /**
      * 일정을 등록합니다.
      * @param schedulerAdminRequestDto
-     * @param loginUserId
      * @param image
      * @return SchedulerAdminResponseDto
      */
     @Transactional
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            Long loginUserId,
+            String token,
             MultipartFile image
     ) throws GeneralSecurityException, IOException {
+
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()-> new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
@@ -361,14 +361,15 @@ public class SchedulerAdminService {
     /**
      * token으로 사용자를 찾아 사용자가 작성한 모든 schedule을 반환합니다.
      * year와 month가 null이 아니면 각 년도와 달에 부합한 스케줄도 같이 전달합니다.
-     * @param loginUserId, year, month
      * @return Map<String, Object>
      */
     public Map<String, Object> getSchedulerListById(
-            Long loginUserId,
+            String token,
             Integer year,
             Integer month
     ) throws GeneralSecurityException {
+
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         Map<String, Object> response = new HashMap<>();
         User user = userRepository.findById(loginUserId)
@@ -489,7 +490,9 @@ public class SchedulerAdminService {
      * 엑셀 파일을 다운받습니다.
      * @throws Exception : 에러
      */
-    public void excelDownload(Long adminId) throws GeneralSecurityException, IllegalAccessException, IOException {
+    public void excelDownload(String token) throws GeneralSecurityException, IllegalAccessException, IOException {
+
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("티케팅 현황"); // 엑셀 시트 생성
@@ -566,7 +569,7 @@ public class SchedulerAdminService {
         }
 
         // Body
-        for (SchedulerUser schedulerUser : getAllTicketsOfThisAdmin(adminId)) {
+        for (SchedulerUser schedulerUser : getAllTicketsOfThisAdmin(loginUserId)) {
             row = sheet.createRow(numberOfRow++); // 행 추가
             index = 0;
             for (Field field : schedulerUser.getClass().getDeclaredFields()) {

@@ -1,7 +1,6 @@
 package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
-import com.fastcampus.minischeduler.core.auth.session.MyUserDetails;
 import com.fastcampus.minischeduler.core.dto.ResponseDTO;
 import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRequest.SchedulerAdminRequestDto;
@@ -12,7 +11,6 @@ import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -78,10 +76,8 @@ public class SchedulerAdminController {
             throw new Exception400("year", "유효하지 않은 년도입니다.");
         if (month != null && (month < 1 || month > 12))
             throw new Exception400("month", "유효하지 않은 달입니다.");
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         try {
-            return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(loginUserId, year, month));
+            return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
         } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         }
@@ -102,16 +98,8 @@ public class SchedulerAdminController {
             throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
 
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-
         try {
-            return ResponseEntity.ok(
-                    schedulerAdminService.createScheduler(
-                            schedulerAdminRequestDto,
-                            loginUserId,
-                            image
-                    )
-            );
+            return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
         } catch (GeneralSecurityException gse) {
             throw new Exception500("디코딩에 실패하였습니다");
         } catch (IOException ioe) {
@@ -271,24 +259,17 @@ public class SchedulerAdminController {
     }
 
     /**
-     * 기획사 id를 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
-     * @param id            : 현재 로그인한 기획사 id
-     * @param myUserDetails : 현재 로그인한 사용자 정보
+     * 기획사 토큰을 받아 관련 티케팅 데이터를 엑셀 파일로 다운로드합니다.
+     * @param token : 사용자 토큰
+     * @return      : 메시지
      */
-    @GetMapping("/schedule/{id}/excelDownload")
+    @GetMapping("/schedule/excelDownload")
     public ResponseEntity<String> excelDownload(
-            @PathVariable Long id,
-            @AuthenticationPrincipal MyUserDetails myUserDetails,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
 
-        // 유효성 검사
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        if (!myUserDetails.getUser().getId().equals(loginUserId)) throw new Exception401("인증되지 않았습니다");
-        if (!myUserDetails.getUser().getId().equals(id)) throw new Exception403("권한이 없습니다");
-
         try {
-            schedulerAdminService.excelDownload(id);
+            schedulerAdminService.excelDownload(token);
 
             return ResponseEntity.ok("다운로드 완료");
         } catch (GeneralSecurityException gse) {
