@@ -105,8 +105,10 @@ public class SchedulerAdminService {
 
         for (SchedulerAdmin scheduler : schedulers) {
             LocalDateTime scheduleStart = scheduler.getScheduleStart();
-            YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
-            if (yearMonth.equals(scheduleYearMonth)) {
+            LocalDateTime scheduleEnd = scheduler.getScheduleEnd();
+            YearMonth scheduleYearMonthStart = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+            YearMonth scheduleYearMonthEnd = YearMonth.of(scheduleEnd.getYear(), scheduleEnd.getMonth());
+            if (yearMonth.equals(scheduleYearMonthStart) || yearMonth.equals(scheduleYearMonthEnd)) {
 
                 UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
                 responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
@@ -280,9 +282,11 @@ public class SchedulerAdminService {
                 SchedulerAdminResponseDto schedulerAdminResponseDto = null;
                 if (yearMonth != null) {
                     LocalDateTime scheduleStart = scheduler.getScheduleStart();
-                    YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+                    LocalDateTime scheduleEnd = scheduler.getScheduleEnd();
+                    YearMonth scheduleYearMonthStart = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+                    YearMonth scheduleYearMonthEnd = YearMonth.of(scheduleEnd.getYear(), scheduleEnd.getMonth());
 
-                    if (yearMonth.equals(scheduleYearMonth)) {
+                    if (yearMonth.equals(scheduleYearMonthStart) || yearMonth.equals(scheduleYearMonthEnd)) {
                         schedulerAdminResponseDto =
                             SchedulerAdminResponseDto.builder()
                                     .user(responseUser)
@@ -378,13 +382,15 @@ public class SchedulerAdminService {
             YearMonth yearMonth = YearMonth.of(year, month);
             for (SchedulerAdmin schedulerAdmin : schedulerAdmins) {
                 LocalDateTime scheduleStart = schedulerAdmin.getScheduleStart();
-                YearMonth scheduleYearMonth = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+                LocalDateTime scheduleEnd = schedulerAdmin.getScheduleEnd();
+                YearMonth scheduleYearMonthStart = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
+                YearMonth scheduleYearMonthEnd = YearMonth.of(scheduleEnd.getYear(), scheduleEnd.getMonth());
 
                 UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerAdmin.getUser());
                 responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
                 responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
-                if (yearMonth.equals(scheduleYearMonth)) {
+                if (yearMonth.equals(scheduleYearMonthStart) || yearMonth.equals(scheduleYearMonthEnd)) {
                     SchedulerAdminResponseDto schedulerAdminResponseDto =
                         SchedulerAdminResponseDto.builder()
                                 .user(responseUser)
