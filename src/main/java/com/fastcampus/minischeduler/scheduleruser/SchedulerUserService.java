@@ -47,13 +47,14 @@ public class SchedulerUserService {
             responseUser.setEmail(aes256Utils.decryptAES256(responseUser.getEmail()));
 
             SchedulerUserResponseDto schedulerUserDto =
-                    SchedulerUserResponseDto.builder()
-                            .user(responseUser)
-                            .schedulerAdmin(schedulerUser.getSchedulerAdmin())
-                            .scheduleStart(schedulerUser.getScheduleStart())
-                            .progress(schedulerUser.getProgress())
-                            .createdAt(schedulerUser.getCreatedAt())
-                            .build();
+                SchedulerUserResponseDto.builder()
+                        .user(responseUser)
+                        .id(schedulerUser.getId())
+                        .schedulerAdmin(schedulerUser.getSchedulerAdmin())
+                        .scheduleStart(schedulerUser.getScheduleStart())
+                        .progress(schedulerUser.getProgress())
+                        .createdAt(schedulerUser.getCreatedAt())
+                        .build();
             schedulerUserDtoList.add(schedulerUserDto);
         }
         return schedulerUserDtoList;
@@ -91,13 +92,14 @@ public class SchedulerUserService {
             if (yearMonth.equals(scheduleYearMonth)) {
 
                 SchedulerUserResponseDto schedulerUserDto =
-                        SchedulerUserResponseDto.builder()
-                                .user(responseUser)
-                                .schedulerAdmin(schedulerUser.getSchedulerAdmin())
-                                .scheduleStart(schedulerUser.getScheduleStart())
-                                .progress(schedulerUser.getProgress())
-                                .createdAt(schedulerUser.getCreatedAt())
-                                .build();
+                    SchedulerUserResponseDto.builder()
+                            .user(responseUser)
+                            .id(schedulerUser.getId())
+                            .schedulerAdmin(schedulerUser.getSchedulerAdmin())
+                            .scheduleStart(schedulerUser.getScheduleStart())
+                            .progress(schedulerUser.getProgress())
+                            .createdAt(schedulerUser.getCreatedAt())
+                            .build();
                 schedulerUserDtoList.add(schedulerUserDto);
             }
         }
@@ -128,12 +130,12 @@ public class SchedulerUserService {
                 .orElseThrow(() -> new IllegalArgumentException("스케줄을 찾을 수 없습니다"));
 
         SchedulerUser schedulerUser =
-                SchedulerUser.builder()
-                        .user(user)
-                        .scheduleStart(schedulerUserRequestDto.getScheduleStart())
-                        .schedulerAdmin(schedulerAdmin)
-                        .createdAt(schedulerUserRequestDto.getCreatedAt())
-                        .build();
+            SchedulerUser.builder()
+                    .user(user)
+                    .scheduleStart(schedulerUserRequestDto.getScheduleStart())
+                    .schedulerAdmin(schedulerAdmin)
+                    .createdAt(schedulerUserRequestDto.getCreatedAt())
+                    .build();
         SchedulerUser saveSchedulerUser = schedulerUserRepository.save(schedulerUser);
 
         UserResponse.UserDto responseUser = new UserResponse.UserDto(saveSchedulerUser.getUser());
@@ -142,6 +144,7 @@ public class SchedulerUserService {
 
         return SchedulerUserResponseDto.builder()
                 .user(responseUser)
+                .id(saveSchedulerUser.getId())
                 .schedulerAdmin(saveSchedulerUser.getSchedulerAdmin())
                 .scheduleStart(saveSchedulerUser.getScheduleStart())
                 .progress(saveSchedulerUser.getProgress())
@@ -226,6 +229,7 @@ public class SchedulerUserService {
 
         return SchedulerUserResponseDto.builder()
                 .user(responseUser)
+                .id(schedulerUser.getId())
                 .schedulerAdmin(schedulerUser.getSchedulerAdmin())
                 .scheduleStart(schedulerUser.getScheduleStart())
                 .progress(schedulerUser.getProgress())
