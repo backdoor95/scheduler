@@ -34,7 +34,7 @@
                         <sub><b>길민준 (팀장)</b></sub></a><br />
                     </td>
                     <td align="center" width="200"><a href="https://github.com/backdoor95">
-                        <img src="https://avatars.githubusercontent.com/u/109710879?v=4" width="100px;" alt=""/>
+                        <img src="https://avatars.githubusercontent.com/u/68419785?v=4" width="100px;" alt=""/>
                         <br />
                         <sub><b>문준호 (팀원)</b></sub></a><br />
                     </td>
