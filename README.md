@@ -60,11 +60,12 @@
 ---
 ## API 명세서
 #### 공통
-![api명세public.jpg](..%2F..%2FDesktop%2Fapi%EB%AA%85%EC%84%B8public.jpg)
+![api명세public](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/6ea7993d-d437-4fa9-8966-b22f46dc6ed8)
 #### 팬
-![api명세user.jpg](..%2F..%2FDesktop%2Fapi%EB%AA%85%EC%84%B8user.jpg)
+![api명세user](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/3aff0db6-13cf-4161-987e-e60400f28287)
 #### 기획사
-![api명세admin.jpg](..%2F..%2FDesktop%2Fapi%EB%AA%85%EC%84%B8admin.jpg)
+![api명세admin](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/eacd5d7b-2de4-4f78-951d-48335665381a)
+
 
 ---
 ## 테이블
