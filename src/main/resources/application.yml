@@ -14,9 +14,9 @@ logging:
   level:
     '[com.fastcampus.minischeduler]': INFO
     org:
-      hibernate:
-        type:
-          descriptor:
+#      hibernate:
+#        type:
+#          descriptor:
 #            sql: trace
     com:
       amazonaws:
@@ -65,11 +65,5 @@ spring:
   devtools:
     livereload:
       enabled: true
-  thymeleaf:
-    prefix: classpath:templates
-    suffix: .html
-    mode: HTML
-    check-template-location: true
-    cache: false
   profiles:
     active: aws

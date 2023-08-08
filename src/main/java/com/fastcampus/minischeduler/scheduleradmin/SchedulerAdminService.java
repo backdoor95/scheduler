@@ -446,23 +446,25 @@ public class SchedulerAdminService {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
 
-        List<SchedulerAdminResponse.ScheduleDTO> scheduleDtoList =
-                schedulerAdminRepository.findSchedulesWithUsersById(loginUserId);
+        List<SchedulerAdminResponse.ImplScheduleDTO> scheduleDtoList = new ArrayList<>();
 
-        if (!scheduleDtoList.isEmpty()) {
-            for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : scheduleDtoList) {
-                scheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
+        if (scheduleDtoList != null && !scheduleDtoList.isEmpty()) {
+            for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : schedulerAdminRepository.findSchedulesWithUsersById(loginUserId)) {
+                SchedulerAdminResponse.ImplScheduleDTO implScheduleDTO = (SchedulerAdminResponse.ImplScheduleDTO) scheduleDTO;
+
+                implScheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
+                scheduleDtoList.add(implScheduleDTO);
             }
         }
 
         userInfo.setFullName(aes256Utils.decryptAES256(userInfo.getFullName()));
         userInfo.setEmail(aes256Utils.decryptAES256(userInfo.getEmail()));
 
-        return new SchedulerAdminResponse(
-                userInfo, // "userDto"
-                scheduleDtoList, // "scheduleDto"
-                schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId) // "countProcessDto"
-        );
+        return SchedulerAdminResponse.builder()
+                .implScheduleDto(scheduleDtoList)
+                .countProcessDto(schedulerAdminRepository.countScheduleGroupByProgressById(loginUserId))
+                .userDto(userInfo)
+                .build();
     }
 
     @Transactional

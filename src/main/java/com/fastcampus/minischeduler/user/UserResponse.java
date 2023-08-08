@@ -122,19 +122,19 @@ public class UserResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class GetRoleAdminInfoDTO {
+    public static class AdminInfoDTO {
 
         private UserDto userDto;
 
         // 승인 대기, 승인 완료, 취소 인원수가 들어있는 DTO
-        private GetRoleAdminCountProgressDTO getRoleAdminCountProgressDTO;
+        private GetRoleAdminCountProgressDTO CountProcessDTO;
 
         private Integer registeredEventCount; // 등록한 행사수
 
-        private List<GetRoleAdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
+        private List<AdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
     }
 
-    public interface GetRoleAdminScheduleDTO{ // role == user
+    public interface AdminScheduleDTO { // role == user
 
         String getTitle();
         String getDescription();
