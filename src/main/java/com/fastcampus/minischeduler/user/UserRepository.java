@@ -34,7 +34,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "FROM scheduler_admin_tb AS sa " +
             "WHERE sa.user_id = :id",
             nativeQuery=true)
-    List<UserResponse.GetRoleAdminScheduleDTO> findRoleAdminScheduleListById(@Param("id") Long id);
+    List<UserResponse.AdminScheduleDTO> findRoleAdminScheduleListById(@Param("id") Long id);
 
 
     @Query(value = "SELECT COUNT(*) AS registeredEventCount " +

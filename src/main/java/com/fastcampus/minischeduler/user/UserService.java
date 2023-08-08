@@ -168,7 +168,7 @@ public class UserService {
      * @return            : Admin의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
      */
     @Transactional
-    public UserResponse.GetRoleAdminInfoDTO getRoleAdminInfo(String token) throws GeneralSecurityException {
+    public UserResponse.AdminInfoDTO getRoleAdminInfo(String token) throws GeneralSecurityException {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -182,9 +182,9 @@ public class UserService {
         userDto.setEmail(aes256Utils.decryptAES256(userPS.getEmail()));
         userDto.setFullName(aes256Utils.decryptAES256(userPS.getFullName()));
 
-        return UserResponse.GetRoleAdminInfoDTO.builder()
+        return UserResponse.AdminInfoDTO.builder()
                 .userDto(userDto)
-                .getRoleAdminCountProgressDTO(userRepository.countAllScheduleUserProgressByAdminId(loginUserId))
+                .CountProcessDTO(userRepository.countAllScheduleUserProgressByAdminId(loginUserId))
                 .registeredEventCount(userRepository.countAdminScheduleRegisteredEvent(loginUserId))
                 .schedulerRoleAdminList(userRepository.findRoleAdminScheduleListById(loginUserId))
                 .build();
@@ -251,7 +251,6 @@ public class UserService {
     /**
      * 유저의 프로필 사진 업데이트 로직실행
      * @param multipartFile
-     * @param userId
      * @return              : GetUserInfoDTO
      * @throws Exception    : 디코딩 에러
      */

@@ -13,8 +13,6 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
 
     List<SchedulerAdmin> findByUser(User user);
 
-    List<SchedulerAdmin> findByUserFullNameContaining(String keyword);
-
     @Query(value =
             "SELECT sa.id AS adminScheduleId, sa.title, sa.description, " +
             "su.id AS userScheduleId, su.schedule_start AS scheduleStart, su.progress, u.full_name AS fullName " +
