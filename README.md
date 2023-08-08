@@ -31,7 +31,7 @@
                     <sub><b>길민준 (팀장)</b></sub></a><br />
                 </td>
                 <td align="center" width="200"><a href="https://github.com/backdoor95">
-                    <img src="https://avatars.githubusercontent.com/u/109710879?v=4" width="100px;" alt=""/>
+                    <img src="https://avatars.githubusercontent.com/u/68419785?s=400&v=4" width="100px;" alt=""/>
                     <br />
                     <sub><b>문준호 (팀원)</b></sub></a><br />
                 </td>
@@ -46,8 +46,7 @@
                     -500에러 파일 출력(log back)<br />-팀 일정 계획, 깃헙 Repo 관리<br />-API명세서 정리<br />-코드 스타일 정리
                 </font></td>
                 <td width="180"><font size=1>
-                    -댓글 기능 구현,<br />-게시판 CRUD 구현,<br />-게시판 상세보기 구현,<br />-게시판 신고 기능 구현,<br />
-                    -로컬 저장소를 통한 이미지 관리,<br />-깃허브 관리
+                    - 유저&기획사 마이페이지 <br />- 이미지 업로드용 AWS S3 서버 연결 <br />- 이미지 업로드&삭제 기능 <br />- 회원정보 수정<br />
                 </font></td>
             </tr>
         </tbody>
