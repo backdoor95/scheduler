@@ -30,9 +30,13 @@ public class SchedulerAdminController {
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
-     * 기획사 일정 조회(메인) : 모든 기획사의 일정이 나옴
-     * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
-     * year과 month가 null일땐 모든 스케줄이 나옴
+     * 기획사 일정 조회페이지(메인) : 모든 기획사의 일정이 나옴
+     * @param token : 사용자 인증 토큰
+     * @param year : 년도
+     * @param month : 달
+     * @return  모든 기획사의 등록된 행사를 담은 schedulerAdminResponseDtoList
+     * @throws Exception400 요청이 잘못된 경우 올바르지 않은 년도 또는 달
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/scheduleAll")
     public ResponseEntity<List<SchedulerAdminResponseDto>> schedulerList (
@@ -63,7 +67,12 @@ public class SchedulerAdminController {
 
     /**
      * 공연 등록/취소 페이지 : 로그인한 기획사가 등록한 일정만 나옴
-     *  year과 month가 null일땐 모든 스케줄이 나옴
+     * @param token : 사용자 인증 토큰
+     * @param year : 년도
+     * @param month : 달
+     * @return 기획사가 등록한 일정을 년도와 달에 맞는 행사 + 모든 행사를 포함한 Map 객체
+     * @throws Exception400 요청이 잘못된 경우 올바르지 않은 년도 또는 달
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/schedule")
     public ResponseEntity<Map<String, Object>> getSchedulerList(
@@ -84,7 +93,14 @@ public class SchedulerAdminController {
     }
 
     /**
-     * 공연 등록 : 기획사가 공연을 등록함
+     * 공연 등록 페이지 : 기획사가 공연을 등록함
+     * @param token : 사용자 인증 토큰
+     * @param image : 이미지
+     * @param schedulerAdminRequestDto : 공연 등록 내용
+     * @return 기획사가 등록한 행사를 반환
+     * @throws Exception400 날짜 정보가 비어있는 경우 / 제목이 비어있는 경우
+     * @throws Exception413 image 파일의 크기가 너무 큰 경우
+     * @throws Exception500 디코딩에 실패한 경우 / 이미지 파일전송에 실패한 경우
      */
     @PostMapping("/schedule/create")
     public ResponseEntity<SchedulerAdminResponseDto> createScheduler(
