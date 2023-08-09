@@ -136,15 +136,15 @@ public class SchedulerUserController {
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
-        if (userTicketCount > 1 &&
-                !schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())
-        ) {
-            try {
-                return ResponseEntity
-                        .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
-            } catch (GeneralSecurityException gse) {
-                throw new Exception500("디코딩에 실패하였습니다");
-            }
+        if (userTicketCount > 1) {
+            if(!schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())){
+                try {
+                    return ResponseEntity
+                            .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
+                } catch (GeneralSecurityException gse) {
+                    throw new Exception500("디코딩에 실패하였습니다");
+                }
+            } else throw new Exception403("한달에 한번만 공연을 신청할 수 있습니다.");
         } else throw new Exception403("티켓이 부족합니다.");
     }
 
