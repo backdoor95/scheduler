@@ -94,7 +94,7 @@ public class SchedulerAdminController {
     ) {
         if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
             throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
-        if (image != null && image.getSize() > 10000000)
+        if (image != null && image.isEmpty() && image.getSize() > 10000000)
             throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
         if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
 
