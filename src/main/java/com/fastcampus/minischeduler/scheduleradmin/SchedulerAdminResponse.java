@@ -36,6 +36,8 @@ public class SchedulerAdminResponse {
     // 위 인터페이스로 된 DTO를 사용해놓고 이름 디코딩을 해서 fullName을 재정의하니
     // a tuplebackedmap cannot be modified 에러가 발생함
     // 이때문에 이를 구현하는 클래스를 DTO로 만들어 시도하였음 2023-08-08
+    @Builder
+    @AllArgsConstructor
     public static class ImplScheduleDTO implements ScheduleDTO {
 
         Long adminScheduleId;

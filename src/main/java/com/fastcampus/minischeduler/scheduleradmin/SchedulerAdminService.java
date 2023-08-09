@@ -149,7 +149,10 @@ public class SchedulerAdminService {
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()-> new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
 
-        String imageUrl = userService.uploadImageToS3(image);
+        String imageUrl = null;
+        if (image != null) imageUrl = userService.uploadImageToS3(image);
+        if (image == null) imageUrl = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
+
 
         SchedulerAdmin scheduler = SchedulerAdmin.builder()
                 .user(user)
@@ -195,6 +198,7 @@ public class SchedulerAdminService {
         SchedulerAdmin scheduler = schedulerAdminRepository.findById(id).orElseThrow(
                 ()-> new Exception400(id.toString(), "스케쥴러를 찾을 수 없습니다")
         );
+
         if (image != null && !image.isEmpty()) {
             // 새로운 이미지가 있다면 저장소에 저장된 기존 이미지는 삭제함
             String oldImage = scheduler.getImage();
@@ -448,13 +452,22 @@ public class SchedulerAdminService {
 
         List<SchedulerAdminResponse.ImplScheduleDTO> scheduleDtoList = new ArrayList<>();
 
-        if (scheduleDtoList != null && !scheduleDtoList.isEmpty()) {
-            for (SchedulerAdminResponse.ScheduleDTO scheduleDTO : schedulerAdminRepository.findSchedulesWithUsersById(loginUserId)) {
-                SchedulerAdminResponse.ImplScheduleDTO implScheduleDTO = (SchedulerAdminResponse.ImplScheduleDTO) scheduleDTO;
+        for (
+                SchedulerAdminResponse.ScheduleDTO scheduleDTO :
+                schedulerAdminRepository.findSchedulesWithUsersById(loginUserId)
+        ) {
+            SchedulerAdminResponse.ImplScheduleDTO implScheduleDTO =
+                    SchedulerAdminResponse.ImplScheduleDTO.builder()
+                            .adminScheduleId(scheduleDTO.getAdminScheduleId())
+                            .userScheduleId(scheduleDTO.getUserScheduleId())
+                            .title(scheduleDTO.getTitle())
+                            .description(scheduleDTO.getDescription())
+                            .fullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()))
+                            .progress(scheduleDTO.getProgress())
+                            .scheduleStart(scheduleDTO.getScheduleStart())
+                            .build();
 
-                implScheduleDTO.setFullName(aes256Utils.decryptAES256(scheduleDTO.getFullName()));
-                scheduleDtoList.add(implScheduleDTO);
-            }
+            scheduleDtoList.add(implScheduleDTO);
         }
 
         userInfo.setFullName(aes256Utils.decryptAES256(userInfo.getFullName()));
