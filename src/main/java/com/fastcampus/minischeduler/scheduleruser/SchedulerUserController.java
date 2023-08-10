@@ -24,11 +24,15 @@ public class SchedulerUserController {
     private final SchedulerUserService schedulerUserService;
     private final SchedulerAdminService schedulerAdminService;
     private final JwtTokenProvider jwtTokenProvider;
+
     /**
-     * 전체 일정 조회(메인) : 모든 기획사의 일정과 본인이 신청한 일정이 나옴
-     * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
-     * 본인이 신청한 날짜기준으로 year와 month에 부합하는 일정만 나옴
-     * year과 month가 null일땐 모든 스케줄이 나옴
+     * 사용자전체 일정 조회페이지(메인) : 모든 기획사의 일정과 본인이 신청한 일정이 나옴
+     * @param token : 사용자 인증 토큰
+     * @param year : 년도
+     * @param month : 달
+     * @return  모든 기획사의 등록된 행사 + 본인이 신청한 티켓의 내용을 담은 Map 객체
+     * @throws Exception400 요청이 잘못된 경우 올바르지 않은 년도 또는 달
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/schedule")
     public ResponseEntity<Map<String, Object>> getschedulerList(
@@ -64,11 +68,14 @@ public class SchedulerUserController {
     }
 
     /**
-     * 기획사 검색: 기획사의 이름으로 검색. 검색 내용과 본인의 스케줄이 나옴
-     * 정확히 일치하지 않더라도 keyword가 fullname에 포함되어있으면 출력
-     * scheduleStart 날짜 기준으로 param으로 받은 년도와 달에 부합하는 모든 스케줄이 나옴
-     * 본인이 신청한 날짜기준으로 year와 month에 부합하는 일정만 나옴
-     * year과 month가 null일땐 모든 스케줄이 나옴
+     * 공연 기획사별 검색 : 기획사이름으로 검색가능
+     * @param token : 사용자 인증 토큰
+     * @param keyword : 검색 키워드(기획사 이름)
+     * @param year : 년도
+     * @param month : 달
+     * @return 검색한 기획사가 등록한 공연정보 모두와 본인이 신청한 티켓의 내용을 담은 Map 객체
+     * @throws Exception400 요청이 잘못된 경우 올바르지 않은 년도 또는 달
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/schedule/search")
     public ResponseEntity<Map<String, Object>> searchSchedulerList(
@@ -104,6 +111,10 @@ public class SchedulerUserController {
 
     /**
      * 공연 상세보기 : 공연의 정보를 상세하게 봄
+     * @param token : 사용자 인증 토큰
+     * @param adminScheduleId : 선택한 공연의 id값
+     * @return 선택한 공연 정보가 담긴 SchedulerAdmin 반환
+     * @throws Exception400 id값이 null이거나 0보다 작을경우 / id값에 해당하는 공연정보를 찾을 수 없을경우
      */
     @GetMapping("/schedule/{adminScheduleId}")
     public ResponseEntity<SchedulerAdmin> scheduleDetail(
@@ -121,8 +132,13 @@ public class SchedulerUserController {
     }
 
     /**
-     * 티켓팅 등록 : Admin이 등록한 공연 id로 공연을 찾아 user의 schedule을 등록함
-     * 한달에 한번만 등록 가능 + 티켓의 수가 1개 이상이여야 함
+     * 티켓팅 등록 페이지 : 기획사가 등록한 공연 id로 공연을 찾아 user의 schedule을 등록함
+     * @param token : 사용자 인증 토큰
+     * @param schedulerUserDto : 팬이 등록하는 티켓팅 정보
+     * @param schedulerAdminId : 기획사가 등록한 공연의 id값
+     * @return 팬이 등록한 티켓팅 정보를 반환
+     * @throws Exception403 한달에 한번이상 공연을 신청하려는 경우 / 티켓의 수가 부족한 경우
+     * @throws Exception500 디코딩에 실패한 경우 / 이미지 파일전송에 실패한 경우
      */
     @PostMapping("/schedule/create")
     public ResponseEntity<SchedulerUserResponseDto> createUserScheduler(
@@ -130,7 +146,6 @@ public class SchedulerUserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam Long schedulerAdminId
     ) {
-
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
         if (userTicketCount > 1) {
@@ -146,14 +161,18 @@ public class SchedulerUserController {
     }
 
     /**
-     * 티켓팅 취소 : 사용자가 티케팅 내역을 취소시 티켓을 다시 1개 되돌려줌
+     * 티켓팅 취소 : 사용자가 티케팅 내역을 취소함 취소시 티켓을 다시 1개 되돌려줌
+     * @param token : 사용자 인증 토큰
+     * @param id : 삭제하려는 티켓의 id
+     * @return "티켓팅 취소 완료"
+     * @throws Exception400 유효하지 않은 id값일 경우
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @PostMapping("/schedule/cancel/{id}")
     public ResponseEntity<String> cancelScheduler(
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-
         if (id == null || id <= 0) throw new Exception400("id", ErrorCode.INVALID_ID.getMessage());
 
         try {
