@@ -164,8 +164,8 @@ public class UserService {
 
     /**
      * 사용자 정보를 조회합니다. - 여기는 스케줄 포함된 DTO를 반환함.
-     * Role = admin 일때
-     * @return            : Admin의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
+     * Role = ADMIN 일때
+     * @return            : ADMIN의 정보, 나의 티켓 리스트 목록리스트, 행사현황정보 반환.
      */
     @Transactional
     public UserResponse.AdminInfoDTO getRoleAdminInfo(String token) throws GeneralSecurityException {

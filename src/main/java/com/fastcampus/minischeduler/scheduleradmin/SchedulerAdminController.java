@@ -112,7 +112,8 @@ public class SchedulerAdminController {
             throw new Exception400("scheduleStart/scheduleEnd", ErrorCode.EMPTY_DATE.getMessage());
         if (image != null && image.isEmpty() && image.getSize() > 10000000)
             throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
-        if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
+        if(schedulerAdminRequestDto.getTitle() == null)
+            throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
 
         try {
             return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
@@ -186,10 +187,13 @@ public class SchedulerAdminController {
                 throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
 
             // 스케줄 작성자 id와 로그인한 사용자 id비교
-            if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403(ErrorCode.INVALID_USER.getMessage()); //권한없음
-            if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
+            if(!schedulerDto.getUser().getId().equals(loginUserId))
+                throw new Exception403(ErrorCode.INVALID_USER.getMessage()); //권한없음
+            if (schedulerAdminRequestDto.getScheduleStart() == null ||
+                    schedulerAdminRequestDto.getScheduleEnd() == null)
                 throw new Exception400("scheduleStart/scheduleEnd", ErrorCode.EMPTY_DATE.getMessage());
-            if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
+            if(schedulerAdminRequestDto.getTitle() == null)
+                throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
 
             return ResponseEntity
                     .ok(schedulerAdminService.getSchedulerById(
@@ -219,8 +223,10 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer month
     ) {
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
-        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
+        if (year != null && (year < 2000 || year > 3000))
+            throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if (month != null && (month < 1 || month > 12))
+            throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         try {
             return ResponseEntity.ok(schedulerAdminService.getSchedulerByFullName(keyword, year, month));
@@ -230,16 +236,9 @@ public class SchedulerAdminController {
     }
 
     /**
-<<<<<<< Updated upstream
-     * 티켓 결재 페이지 : 팬이 신청한 티켓을 승인하거나 반려함
-     * @param token : 사용자 인증 토큰
-     * @return : 기획사 정보와 관련 티켓승인현황, 기획사 일정을 반환
-     * @throws Exception500 디코딩에 실패한 경우
-=======
      * 티케팅 결재승인 페이지
      * @param token 사용자 인증 토큰
      * @return      userDto, scheduleDto, countProcessDto
->>>>>>> Stashed changes
      */
     @GetMapping("/schedule/confirm")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
@@ -271,13 +270,16 @@ public class SchedulerAdminController {
     ) {
         // 유효성 검사
         Optional<SchedulerUser> object = schedulerUserRepository.findById(userSchedulerId);
-        if (object.isEmpty()) throw new Exception400(userSchedulerId.toString(), ErrorCode.TICKET_NOT_FOUND.getMessage());
-
-        if (progress == null || progress.isBlank()) throw new Exception400(ErrorCode.EMPTY_PROGRESS.getMessage());
+        if (object.isEmpty())
+            throw new Exception400(userSchedulerId.toString(), ErrorCode.TICKET_NOT_FOUND.getMessage());
+        if (progress == null || progress.isBlank())
+            throw new Exception400(ErrorCode.EMPTY_PROGRESS.getMessage());
 
         SchedulerUser schedulerUser = object.get();
-        if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412(ErrorCode.ALREADY_ACCEPTED_TICKET.getMessage());
-        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412(ErrorCode.ALREADY_REFUSED_TICKET.getMessage());
+        if(schedulerUser.getProgress().equals(Progress.ACCEPT))
+            throw new Exception412(ErrorCode.ALREADY_ACCEPTED_TICKET.getMessage());
+        if(schedulerUser.getProgress().equals(Progress.REFUSE))
+            throw new Exception412(ErrorCode.ALREADY_REFUSED_TICKET.getMessage());
         User fan = schedulerUser.getUser();
 
         String message = null;

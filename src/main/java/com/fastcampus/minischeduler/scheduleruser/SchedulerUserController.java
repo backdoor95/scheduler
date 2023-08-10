@@ -44,17 +44,23 @@ public class SchedulerUserController {
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
-        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
+        if (year != null && (year < 2000 || year > 3000))
+            throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if (month != null && (month < 1 || month > 12))
+            throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         try {
             if (year != null && month != null) {
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
-                schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
+                schedulerAdminResponseDtoList =
+                        schedulerAdminService.getSchedulerListByYearAndMonth(year, month);
+                schedulerUserDtoList =
+                        schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
             } else {
-                schedulerAdminResponseDtoList = schedulerAdminService.getSchedulerList();
-                schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
+                schedulerAdminResponseDtoList =
+                        schedulerAdminService.getSchedulerList();
+                schedulerUserDtoList =
+                        schedulerUserService.getSchedulerUserList(loginUserId);
             }
 
             Map<String, Object> response = new HashMap<>();
@@ -86,8 +92,10 @@ public class SchedulerUserController {
     ) {
 
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
-        if(month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
+        if (year != null && (year < 2000 || year > 3000))
+            throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if(month != null && (month < 1 || month > 12))
+            throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         try {
             List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
@@ -95,9 +103,10 @@ public class SchedulerUserController {
             List<SchedulerUserResponseDto> schedulerUserDtoList;
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
-            if (year != null && month != null)
-                schedulerUserDtoList = schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
-            else schedulerUserDtoList = schedulerUserService.getSchedulerUserList(loginUserId);
+            if (year != null && month != null) schedulerUserDtoList =
+                    schedulerUserService.getSchedulerUserListByYearAndMonth(loginUserId, year, month);
+            else schedulerUserDtoList =
+                    schedulerUserService.getSchedulerUserList(loginUserId);
 
             Map<String, Object> response = new HashMap<>();
             response.put("schedulerAdmin", schedulerAdminResponseDtoListFindByFullName);
@@ -126,7 +135,8 @@ public class SchedulerUserController {
             throw new Exception400("adminScheduleId", ErrorCode.INVALID_REQUEST.getMessage());
 
         SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(adminScheduleId);
-        if (schedulerAdmin == null) throw new Exception400("schedulerAdmin", ErrorCode.EMPTY_SCHEDULEINFO.getMessage());
+        if (schedulerAdmin == null)
+            throw new Exception400("schedulerAdmin", ErrorCode.EMPTY_SCHEDULE_INFO.getMessage());
 
         return ResponseEntity.ok(schedulerAdmin);
     }
@@ -149,10 +159,17 @@ public class SchedulerUserController {
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         int userTicketCount = schedulerUserService.getUserTicketCount(loginUserId);
         if (userTicketCount > 1) {
-            if(!schedulerUserService.existingSchedulerInCurrentMonth(loginUserId, schedulerUserDto.getScheduleStart())){
+            if (!schedulerUserService.existingSchedulerInCurrentMonth(
+                    loginUserId,
+                    schedulerUserDto.getScheduleStart()
+            )) {
                 try {
                     return ResponseEntity
-                            .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
+                            .ok(schedulerUserService.createSchedulerUser(
+                                    schedulerAdminId,
+                                    schedulerUserDto,
+                                    loginUserId
+                            ));
                 } catch (GeneralSecurityException gse) {
                     throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
                 }
