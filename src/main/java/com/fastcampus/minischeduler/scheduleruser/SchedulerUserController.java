@@ -44,8 +44,8 @@ public class SchedulerUserController {
         List<SchedulerUserResponseDto> schedulerUserDtoList;
 
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다.");
-        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다.");
+        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
         try {
@@ -63,7 +63,7 @@ public class SchedulerUserController {
 
             return ResponseEntity.ok(response);
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -86,8 +86,8 @@ public class SchedulerUserController {
     ) {
 
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다.");
-        if(month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다.");
+        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if(month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         try {
             List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListFindByFullName
@@ -105,7 +105,7 @@ public class SchedulerUserController {
 
             return ResponseEntity.ok(response);
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -123,10 +123,10 @@ public class SchedulerUserController {
     ) {
 
         if (adminScheduleId == null || adminScheduleId <= 0)
-            throw new Exception400("adminScheduleId", "잘못된 요청입니다");
+            throw new Exception400("adminScheduleId", ErrorCode.INVALID_REQUEST.getMessage());
 
         SchedulerAdmin schedulerAdmin = schedulerAdminService.getSchedulerAdminById(adminScheduleId);
-        if (schedulerAdmin == null) throw new Exception400("schedulerAdmin", "해당하는 공연의 정보를 찾을 수 없습니다");
+        if (schedulerAdmin == null) throw new Exception400("schedulerAdmin", ErrorCode.EMPTY_SCHEDULEINFO.getMessage());
 
         return ResponseEntity.ok(schedulerAdmin);
     }
@@ -154,10 +154,10 @@ public class SchedulerUserController {
                     return ResponseEntity
                             .ok(schedulerUserService.createSchedulerUser(schedulerAdminId, schedulerUserDto, loginUserId));
                 } catch (GeneralSecurityException gse) {
-                    throw new Exception500("디코딩에 실패하였습니다");
+                    throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
                 }
-            } else throw new Exception403("한달에 한번만 공연을 신청할 수 있습니다.");
-        } else throw new Exception403("티켓이 부족합니다.");
+            } else throw new Exception403(ErrorCode.INVALID_CREATE_SCHEDULE.getMessage());
+        } else throw new Exception403(ErrorCode.EMPTY_TICKET.getMessage());
     }
 
     /**
@@ -173,7 +173,7 @@ public class SchedulerUserController {
             @PathVariable Long id,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-        if (id == null || id <= 0) throw new Exception400("id", "유효하지 않은 id값입니다.");
+        if (id == null || id <= 0) throw new Exception400("id", ErrorCode.INVALID_ID.getMessage());
 
         try {
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
@@ -181,7 +181,7 @@ public class SchedulerUserController {
 
             return ResponseEntity.ok("티켓팅 취소 완료");
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 }

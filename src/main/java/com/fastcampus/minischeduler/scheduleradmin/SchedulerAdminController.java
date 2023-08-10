@@ -49,9 +49,9 @@ public class SchedulerAdminController {
 
         //year와 month 유효성검증
         if (year != null && (year < 2000 || year > 3000))
-            throw new Exception400("year", "유효하지 않은 년도입니다.");
+            throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
         if (month != null && (month < 1 || month > 12))
-            throw new Exception400("month", "유효하지 않은 달입니다.");
+            throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         try {
             if (year != null && month != null)
@@ -61,7 +61,7 @@ public class SchedulerAdminController {
 
             return ResponseEntity.ok(schedulerAdminResponseDtoList);
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -82,13 +82,13 @@ public class SchedulerAdminController {
     ) {
         //year와 month 유효성검증
         if (year != null && (year < 2000 || year > 3000))
-            throw new Exception400("year", "유효하지 않은 년도입니다.");
+            throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
         if (month != null && (month < 1 || month > 12))
-            throw new Exception400("month", "유효하지 않은 달입니다.");
+            throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
         try {
             return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -109,17 +109,17 @@ public class SchedulerAdminController {
             @RequestPart(value = "dto") SchedulerAdminRequestDto schedulerAdminRequestDto
     ) {
         if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
-            throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
+            throw new Exception400("scheduleStart/scheduleEnd", ErrorCode.EMPTY_DATE.getMessage());
         if (image != null && image.isEmpty() && image.getSize() > 10000000)
-            throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
-        if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
+            throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
+        if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
 
         try {
             return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
-            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_IMAGE_UPLOAD.getMessage());
         }
     }
 
@@ -139,7 +139,7 @@ public class SchedulerAdminController {
     ) {
 
         if(adminScheduleId == null || adminScheduleId <= 0)
-            throw new Exception400("adminScheduleId", "유효하지 않은 id값입니다");
+            throw new Exception400("adminScheduleId", ErrorCode.INVALID_ID.getMessage());
 
         try {
             SchedulerAdminResponseDto schedulerAdminResponseDto =
@@ -147,13 +147,13 @@ public class SchedulerAdminController {
 
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
             if (!schedulerAdminResponseDto.getUser().getId().equals(loginUserId))
-                throw new Exception403("권한이 없습니다");
+                throw new Exception403(ErrorCode.INVALID_USER.getMessage());
 
             schedulerAdminService.delete(adminScheduleId);
 
             return ResponseEntity.ok("스케줄 삭제 완료");
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -183,21 +183,21 @@ public class SchedulerAdminController {
             Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
             if (image != null && image.getSize() > 10000000)
-                throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+                throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
 
             // 스케줄 작성자 id와 로그인한 사용자 id비교
-            if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403("권한이 없습니다"); //권한없음
+            if(!schedulerDto.getUser().getId().equals(loginUserId)) throw new Exception403(ErrorCode.INVALID_USER.getMessage()); //권한없음
             if (schedulerAdminRequestDto.getScheduleStart() == null || schedulerAdminRequestDto.getScheduleEnd() == null)
-                throw new Exception400("scheduleStart/scheduleEnd", "날짜정보가 비어있습니다");
-            if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", "제목이 비어있습니다");
+                throw new Exception400("scheduleStart/scheduleEnd", ErrorCode.EMPTY_DATE.getMessage());
+            if(schedulerAdminRequestDto.getTitle() == null) throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
 
             return ResponseEntity
                     .ok(schedulerAdminService.getSchedulerById(
                             schedulerAdminService.updateScheduler(id, schedulerAdminRequestDto, image)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
-            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_IMAGE_UPLOAD.getMessage());
         }
     }
 
@@ -219,13 +219,13 @@ public class SchedulerAdminController {
             @RequestParam(required = false) Integer month
     ) {
         //year와 month 유효성검증
-        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", "유효하지 않은 년도입니다");
-        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", "유효하지 않은 달입니다");
+        if (year != null && (year < 2000 || year > 3000)) throw new Exception400("year", ErrorCode.INVALID_YEAR.getMessage());
+        if (month != null && (month < 1 || month > 12)) throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
 
         try {
             return ResponseEntity.ok(schedulerAdminService.getSchedulerByFullName(keyword, year, month));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -248,7 +248,7 @@ public class SchedulerAdminController {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -271,13 +271,13 @@ public class SchedulerAdminController {
     ) {
         // 유효성 검사
         Optional<SchedulerUser> object = schedulerUserRepository.findById(userSchedulerId);
-        if (object.isEmpty()) throw new Exception400(userSchedulerId.toString(), "해당 티켓이 존재하지 않습니다");
+        if (object.isEmpty()) throw new Exception400(userSchedulerId.toString(), ErrorCode.TICKET_NOT_FOUND.getMessage());
 
-        if (progress == null || progress.isBlank()) throw new Exception400("'승인' 또는 '거절'을 선택해주세요");
+        if (progress == null || progress.isBlank()) throw new Exception400(ErrorCode.EMPTY_PROGRESS.getMessage());
 
         SchedulerUser schedulerUser = object.get();
-        if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412("이미 승인된 티켓입니다");
-        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412("이미 거절된 티켓입니다");
+        if(schedulerUser.getProgress().equals(Progress.ACCEPT)) throw new Exception412(ErrorCode.ALREADY_ACCEPTED_TICKET.getMessage());
+        if(schedulerUser.getProgress().equals(Progress.REFUSE)) throw new Exception412(ErrorCode.ALREADY_REFUSED_TICKET.getMessage());
         User fan = schedulerUser.getUser();
 
         String message = null;
@@ -290,7 +290,7 @@ public class SchedulerAdminController {
             fan.setSizeOfTicket(fan.getSizeOfTicket() + 1);
             confirmProgress = Progress.REFUSE;
             message = "티켓을 거절합니다.";
-        } else throw new Exception404("잘못된 요청입니다");
+        } else throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
 
         try {
             return ResponseEntity.ok(
@@ -300,7 +300,7 @@ public class SchedulerAdminController {
                     )
             );
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -319,11 +319,11 @@ public class SchedulerAdminController {
 
             return ResponseEntity.ok("다운로드 완료");
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
-            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_IMAGE_UPLOAD.getMessage());
         } catch (IllegalAccessException iae) {
-            throw new Exception500("잘못된 접근입니다");
+            throw new Exception500(ErrorCode.INVALID_ACCESS.getMessage());
         }
     }
 }
