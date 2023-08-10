@@ -61,19 +61,19 @@ public class UserController {
         try { // 중복검사 시 Exception이 발동하는지 확인 2023-08-06
             // 유효성 검사
             if (userRepository.findByEmail(aes256Utils.encryptAES256(joinRequestDTO.getEmail())).isPresent())
-                throw new Exception400(joinRequestDTO.getEmail(), "이미 존재하는 이메일입니다"); // 중복 계정 검사
+                throw new Exception400(joinRequestDTO.getEmail(), ErrorCode.EXISTING_EMAIL.getMessage()); // 중복 계정 검사
             // joinRequestDTO의 Enum 타입 Role 에 대한 유효성 검사는 컨트롤러 단에서 할 수 없어서 String으로 받기로.
             String role = joinRequestDTO.getRole();
-            if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412("권한을 입력해주세요");
-            if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception404("잘못된 요청입니다");
+            if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412(ErrorCode.EMPTY_ROLE.getMessage());
+            if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
             if (image != null && image.getSize() > 10000000)
-                throw new Exception413(String.valueOf(image.getSize()), "파일이 너무 큽니다");
+                throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
 
             return ResponseEntity.ok(new ResponseDTO<>(userService.signup(joinRequestDTO, image)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
-            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_IMAGE_UPLOAD.getMessage());
         }
     }
 
@@ -101,9 +101,9 @@ public class UserController {
                     .header(JwtTokenProvider.HEADER, (String) response.get("token"))
                     .body(new ResponseDTO<>(response.get("userInfo")));
         } catch (AuthenticationException ae) {
-            throw new Exception401("아이디와 비밀번호를 확인해주세요");
+            throw new Exception401(ErrorCode.CHECK_ID_PASSWORD.getMessage());
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -118,15 +118,15 @@ public class UserController {
             @RequestParam(required = false) String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-        if (role == null || role.isBlank()) throw new Exception400("role", "'기획사' 또는 '팬'을 선택해주세요");
-        if(!role.equals("ADMIN") && !role.equals("USER")) throw new Exception404("잘못된 요청입니다");
+        if (role == null || role.isBlank()) throw new Exception400("role", ErrorCode.EMPTY_ROLE_ADMIN_OR_FAN.getMessage());
+        if(!role.equals("ADMIN") && !role.equals("USER")) throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
 
         try {
             if (role.equals("ADMIN"))
                 return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(token)));
             return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -142,7 +142,7 @@ public class UserController {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -160,7 +160,7 @@ public class UserController {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
@@ -180,16 +180,20 @@ public class UserController {
             String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
             User user = userService.findById(token);
             user.updateUserProfileImage(defaultNameURL);
-
             return ResponseEntity.ok(new ResponseDTO<>(user));
         }
+
+        if(file.getSize() > 10000000)
+            throw new Exception413(String.valueOf(file.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
+
+
         try {
             // user 객체를 이용한 작업 수행
             return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserProfileImage(file, token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
-            throw new Exception500("이미지 파일 전송에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_IMAGE_UPLOAD.getMessage());
         }
     }
 
@@ -205,7 +209,7 @@ public class UserController {
         try {
             return ResponseEntity.ok(new ResponseDTO<>(userService.deleteUserProfileImage(token)));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 }
