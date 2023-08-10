@@ -31,6 +31,12 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
+    /**
+     * 사용자 정보 : token으로 사용자 정보를 반환
+     * @param token : 사용자 인증 토큰
+     * @return 사용자 정보 반환
+     * @throws Exception500 디코딩에 실패한 경우
+     */
     @GetMapping("/api")
     public ResponseEntity<?> api(@RequestHeader(JwtTokenProvider.HEADER) String token) {
 
@@ -46,10 +52,15 @@ public class UserController {
     }
 
     /**
-     * 회원가입
+     * 회원가입 페이지 : 사용자가 회원가입을 진행함
      * @param joinRequestDTO : 회원가입 시 입력한 정보
-     * @param image          : 프로필 사진
-     * @return               : UserResponse.JoinDTO
+     * @param image : 프로필 사진
+     * @return 회원가입 정보를 담은 UserResponse.JoinDTO 반환
+     * @throws Exception400 이미 존재하는 이메일인 경우
+     * @throws Exception412 권한을 입력하지 않은 경우
+     * @throws Exception404 권한이 USER 와 ADMIN이 아닌 경우
+     * @throws Exception413 이미지 파일의 크기가 큰 경우
+     * @throws Exception500 디코딩에 실패한 경우 / 이미지 파일 전송에 실패한 경우
      */
     @MyErrorLog
     @MyLog
@@ -78,9 +89,11 @@ public class UserController {
     }
 
     /**
-     * 로그인
+     * 로그인 페이지 : 회원가입한 정보를 바탕으로 로그인 진행
      * @param loginRequestDTO : 로그인 요청 정보
-     * @return                : 토큰 및 로그인한 사용자 정보
+     * @return 토큰 + 로그인한 사용자 정보 반환
+     * @throws Exception401 아이디와 비밀번호가 틀린 경우
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(
@@ -108,10 +121,13 @@ public class UserController {
     }
 
     /**
-     * 마이페이지
-     * @param role       : 사용자 권한
-     * @param token      : 현재 헤더에 저장되어있는 토큰
-     * @return           : UserResponse.getUserInfoDTO
+     * 마이페이지 : 사용자가 설정한 정보 확인
+     * @param token : 사용자 인증 토큰
+     * @param role : 사용자의 권한
+     * @return 권한 확인후 사용자의 정보를 반환
+     * @throws Exception400 권한을 입력하지 않은 경우
+     * @throws Exception404 권한이 USER 와 ADMIN이 아닌 경우
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/mypage")
     public ResponseEntity<?> getUserInfo(
@@ -131,9 +147,10 @@ public class UserController {
     }
 
     /**
-     * 사용자 정보 수정 페이지
-     * @param token : 사용자 토큰
-     * @return      : GetUserInfoDTO
+     * 사용자 정보 수정 페이지 : 사용자가 설정한 정보 수정
+     * @param token : 사용자 인증 토큰
+     * @return 사용자가 수정한 사용자 정보를 반환
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/mypage/update")
     public ResponseEntity<?> getUpdateUserInfo(
@@ -147,10 +164,11 @@ public class UserController {
     }
 
     /**
-     * 사용자 정보 변경
-     * @param token             : 현재 헤더에 저장되어 있는 토큰
-     * @param updateUserInfoDTO : 변경하려는 정보
-     * @return                  : UserResponse.getUserInfoDTO
+     * 사용자 정보 업데이트
+     * @param token : 사용자 인증 토큰
+     * @param updateUserInfoDTO : 사용자가 변경하려는 정보
+     * @return 사용자가 수정한 사용자 정보를 반환
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @PostMapping("/mypage/update")
     public ResponseEntity<?> postUpdateUserInfo(
@@ -165,10 +183,11 @@ public class UserController {
     }
 
     /**
-     * 프로필 이미지 등록&변경
-     * @param token : 사용자 토큰
-     * @param file  : 프로필 이미지
-     * @return      : GetUserInfoDTO
+     * 프로필 이미지 등록과 변경 : 프로필 이미지를 등록하거나 변경가능 미등록시 디폴트 이미지로 설정
+     * @param token : 사용자 인증 토큰
+     * @param file : 프로필 이미지
+     * @return 사용자 정보를 반환
+     * @throws Exception500 디코딩에 실패한 경우 / 이미지 파일 전송에 실패한 경우
      */
     @PostMapping("/mypage/update/image")
     public ResponseEntity<?> postUpdateUserProfileImage(
@@ -194,9 +213,10 @@ public class UserController {
     }
 
     /**
-     * 프로필 이미지를 삭제합니다.
-     * @param token : 사용자 토큰
-     * @return      : GetUserInfoDTO
+     * 프로필 이미지를 삭제 : 프로필 이미지 삭제
+     * @param token : 사용자 인증 토큰
+     * @return 사용자 정보를 반환
+     * @throws Exception500 디코딩에 실패한 경우
      */
     @PostMapping("/mypage/delete/image")
     public ResponseEntity<?> postDeleteUserProfileImage(
