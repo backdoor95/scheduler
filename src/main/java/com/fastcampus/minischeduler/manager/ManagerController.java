@@ -4,8 +4,6 @@ import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.manager.exception.AuthException;
 import com.fastcampus.minischeduler.manager.exception.CustomException;
-import com.fastcampus.minischeduler.user.Role;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.security.GeneralSecurityException;
+
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.*;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class ManagerController {
     public String login() {
 
         if(session.getAttribute("principal") != null)
-            throw new CustomException("이미 로그인되었습니다.");
+            throw new CustomException(INVALID_ACCESS.getMessage());
 
         return "/login";
     }
@@ -39,27 +39,26 @@ public class ManagerController {
     /**
      * 로그인 합니다.
      * @param request 로그인 정보 입력
-     * @return redirect:/admin/userList
+     * @return redirect:/admin/users
      */
     @PostMapping("/login")
     public String login(ManagerRequest.LoginRequestDTO request) {
 
-        // 유효성 검사
         if (request.getUsername() == null || request.getUsername().isEmpty())
-            throw new CustomException("계정을 입력하세요");
+            throw new CustomException(EMPTY_ID.getMessage());
         if (request.getPassword() == null || request.getPassword().isEmpty())
-            throw new CustomException("비밀번호를 입력하세요");
+            throw new CustomException(EMPTY_PASSWORD.getMessage());
         if (managerService.isNotExistId(request.getUsername()))
-            throw new CustomException("아이디가 존재하지 않습니다");
+            throw new CustomException(CHECK_ID.getMessage());
 
         Manager principal = managerService.login(request);
-        if (principal == null) throw new CustomException("비밀번호가 틀렸습니다");
+        if (principal == null) throw new CustomException(CHECK_PASSWORD.getMessage());
 
         // 로그인 인증 처리 - 세션, 인증 유지 시간 지정
         session.setAttribute("principal", principal);
         session.setMaxInactiveInterval(60 * 30);
 
-        return "redirect:/manager/users";
+        return "redirect:/manager";
     }
 
     /**
@@ -68,6 +67,9 @@ public class ManagerController {
      */
     @GetMapping("/logout")
     public String logout() {
+
+        if(session.getAttribute("principal") == null)
+            throw new AuthException(INVALID_AUTHENTICATION.getMessage());
 
         session.invalidate();
         return "redirect:/manager/login";
@@ -79,22 +81,21 @@ public class ManagerController {
      * @param model 모델 바인딩
      * @return users.html
      */
-    @GetMapping("/users")
+    @GetMapping("")
     public String users(
             @RequestParam(name = "role", required = false) String role,
             Model model
     ) {
-        // 유효성 검사
         if(session.getAttribute("principal") == null)
-            throw new AuthException("로그인이 필요합니다");
+            throw new AuthException(INVALID_AUTHENTICATION.getMessage());
         if(role != null && (!role.equals("USER") && !role.equals("ADMIN") && !role.equals("ALL")))
-            throw new CustomException("카테고리 기준이 잘못되었습니다");
+            throw new CustomException(INVALID_REQUEST.getMessage());
 
         try {
             model.addAttribute("userList", managerService.getUserListByRole(role));
             return "/users";
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(FAIL_DECODING.getMessage());
         }
     }
 
@@ -109,11 +110,14 @@ public class ManagerController {
             @PathVariable Long userId,
             @RequestParam(name = "role") String role
     ) {
-        if (!role.equals("USER") || !role.equals("ADMIN"))
-            throw new Exception400(role, "잘못된 요청입니다");
+        if(session.getAttribute("principal") == null)
+            throw new AuthException(INVALID_AUTHENTICATION.getMessage());
+
+        if (!role.equals("USER") && !role.equals("ADMIN"))
+            throw new Exception400(role, INVALID_REQUEST.getMessage());
 
         managerService.updateRoleByUserId(userId, role);
 
-        return "redirect:/manager/users";
+        return "redirect:/manager";
     }
 }

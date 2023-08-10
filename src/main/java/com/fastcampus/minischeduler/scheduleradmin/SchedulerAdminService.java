@@ -379,13 +379,13 @@ public class SchedulerAdminService {
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()->new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
 
-        List<SchedulerAdmin> schedulerAdmins = schedulerAdminRepository.findByUser(user);
+        List<SchedulerAdmin> schedulerAgencies = schedulerAdminRepository.findByUser(user);
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoListByYearAndMonth = new ArrayList<>();
 
         if (year != null && month != null) {
             YearMonth yearMonth = YearMonth.of(year, month);
-            for (SchedulerAdmin schedulerAdmin : schedulerAdmins) {
+            for (SchedulerAdmin schedulerAdmin : schedulerAgencies) {
                 LocalDateTime scheduleStart = schedulerAdmin.getScheduleStart();
                 LocalDateTime scheduleEnd = schedulerAdmin.getScheduleEnd();
                 YearMonth scheduleYearMonthStart = YearMonth.of(scheduleStart.getYear(), scheduleStart.getMonth());
@@ -414,7 +414,7 @@ public class SchedulerAdminService {
             response.put("schedulerAdminListByYearAndMonth", schedulerAdminResponseDtoListByYearAndMonth);
         }
 
-        for (SchedulerAdmin schedulerAdmin : schedulerAdmins) {
+        for (SchedulerAdmin schedulerAdmin : schedulerAgencies) {
 
             UserResponse.UserDto responseUser = new UserResponse.UserDto(schedulerAdmin.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));

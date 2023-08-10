@@ -3,7 +3,6 @@ package com.fastcampus.minischeduler.manager;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
-import com.fastcampus.minischeduler.user.UserRepository;
 import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,6 @@ import java.util.List;
 public class ManagerService {
 
     private final ManagerRepository managerRepository;
-    private final UserRepository userRepository;
 
     private final AES256Utils aes256Utils;
 

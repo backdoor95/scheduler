@@ -11,6 +11,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.FAIL_DECODING;
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.INVALID_AUTHENTICATION;
+
 @RequiredArgsConstructor
 @Service
 public class MyUserDetailsService implements UserDetailsService {
@@ -24,11 +27,11 @@ public class MyUserDetailsService implements UserDetailsService {
         try {
             email = aes256Utils.encryptAES256(email);
         } catch (Exception e) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(FAIL_DECODING.getMessage());
         }
 
         User user = userRepository.findByEmail(email).orElseThrow(
-                () -> new Exception401("인증되지 않았습니다")
+                () -> new Exception401(INVALID_AUTHENTICATION.getMessage())
         );
 
         return new MyUserDetails(user);

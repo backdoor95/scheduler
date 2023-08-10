@@ -129,7 +129,7 @@ public class UserResponse {
 
         private Integer registeredEventCount; // 등록한 행사수
 
-        private List<AdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 admin 일때. admin이 등록한 행사 리스트
+        private List<AdminScheduleDTO> schedulerRoleAdminList; // mypage에서 role이 Admin 일때. Admin가 등록한 행사 리스트
     }
 
     public interface AdminScheduleDTO { // role == user

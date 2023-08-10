@@ -6,29 +6,32 @@
         <div class="container">
             <span>
                 <th>
-                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager/users?role=ALL}">모두 보기</a>
+                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager?role=ALL}">모두 보기</a>
                 </th>
                 <th>
-                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager/users?role=USER}">팬만 보기</a>
+                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager?role=USER}">팬만 보기</a>
                 </th>
                 <th>
-                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager/users?role=ADMIN}">기획사 보기</a>
+                    <a type="button" class="btn btn-warning btn-sm" th:href="@{/manager?role=ADMIN}">기획사 보기</a>
                 </th>
             </span>
-            <table class="table table-hover">
+            <table class="table table-hover" style="table-layout: fixed">
                 <thead>
-                    <th scope="col">이름</th>
-                    <th scope="col">이메일</th>
-                    <th scope="col">권한</th>
-                    <th scope="col">프로필이미지</th>
-                    <th scope="col">권한변경</th>
+                    <th scope="col" style="width: 15%">프로필이미지</th>
+                    <th scope="col" style="width: 15%">이름</th>
+                    <th scope="col" style="width: 25%">이메일</th>
+                    <th scope="col" style="width: 10%">권한</th>
+                    <th scope="col" style="width: 25%">권한변경</th>
                 </thead>
                 <tbody th:each="user : ${userList}" class="table-group-divider">
                     <span>
+                        <td>
+                            <img th:if="${user.getProfileImage != null}" th:src="${user.getProfileImage}" class="img-thumbnail" src="" style="width: 30px; height: 30px"/>
+                            <img th:if="${user.getProfileImage == null}" th:src="@{https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg}" class="img-thumbnail" src="" style="width: 30px; height: 30px"/>
+                        </td>
                         <td th:text="${user.getFullName}"></td>
                         <td th:text="${user.getEmail}"></td>
                         <td th:text="${user.getRole}"></td>
-                        <td th:text="${user.getProfileImage}"></td>
                         <form name="userButton">
                             <td> <!-- 사용자 권한에 따라 버튼 색 변화 --> <!-- user Button trigger modal -->
                                 <button th:if="${user.getRole.name().equals('USER')}" type="button" class="btn btn-dark btn-sm" data-bs-toggle="modal" data-bs-target="#userModal" th:attr="data-bs-target='#userModal'+${user.getId}">기획사 등록</button>
@@ -67,7 +70,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                                    <a type="button" class="btn btn-success" th:href="@{/manager/role/{userId}(userId=${user.getId}, role=${user.getRole.name()})}">확인</a>
+                                    <a type="button" class="btn btn-success" th:href="@{/manager/role/{userId}(userId=${user.getId}, role='ADMIN')}">확인</a>
                                 </div>
                             </div>
                         </div>

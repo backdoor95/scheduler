@@ -25,17 +25,17 @@
         <table>
             <tbody>
                 <tr>
-                    <td align="center" width="200"><a href="https://github.com/a07224">
+                    <td align="center" width="250"><a href="https://github.com/a07224">
                         <img src="https://avatars.githubusercontent.com/u/69192549?v=4" width="100px;" alt=""/>
                         <br />
                         <sub><b>강주희 (팀원)</b></sub></a><br />
                     </td>
-                    <td align="center" width="200"><a href="https://github.com/k1m2njun">
+                    <td align="center" width="250"><a href="https://github.com/k1m2njun">
                         <img src="https://avatars.githubusercontent.com/u/68175311?v=4" width="100px;" alt=""/>
                         <br />
                         <sub><b>길민준 (팀장)</b></sub></a><br />
                     </td>
-                    <td align="center" width="200"><a href="https://github.com/backdoor95">
+                    <td align="center" width="250"><a href="https://github.com/backdoor95">
                         <img src="https://avatars.githubusercontent.com/u/68419785?v=4" width="100px;" alt=""/>
                         <br />
                         <sub><b>문준호 (팀원)</b></sub></a><br />
@@ -61,6 +61,10 @@
 </div>
 
 ---
+## EDR
+![api명세public](https://file.notion.so/f/s/b02478b2-4ee4-4227-ab20-4192f50751f2/%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA_2023-08-08_%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE_8.39.07.png?id=e7bc801e-f4b0-47f0-91c4-07f622949b5c&table=block&spaceId=3ef8dbd9-414c-4cf5-813d-32ecb943cc67&expirationTimestamp=1691762400000&signature=vqWDv6IK0bDGSsOXbG2cd6D--QOVAQBdlJB7pxo_TLs&downloadName=%E1%84%89%E1%85%B3%E1%84%8F%E1%85%B3%E1%84%85%E1%85%B5%E1%86%AB%E1%84%89%E1%85%A3%E1%86%BA+2023-08-08+%E1%84%8B%E1%85%A9%E1%84%92%E1%85%AE+8.39.07.png)
+
+---
 ## API 명세서
 #### 공통
 ![api명세public](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/6ea7993d-d437-4fa9-8966-b22f46dc6ed8)
@@ -68,7 +72,6 @@
 ![api명세user](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/3aff0db6-13cf-4161-987e-e60400f28287)
 #### 기획사
 ![api명세admin](https://github.com/MINI-FASTCAMPUS5/scheduler-back/assets/68175311/eacd5d7b-2de4-4f78-951d-48335665381a)
-
 
 ---
 ## 테이블
@@ -126,5 +129,15 @@ create table scheduler_user_tb (
    primary key (id),
    foreign key (user_id) references user_tb(id) on update cascade,
    foreign key (scheduler_admin_id) references scheduler_admin_tb(id) on update cascade
+) engine=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+```
+
+```sql
+create table manager_tb (
+   id bigint not null auto_increment,
+    created_at datetime not null,
+    password varchar(255),
+    username varchar(255),
+    primary key (id)
 ) engine=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 ```

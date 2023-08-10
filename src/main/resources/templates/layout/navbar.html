@@ -4,7 +4,7 @@
     <div th:fragment="navbar">
         <nav class="navbar navbar-expand-lg bg-light" >
             <div class="container-fluid">
-                <a class="navbar-brand" th:href="@{/manager/users}" >관리자페이지</a>
+                <a class="navbar-brand" th:href="@{/manager}" >관리자페이지</a>
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0" th:if="${session.principal == null}">
                         <li class="nav-item">
@@ -16,7 +16,10 @@
                     </span>
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0" th:if="${session.principal != null}">
                         <li class="nav-item">
-                            <a class="nav-link" aria-current="page" th:href="@{/manager/users}">사용자 목록</a>
+                            <a class="nav-link" aria-current="page" th:href="@{/manager}">사용자 목록</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" aria-current="page" th:href="@{http://ec2-34-228-10-85.compute-1.amazonaws.com/login}">연간아이돌</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" th:href="@{/manager/logout}">로그아웃</a>

@@ -58,7 +58,7 @@ public class UserController {
      * @return 회원가입 정보를 담은 UserResponse.JoinDTO 반환
      * @throws Exception400 이미 존재하는 이메일인 경우
      * @throws Exception412 권한을 입력하지 않은 경우
-     * @throws Exception404 권한이 USER 와 ADMIN이 아닌 경우
+     * @throws Exception404 권한이 USER 와 Admin이 아닌 경우
      * @throws Exception413 이미지 파일의 크기가 큰 경우
      * @throws Exception500 디코딩에 실패한 경우 / 이미지 파일 전송에 실패한 경우
      */
@@ -75,8 +75,10 @@ public class UserController {
                 throw new Exception400(joinRequestDTO.getEmail(), ErrorCode.EXISTING_EMAIL.getMessage()); // 중복 계정 검사
             // joinRequestDTO의 Enum 타입 Role 에 대한 유효성 검사는 컨트롤러 단에서 할 수 없어서 String으로 받기로.
             String role = joinRequestDTO.getRole();
-            if (role == null || role.isEmpty() || role.isBlank()) throw new Exception412(ErrorCode.EMPTY_ROLE.getMessage());
-            if (!role.equals("USER") && !role.equals("ADMIN")) throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
+            if (role == null || role.isEmpty() || role.isBlank())
+                throw new Exception412(ErrorCode.EMPTY_ROLE.getMessage());
+            if (!role.equals("USER") && !role.equals("ADMIN"))
+                throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
             if (image != null && image.getSize() > 10000000)
                 throw new Exception413(String.valueOf(image.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
 
@@ -126,7 +128,7 @@ public class UserController {
      * @param role : 사용자의 권한
      * @return 권한 확인후 사용자의 정보를 반환
      * @throws Exception400 권한을 입력하지 않은 경우
-     * @throws Exception404 권한이 USER 와 ADMIN이 아닌 경우
+     * @throws Exception404 권한이 USER 와 Admin이 아닌 경우
      * @throws Exception500 디코딩에 실패한 경우
      */
     @GetMapping("/mypage")
@@ -134,8 +136,10 @@ public class UserController {
             @RequestParam(required = false) String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
-        if (role == null || role.isBlank()) throw new Exception400("role", ErrorCode.EMPTY_ROLE_ADMIN_OR_FAN.getMessage());
-        if(!role.equals("ADMIN") && !role.equals("USER")) throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
+        if (role == null || role.isBlank())
+            throw new Exception400("role", ErrorCode.EMPTY_ROLE_ADMIN_OR_FAN.getMessage());
+        if(!role.equals("ADMIN") && !role.equals("USER"))
+            throw new Exception404(ErrorCode.INVALID_REQUEST.getMessage());
 
         try {
             if (role.equals("ADMIN"))
