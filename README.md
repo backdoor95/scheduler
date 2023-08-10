@@ -20,7 +20,8 @@
         <img src="https://img.shields.io/badge/Zoom-2D8CFF?style=for-the-badge&logo=Zoom&logoColor=white">
         <h2>⤴️ 바로가기</h2>
         <h3>➬ <a href="https://github.com/MINI-FASTCAMPUS5/scheduler-front">front-end GitHub Repository</a></h3>
-        <h1>➬ <a href="http://ec2-34-228-10-85.compute-1.amazonaws.com">배포된 프로젝트 사이트</a></h1>
+        <h1>➬ <a href="http://ec2-34-228-10-85.compute-1.amazonaws.com/login">배포된 프로젝트 사이트</a></h1>
+        <h1>➬ <a href="http://minischeduler-env.eba-m9yfe83y.ap-northeast-2.elasticbeanstalk.com/manager/login">관리자 페이지</a></h1>
         <h2>👨‍👩‍👧‍👦 팀원 역할</h2>
         <table>
             <tbody>
