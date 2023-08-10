@@ -3,7 +3,7 @@ server:
     path: /error
     whitelabel:
       enabled: false
-  port: 5000
+  port: 8080
   servlet:
     encoding:
       charset: utf-8
@@ -63,7 +63,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
