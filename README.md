@@ -48,7 +48,8 @@
                     <td width="180"><font size=1>
                         -회원가입, JWT 로그인<br />-승인결재 페이지 및 기능 API<br />-AES256 인/디코딩<br />
                         -엑셀파일 다운로드 API<br />-로그인 로그 기록<br />-Eleastic Beanstalk 배포<br />
-                        -500에러 파일 출력(log back)<br />-팀 일정 계획, 깃헙 Repo 관리<br />-API명세서 정리<br />-코드 스타일 정리
+                        -500에러 파일 출력(log back)<br />-팀 일정 계획, 깃헙 Repo 관리<br />-API명세서 정리<br />-코드 스타일 정리<br />
+                        -관리자 페이지
                     </font></td>
                     <td width="180"><font size=1>
                         - 유저&기획사 마이페이지 <br />- 이미지 업로드용 AWS S3 서버 연결 <br />- 이미지 업로드&삭제 기능 <br />- 회원정보 수정<br />
