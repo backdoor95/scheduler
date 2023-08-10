@@ -4,13 +4,22 @@ import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.manager.exception.AuthException;
 import com.fastcampus.minischeduler.manager.exception.CustomException;
+import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
+import com.fastcampus.minischeduler.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 import static com.fastcampus.minischeduler.core.exception.ErrorCode.*;
 
@@ -84,18 +93,27 @@ public class ManagerController {
     @GetMapping("")
     public String users(
             @RequestParam(name = "role", required = false) String role,
+            @PageableDefault(size = 10) Pageable pageable,
             Model model
     ) {
+
         if(session.getAttribute("principal") == null)
             throw new AuthException(INVALID_AUTHENTICATION.getMessage());
         if(role != null && (!role.equals("USER") && !role.equals("ADMIN") && !role.equals("ALL")))
             throw new CustomException(INVALID_REQUEST.getMessage());
 
         try {
-            model.addAttribute("userList", managerService.getUserListByRole(role));
+            Page<UserResponse.UserDto> userDtoPage = managerService.getUserListByRole(role, pageable);
+
+            int startPage = Math.max(1, userDtoPage.getPageable().getPageNumber() - 4);
+            int endPage = Math.min(userDtoPage.getPageable().getPageNumber() + 4, userDtoPage.getTotalPages());
+
+            model.addAttribute("startPage", startPage);
+            model.addAttribute("endPage", endPage);
+            model.addAttribute("userList", userDtoPage);
             return "/users";
-        } catch (GeneralSecurityException gse) {
-            throw new Exception500(FAIL_DECODING.getMessage());
+        } catch (Exception500 gse) {
+            throw new Exception500(gse.getMessage());
         }
     }
 

@@ -23,6 +23,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.INVALID_AUTHENTICATION;
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.INVALID_USER;
+
 @Slf4j
 @RequiredArgsConstructor
 @Configuration
@@ -82,14 +85,14 @@ public class SecurityConfig {
         http.exceptionHandling().authenticationEntryPoint(
                 (request, response, authException) -> {
                     log.warn("인증되지 않은 사용자가 자원에 접근하려 합니다 : " + authException.getMessage());
-                    FilterResponseUtils.unAuthorized(response, new Exception401("인증되지 않았습니다."));
+                    FilterResponseUtils.unAuthorized(response, new Exception401(INVALID_AUTHENTICATION.getMessage()));
         });
 
         // 9. 권한 실패 처리
         http.exceptionHandling().accessDeniedHandler(
                 (request, response, accessDeniedException) -> {
                     log.warn("권한이 없는 사용자가 자원에 접근하려 합니다 : " + accessDeniedException.getMessage());
-                    FilterResponseUtils.forbidden(response, new Exception403("권한이 없습니다"));
+                    FilterResponseUtils.forbidden(response, new Exception403(INVALID_USER.getMessage()));
         });
 
         // 11. 인증, 권한 필터 설정
@@ -98,9 +101,7 @@ public class SecurityConfig {
                         .antMatchers("/user/**").access("hasAuthority('ADMIN') or hasAuthority('USER')")
                         .antMatchers("/admin/**").hasAuthority("ADMIN")
                         .anyRequest().permitAll()
-
         );
-
         return http.build();
     }
 
@@ -117,5 +118,4 @@ public class SecurityConfig {
 
         return source;
     }
-
 }

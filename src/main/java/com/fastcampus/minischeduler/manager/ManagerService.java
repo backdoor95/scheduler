@@ -1,21 +1,31 @@
 package com.fastcampus.minischeduler.manager;
 
+import com.fastcampus.minischeduler.core.exception.Exception401;
+import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.Role;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserRepository;
 import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.fastcampus.minischeduler.core.exception.ErrorCode.FAIL_DECODING;
+
 @Service
 @RequiredArgsConstructor
 public class ManagerService {
 
     private final ManagerRepository managerRepository;
+    private final UserRepository userRepository;
 
     private final AES256Utils aes256Utils;
 
@@ -28,26 +38,29 @@ public class ManagerService {
                 .findByUsernameAndPassword(loginRequestDto.getUsername(), loginRequestDto.getPassword());
     }
 
-    public List<UserResponse.UserDto> getUserListByRole(String role) throws GeneralSecurityException {
+    public Page<UserResponse.UserDto> getUserListByRole(String role, Pageable pageable) {
 
-        List<UserResponse.UserDto> response = new ArrayList<>();
-        List<User> users = null;
-        if (role == null || role.equals("ALL")) users = managerRepository.findAllUsers();
-        else users = managerRepository.findUsersByRole(Role.valueOf(role));
+        Page<User> userPage = null;
 
-        for (User user : users) {
-            UserResponse.UserDto userDto =
-                    UserResponse.UserDto.builder()
-                            .id(user.getId())
-                            .email(aes256Utils.decryptAES256(user.getEmail()))
-                            .profileImage(user.getProfileImage())
-                            .role(user.getRole())
-                            .fullName(aes256Utils.decryptAES256(user.getFullName()))
-                            .sizeOfTicket(user.getSizeOfTicket())
-                            .build();
-            response.add(userDto);
-        }
+        if (role == null || role.equals("ALL")) userPage =
+                userRepository.findAll(pageable);
+        if (role != null && !role.equals("ALL")) userPage =
+                managerRepository.findUsersByRole(Role.valueOf(role), pageable);
 
+        Page<UserResponse.UserDto> response = userPage.map(m -> {
+            try {
+                return UserResponse.UserDto.builder()
+                        .id(m.getId())
+                        .email(aes256Utils.decryptAES256(m.getEmail()))
+                        .profileImage(m.getProfileImage())
+                        .role(m.getRole())
+                        .fullName(aes256Utils.decryptAES256(m.getFullName()))
+                        .sizeOfTicket(m.getSizeOfTicket())
+                        .build();
+            } catch (GeneralSecurityException gse) {
+                throw new Exception500(FAIL_DECODING.getMessage());
+            }
+        });
         return response;
     }
 
