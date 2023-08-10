@@ -18,7 +18,9 @@
         <img src="https://img.shields.io/badge/Slack-4A154B?style=for-the-badge&logo=Slack&logoColor=white">
         <img src="https://img.shields.io/badge/notion-000000?style=for-the-badge&logo=notion&logoColor=white">
         <img src="https://img.shields.io/badge/Zoom-2D8CFF?style=for-the-badge&logo=Zoom&logoColor=white">
-        <h2>➬ <a href="https://github.com/MINI-FASTCAMPUS5/scheduler-front">프론트엔드 깃허브 레포지토리 바로가기</a></h2>
+        <h2>⤴️ 바로가기</h2>
+        <h3>➬ <a href="https://github.com/MINI-FASTCAMPUS5/scheduler-front">front-end GitHub Repository</a></h3>
+        <h1>➬ <a href="http://ec2-34-228-10-85.compute-1.amazonaws.com">배포된 프로젝트 사이트</a></h1>
         <h2>👨‍👩‍👧‍👦 팀원 역할</h2>
         <table>
             <tbody>
