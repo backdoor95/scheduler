@@ -17,9 +17,10 @@ public enum ErrorCode {
     EMPTY_TITLE("제목이 비어있습니다"),
     EMPTY_ROLE("권한을 입력해주세요"),
     EMPTY_ROLE_ADMIN_OR_FAN("'기획사' 또는 '팬'을 선택해주세요"),
-    EMPTY_TICKET("해당 티켓이 존재하지 않습니다"),
+    TICKET_NOT_FOUND("해당 티켓이 존재하지 않습니다"),
     EMPTY_PROGRESS("'승인' 또는 '거절'을 선택해주세요"),
     EMPTY_SCHEDULEINFO("해당하는 공연의 정보를 찾을 수 없습니다"),
+    EMPTY_TICKET("티켓이 부족합니다."),
 
 
 

@@ -41,7 +41,7 @@ public class UserController {
 
             return ResponseEntity.ok(new ResponseDTO<>(response));
         } catch (GeneralSecurityException gse) {
-            throw new Exception500("디코딩에 실패하였습니다");
+            throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
     }
 
