@@ -230,10 +230,16 @@ public class SchedulerAdminController {
     }
 
     /**
+<<<<<<< Updated upstream
      * 티켓 결재 페이지 : 팬이 신청한 티켓을 승인하거나 반려함
      * @param token : 사용자 인증 토큰
      * @return : 기획사 정보와 관련 티켓승인현황, 기획사 일정을 반환
      * @throws Exception500 디코딩에 실패한 경우
+=======
+     * 티케팅 결재승인 페이지
+     * @param token 사용자 인증 토큰
+     * @return      userDto, scheduleDto, countProcessDto
+>>>>>>> Stashed changes
      */
     @GetMapping("/schedule/confirm")
     public ResponseEntity<?> getAdminSchedulerAndUserScheduler(
@@ -277,6 +283,7 @@ public class SchedulerAdminController {
         String message = null;
         Progress confirmProgress = null;
         if (progress.equals("ACCEPT")) {
+            fan.setUsedTicket(fan.getUsedTicket() + 1);
             confirmProgress = Progress.ACCEPT;
             message = "티켓을 승인합니다";
         } else if(progress.equals("REFUSE")) {
