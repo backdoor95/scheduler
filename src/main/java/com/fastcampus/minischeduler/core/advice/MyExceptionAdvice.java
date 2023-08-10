@@ -2,9 +2,10 @@ package com.fastcampus.minischeduler.core.advice;
 
 import com.fastcampus.minischeduler.core.exception.*;
 import com.fastcampus.minischeduler.core.utils.ApiUtils;
+import com.fastcampus.minischeduler.manager.exception.AuthException;
+import com.fastcampus.minischeduler.manager.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,11 +13,6 @@ import org.springframework.web.bind.MissingPathVariableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -88,5 +84,27 @@ public class MyExceptionAdvice {
                 e.getBindingResult().getFieldError().getDefaultMessage()
         );
         return new ResponseEntity<>(ev.body(), ev.status());
+    }
+
+    @ExceptionHandler(CustomException.class)
+    public String basicException(Exception e) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<script>");
+        sb.append("alert('" + e.getMessage() + "');");
+        sb.append("history.back();"); // 알림창 띄우고 페이지는 그대로
+        sb.append("</script>");
+        return sb.toString();
+    }
+
+    @ExceptionHandler(AuthException.class)
+    public String authException(Exception e) {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("<script>");
+        sb.append("alert('" + e.getMessage() + "');");
+        sb.append("location.href='/manager/login';"); // 알림창 띄우고 로그인창으로 이동
+        sb.append("</script>");
+        return sb.toString();
     }
 }

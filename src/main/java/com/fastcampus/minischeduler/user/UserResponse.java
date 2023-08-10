@@ -65,8 +65,6 @@ public class UserResponse {
             this.profileImage = user.getProfileImage();
             this.role = user.getRole();
         }
-
-
     }
 
     @Data

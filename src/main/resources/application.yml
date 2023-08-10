@@ -1,8 +1,9 @@
 server:
   error:
+    path: /error
     whitelabel:
       enabled: false
-  port: 5000
+  port: 8080
   servlet:
     encoding:
       charset: utf-8
@@ -14,10 +15,10 @@ logging:
   level:
     '[com.fastcampus.minischeduler]': INFO
     org:
-#      hibernate:
-#        type:
-#          descriptor:
-#            sql: trace
+      hibernate:
+        type:
+          descriptor:
+            sql: trace
     com:
       amazonaws:
         util:
@@ -48,6 +49,12 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
       enabled: true
+  thymeleaf:
+    prefix: classpath:templates
+    suffix: .html
+    mode: HTML
+    check-template-location: true
+    cache: false
   datasource:
     username: ${RDS.USERNAME}
     password: ${RDS.PASSWORD}
@@ -56,7 +63,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
