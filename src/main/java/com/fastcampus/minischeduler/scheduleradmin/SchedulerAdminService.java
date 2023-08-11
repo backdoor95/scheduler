@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
+import com.fastcampus.minischeduler.core.utils.DateUtils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
@@ -596,16 +597,16 @@ public class SchedulerAdminService {
                     if (field.getName().equals("user")) {
                         User user = (User)field.get(schedulerUser);
                         cell.setCellValue(
-                                aes256Utils.decryptAES256(user.getFullName()) + " " +
+                                aes256Utils.decryptAES256(user.getFullName()) + " | " +
                                 aes256Utils.decryptAES256(user.getEmail())
                         );
                     } else if (field.getName().equals("schedulerAdmin")) {
                         SchedulerAdmin schedulerAdmin = (SchedulerAdmin)field.get(schedulerUser);
                         cell.setCellValue(
                                 "행사번호: " + schedulerAdmin.getId() +
-                                "제목: " + schedulerAdmin.getTitle() +
-                                " 기간: " + schedulerAdmin.getScheduleStart() +
-                                "~ " + schedulerAdmin.getScheduleEnd()
+                                " | 제목: " + schedulerAdmin.getTitle() +
+                                " | 기간: " + DateUtils.toStringFormat(schedulerAdmin.getScheduleStart()) +
+                                "~ " + DateUtils.toStringFormat(schedulerAdmin.getScheduleEnd())
                         );
                     } else {
                         cell.setCellValue(field.get(schedulerUser).toString());
