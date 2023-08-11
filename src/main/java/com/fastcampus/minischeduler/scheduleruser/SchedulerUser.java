@@ -11,7 +11,8 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Entity(name = "scheduler_user_tb")
+@Entity
+@Table(name = "scheduler_user_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder

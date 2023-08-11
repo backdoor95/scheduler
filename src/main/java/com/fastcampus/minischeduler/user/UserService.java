@@ -40,6 +40,8 @@ public class UserService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    private final String DEFAULT_IMAGE = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
+
     public String getBucketName() {
         return this.bucketName;
     }
@@ -60,7 +62,10 @@ public class UserService {
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         request.setEmail(aes256Utils.encryptAES256(request.getEmail()));
         request.setFullName(aes256Utils.encryptAES256(request.getFullName()));
-        if (image != null) request.setProfileImage(uploadImageToS3(image));
+        if (image != null)
+            request.setProfileImage(uploadImageToS3(image));
+        if (image == null)
+            request.setProfileImage(DEFAULT_IMAGE);
 
         // 회원 가입
         User userPS = userRepository.save(request.toEntity());
@@ -294,7 +299,6 @@ public class UserService {
 
         User userPS = userRepository.findById(jwtTokenProvider.getUserIdFromToken(token))
                 .orElseThrow(() -> new NoSuchElementException("사용자 정보를 찾을 수 없습니다"));
-        String imageURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
 
         String url = userPS.getProfileImage();
 
@@ -302,7 +306,7 @@ public class UserService {
         if(!fileName.equals("default.jpg")) amazonS3.deleteObject(new DeleteObjectRequest(bucketName, fileName)); // aws에서 삭제
 
         //지울때 url은 기본 프로필로 초기화
-        userPS.updateUserProfileImage(imageURL);// profileImage에 파일위치 저장
+        userPS.updateUserProfileImage(DEFAULT_IMAGE);// profileImage에 파일위치 저장
 
         User updatedUser = userRepository.save(userPS); // 업데이트된 User 객체를 DB에 반영합니다.
 

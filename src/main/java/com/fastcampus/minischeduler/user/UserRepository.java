@@ -12,13 +12,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.email = :email")
     Optional<User> findByEmail(@Param("email") String email);
 
-    @Query(value = "UPDATE user_tb SET size_of_ticket = 12 WHERE role = 'USER'", nativeQuery = true)
-    List<User> update12TicketsOfAllFans();
+    @Query("UPDATE User AS u SET u.sizeOfTicket = 12 WHERE u.role = 'USER'")
+    void update12TicketsOfAllFans();
 
-    @Query(value = "SELECT " +
-            "sa.title AS title, " +
-            "su.schedule_start AS scheduleStart, " +
-            "su.progress AS progress " +
+    @Query(value =
+            "SELECT " +
+                    "sa.title AS title, " +
+                    "su.schedule_start AS scheduleStart, " +
+                    "su.progress AS progress " +
             "FROM scheduler_user_tb AS su " +
             "INNER JOIN scheduler_admin_tb AS sa " +
             "ON sa.id = su.scheduler_admin_id "+
@@ -26,11 +27,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
             nativeQuery=true)
     List<UserResponse.GetRoleUserTicketDTO> findRoleUserTicketListById(@Param("id") Long id);
 
-    @Query(value = "SELECT " +
-            "sa.title AS title, " +
-            "sa.description AS description, " +
-            "sa.schedule_start AS scheduleStart, " +
-            "sa.schedule_start AS scheduleEnd " +
+    @Query(value =
+            "SELECT " +
+                    "sa.title AS title, sa.description AS description, " +
+                    "sa.schedule_start AS scheduleStart, " +
+                    "sa.schedule_start AS scheduleEnd " +
             "FROM scheduler_admin_tb AS sa " +
             "WHERE sa.user_id = :id",
             nativeQuery=true)
@@ -43,13 +44,29 @@ public interface UserRepository extends JpaRepository<User, Long> {
             nativeQuery = true)
     Integer countAdminScheduleRegisteredEvent(@Param("id") Long id);
 
-
-    @Query(value = "SELECT " +
-            "SUM(CASE WHEN progress = 'WAITING' THEN 1 END) AS waiting, " +
-            "SUM(CASE WHEN progress = 'ACCEPT' THEN 1 END) AS accepted, " +
-            "SUM(CASE WHEN progress = 'REFUSE' THEN 1 END) AS refused " +
-            "FROM scheduler_user_tb " +
-            "WHERE scheduler_admin_id = :id",
-            nativeQuery = true)
+    @Query(value =
+            "SELECT SUM(T.WAITING) AS WAITING, SUM(T.ACCEPTED) AS ACCEPTED, SUM(T.REFUSED) AS REFUSED " +
+                    "FROM (" +
+                    "SELECT " +
+                    "CASE WHEN su.progress = 'WAITING' THEN COUNT(su.progress) END AS WAITING, " +
+                    "CASE WHEN su.progress = 'ACCEPT' THEN COUNT(su.progress) END AS ACCEPTED, " +
+                    "CASE WHEN su.progress = 'REFUSE' THEN COUNT(su.progress) END AS REFUSED " +
+                    "FROM scheduler_user_tb AS su " +
+                    "INNER JOIN scheduler_admin_tb AS sa ON sa.id = su.scheduler_admin_id " +
+                    "WHERE sa.user_id = :id GROUP BY su.progress" +
+                    ") AS T",
+            nativeQuery = true
+    )
     UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgressByAdminId(@Param("id") Long id);
+
+//    @Query(value =
+//            "SELECT SUM(T.WAITING) AS WAITING, SUM(T.ACCEPTED) AS ACCEPTED, SUM(T.REFUSED) AS REFUSED " +
+//                    "FROM (SELECT " +
+//                    "CASE WHEN su.progress = 'WAITING' THEN COUNT(su.progress) END AS WAITING, " +
+//                    "CASE WHEN su.progress = 'ACCEPT' THEN COUNT(su.progress) END AS ACCEPTED, " +
+//                    "CASE WHEN su.progress = 'REFUSE' THEN COUNT(su.progress) END AS REFUSED " +
+//                    "FROM scheduler_user_tb AS su WHERE su.scheduler_admin_id = :id GROUP BY su.progress) AS T",
+//            nativeQuery = true
+//    )
+//    UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgressByAdminId(@Param("id") Long id);
 }
