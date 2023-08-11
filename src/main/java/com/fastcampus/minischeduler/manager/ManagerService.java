@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.manager;
 
-import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.user.Role;
@@ -9,14 +8,10 @@ import com.fastcampus.minischeduler.user.UserRepository;
 import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.security.GeneralSecurityException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.fastcampus.minischeduler.core.exception.ErrorCode.FAIL_DECODING;
 

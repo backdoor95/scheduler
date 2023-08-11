@@ -1,6 +1,5 @@
 package com.fastcampus.minischeduler.scheduleruser;
 
-import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdmin;
 import com.fastcampus.minischeduler.scheduleradmin.SchedulerAdminRepository;
@@ -25,7 +24,6 @@ public class SchedulerUserService {
     private final SchedulerUserRepository schedulerUserRepository;
     private final SchedulerAdminRepository schedulerAdminRepository;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final AES256Utils aes256Utils;
 
     /**

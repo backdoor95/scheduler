@@ -13,20 +13,11 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
 
     List<SchedulerAdmin> findByUser(User user);
 
-//    @Query(value =
-//            "SELECT sa.id AS adminScheduleId, sa.title, sa.description, " +
-//            "su.id AS userScheduleId, su.schedule_start AS scheduleStart, su.progress, u.full_name AS fullName " +
-//            "FROM scheduler_user_tb AS su " +
-//            "LEFT OUTER JOIN user_tb AS u " +
-//            "ON su.user_id = u.id " +
-//            "LEFT OUTER JOIN scheduler_admin_tb AS sa " +
-//            "ON sa.id = :id",
-//            nativeQuery = true)
-//    List<SchedulerAdminResponse.ScheduleDTO> findSchedulesWithUsersById(Long id);
-
     @Query(
-            "SELECT sa.id AS adminScheduleId, sa.title AS title, sa.description AS description, " +
-            "su.id AS userScheduleId, su.scheduleStart AS scheduleStart, su.progress AS progress, u.fullName AS fullName " +
+            "SELECT " +
+                    "sa.id AS adminScheduleId, sa.title AS title, sa.description AS description, " +
+                    "su.id AS userScheduleId, su.scheduleStart AS scheduleStart, su.progress AS progress, " +
+                    "u.fullName AS fullName " +
             "FROM SchedulerUser AS su " +
             "LEFT OUTER JOIN User AS u " +
             "ON su.user.id = u.id " +

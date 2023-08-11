@@ -4,13 +4,9 @@ import com.fastcampus.minischeduler.core.exception.Exception400;
 import com.fastcampus.minischeduler.core.exception.Exception500;
 import com.fastcampus.minischeduler.manager.exception.AuthException;
 import com.fastcampus.minischeduler.manager.exception.CustomException;
-import com.fastcampus.minischeduler.user.User;
 import com.fastcampus.minischeduler.user.UserResponse;
-import com.fastcampus.minischeduler.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
@@ -18,8 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpSession;
-import java.security.GeneralSecurityException;
-import java.util.List;
 
 import static com.fastcampus.minischeduler.core.exception.ErrorCode.*;
 
