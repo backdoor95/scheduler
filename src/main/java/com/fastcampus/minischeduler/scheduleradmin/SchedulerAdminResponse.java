@@ -16,6 +16,7 @@ public class SchedulerAdminResponse {
 
     private UserDto userDto;
     private CountProcessDTO countProcessDto;
+//private ImplCountProcessDTO countProcessDto;
     private List<ImplScheduleDTO> implScheduleDto;
 
     public interface ScheduleDTO {
@@ -38,6 +39,7 @@ public class SchedulerAdminResponse {
     // 이때문에 이를 구현하는 클래스를 DTO로 만들어 시도하였음 2023-08-08
     @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class ImplScheduleDTO implements ScheduleDTO {
 
         Long adminScheduleId;
@@ -97,6 +99,17 @@ public class SchedulerAdminResponse {
         Integer getWaiting();
         Integer getAccepted();
         Integer getRefused();
+    }
+
+    @AllArgsConstructor
+    @Getter
+    @NoArgsConstructor
+    public static class ImplCountProcessDTO implements CountProcessDTO{
+
+        // 승인 현황 별 count
+        Integer waiting;
+        Integer accepted;
+        Integer refused;
     }
 
     @Data

@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
+import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.core.utils.DateUtils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;

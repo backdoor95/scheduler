@@ -6,6 +6,7 @@ import com.fastcampus.minischeduler.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -15,25 +16,31 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
 
     @Query(
             "SELECT " +
-                    "sa.id AS adminScheduleId, sa.title AS title, sa.description AS description, " +
+                    "sa.id AS adminScheduleId, " +
+                    "sa.title AS title, sa.description AS description, " +
                     "su.id AS userScheduleId, su.scheduleStart AS scheduleStart, su.progress AS progress, " +
                     "u.fullName AS fullName " +
-            "FROM SchedulerUser AS su " +
-            "LEFT OUTER JOIN User AS u " +
-            "ON su.user.id = u.id " +
-            "LEFT OUTER JOIN SchedulerAdmin AS sa " +
-            "ON sa.id = :id"
+            "FROM SchedulerAdmin AS sa " +
+            "INNER JOIN SchedulerUser AS su ON sa.id = su.schedulerAdmin.id " +
+            "INNER JOIN User AS u ON su.user.id = u.id " +
+            "WHERE sa.user.id = :id"
     )
-    List<SchedulerAdminResponse.ScheduleDTO> findSchedulesWithUsersById(Long id);
+    List<SchedulerAdminResponse.ScheduleDTO> findSchedulesWithUsersById(@Param("id") Long id);
 
-    @Query(
-            "SELECT " +
-            "SUM(CASE WHEN su.progress = 'WAITING' THEN 1 ELSE 0 END) AS waiting, " +
-            "SUM(CASE WHEN su.progress = 'ACCEPT' THEN 1 ELSE 0 END) AS accepted, " +
-            "SUM(CASE WHEN su.progress = 'REFUSE' THEN 1 ELSE 0 END) AS refused " +
-            "FROM SchedulerUser AS su WHERE su.schedulerAdmin.id = :id"
+    @Query(value =
+            "SELECT SUM(T.WAITING) AS WAITING, SUM(T.ACCEPTED) AS ACCEPTED, SUM(T.REFUSED) AS REFUSED " +
+            "FROM (" +
+                "SELECT " +
+                "CASE WHEN su.progress = 'WAITING' THEN COUNT(su.progress) END AS WAITING, " +
+                "CASE WHEN su.progress = 'ACCEPT' THEN COUNT(su.progress) END AS ACCEPTED, " +
+                "CASE WHEN su.progress = 'REFUSE' THEN COUNT(su.progress) END AS REFUSED " +
+                "FROM scheduler_user_tb AS su " +
+                "INNER JOIN scheduler_admin_tb AS sa ON sa.id = su.scheduler_admin_id " +
+                "WHERE sa.user_id = :id GROUP BY su.progress" +
+            ") AS T",
+            nativeQuery = true
     )
-    SchedulerAdminResponse.CountProcessDTO countScheduleGroupByProgressById(Long id);
+    SchedulerAdminResponse.CountProcessDTO countScheduleGroupByProgressById(@Param("id") Long id);
 
     @Modifying
     @Query("UPDATE SchedulerUser su SET su.progress = :progress WHERE su.id = :schedulerAdminId")
