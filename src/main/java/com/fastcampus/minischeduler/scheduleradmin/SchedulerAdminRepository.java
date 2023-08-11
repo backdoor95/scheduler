@@ -24,21 +24,18 @@ public interface SchedulerAdminRepository extends JpaRepository<SchedulerAdmin, 
             nativeQuery = true)
     List<SchedulerAdminResponse.ScheduleDTO> findSchedulesWithUsersById(Long id);
 
-    @Query(value =
-            "SELECT SUM(T.WAITING) AS waiting, SUM(T.ACCEPTED) AS accepted, SUM(T.REFUSED) AS refused " +
-            "FROM (" +
+    @Query(
             "   SELECT " +
-            "   CASE WHEN progress = 'WAITING' THEN COUNT(progress) END AS WAITING, " +
-            "   CASE WHEN progress = 'ACCEPT' THEN COUNT(progress) END AS ACCEPTED, " +
-            "   CASE WHEN progress = 'REFUSE' THEN COUNT(progress) END AS REFUSED " +
-            "   FROM scheduler_user_tb WHERE scheduler_admin_id = :id GROUP BY progress) AS T",
-            nativeQuery = true)
+            "   SUM(CASE WHEN su.progress = 'WAITING' THEN 1 ELSE 0 END) AS waiting, " +
+            "   SUM(CASE WHEN su.progress = 'ACCEPT' THEN 1 ELSE 0 END) AS accepted, " +
+            "   SUM(CASE WHEN su.progress = 'REFUSE' THEN 1 ELSE 0 END) AS refused " +
+            "   FROM SchedulerUser AS su WHERE su.schedulerAdmin.id = :id")
     SchedulerAdminResponse.CountProcessDTO countScheduleGroupByProgressById(Long id);
 
     @Modifying
-    @Query("UPDATE scheduler_user_tb SET progress = :progress WHERE id = :schedulerAdminId")
+    @Query("UPDATE SchedulerUser su SET su.progress = :progress WHERE su.id = :schedulerAdminId")
     void updateUserScheduleById(Long schedulerAdminId, Progress progress);
 
-    @Query("SELECT su FROM scheduler_user_tb AS su WHERE su.schedulerAdmin.user.id = :id")
+    @Query("SELECT su FROM SchedulerUser su WHERE su.schedulerAdmin.user.id = :id")
     List<SchedulerUser> findAllTicketsByAdminId(Long id);
 }
