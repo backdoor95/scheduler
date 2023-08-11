@@ -12,7 +12,8 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Getter
-@Entity(name = "scheduler_admin_tb")
+@Entity
+@Table(name = "scheduler_admin_tb")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class SchedulerAdmin { // 기획사 일정
