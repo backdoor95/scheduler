@@ -2,9 +2,7 @@ package com.fastcampus.minischeduler.scheduleradmin;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.fastcampus.minischeduler.core.auth.jwt.JwtTokenProvider;
 import com.fastcampus.minischeduler.core.exception.Exception400;
-import com.fastcampus.minischeduler.core.exception.Exception401;
 import com.fastcampus.minischeduler.core.utils.AES256Utils;
 import com.fastcampus.minischeduler.core.utils.DateUtils;
 import com.fastcampus.minischeduler.scheduleruser.Progress;
@@ -52,8 +50,6 @@ public class SchedulerAdminService {
     private final SchedulerUserRepository schedulerUserRepository;
     private final UserRepository userRepository;
     private final AES256Utils aes256Utils;
-
-    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * 전체 일정 목록을 출력합니다.
@@ -142,11 +138,9 @@ public class SchedulerAdminService {
     @Transactional
     public SchedulerAdminResponseDto createScheduler(
             SchedulerAdminRequestDto schedulerAdminRequestDto,
-            String token,
+            Long loginUserId,
             MultipartFile image
     ) throws GeneralSecurityException, IOException {
-
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(()-> new Exception400(loginUserId.toString(), "사용자 정보를 찾을 수 없습니다"));
@@ -272,14 +266,11 @@ public class SchedulerAdminService {
 
         YearMonth yearMonth = null;
         if (year != null && month != null) yearMonth = YearMonth.of(year, month);
-        String encryptedKeyword = aes256Utils.encryptAES256(keyword);
-        System.out.println(keyword + encryptedKeyword);
-        //List<SchedulerAdmin> schedulers = schedulerAdminRepository.findByUserFullNameContaining(encryptedKeyword);
-        List<SchedulerAdmin> schedulers = schedulerAdminRepository.findAll();
-        System.out.println(schedulers);
+        System.out.println(keyword + aes256Utils.encryptAES256(keyword));
+
         List<SchedulerAdminResponseDto> schedulerAdminResponseDtoList = new ArrayList<>();
 
-        for (SchedulerAdmin scheduler : schedulers) {
+        for (SchedulerAdmin scheduler : schedulerAdminRepository.findAll()) {
             System.out.println(scheduler);
             UserResponse.UserDto responseUser = new UserResponse.UserDto(scheduler.getUser());
             responseUser.setFullName(aes256Utils.decryptAES256(responseUser.getFullName()));
@@ -370,12 +361,10 @@ public class SchedulerAdminService {
      * @return Map<String, Object>
      */
     public Map<String, Object> getSchedulerListById(
-            String token,
+            Long loginUserId,
             Integer year,
             Integer month
     ) throws GeneralSecurityException {
-
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
 
         Map<String, Object> response = new HashMap<>();
         User user = userRepository.findById(loginUserId)
@@ -447,10 +436,10 @@ public class SchedulerAdminService {
      * @return   : 기획사 정보, 관련 티켓승인현황, 기획사 일정
      */
     @Transactional(readOnly = true)
-    public SchedulerAdminResponse getAdminScheduleDetail(String token) throws GeneralSecurityException {
-
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
-        UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
+    public SchedulerAdminResponse getAdminScheduleDetail(
+            Long loginUserId,
+            UserResponse.UserDto userInfo
+    ) throws GeneralSecurityException {
 
         List<SchedulerAdminResponse.ImplScheduleDTO> scheduleDtoList = new ArrayList<>();
 
@@ -486,10 +475,8 @@ public class SchedulerAdminService {
     public UserResponse.UserDto updateUserSchedule(
             Long schedulerAdminId,
             Progress progress,
-            String token
+            UserResponse.UserDto responseUserInfo
     ) throws GeneralSecurityException {
-
-        UserResponse.UserDto responseUserInfo = jwtTokenProvider.getUserInfo(token);
 
         responseUserInfo.setId(responseUserInfo.getId());
         responseUserInfo.setFullName(aes256Utils.decryptAES256(responseUserInfo.getFullName()));
@@ -507,9 +494,7 @@ public class SchedulerAdminService {
      * 엑셀 파일을 다운받습니다.
      * @throws Exception : 에러
      */
-    public void excelDownload(String token) throws GeneralSecurityException, IllegalAccessException, IOException {
-
-        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+    public void excelDownload(Long loginUserId) throws GeneralSecurityException, IllegalAccessException, IOException {
 
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("티케팅 현황"); // 엑셀 시트 생성

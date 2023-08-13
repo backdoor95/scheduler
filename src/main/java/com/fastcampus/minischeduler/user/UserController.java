@@ -136,6 +136,8 @@ public class UserController {
             @RequestParam(required = false) String role,
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
         if (role == null || role.isBlank())
             throw new Exception400("role", ErrorCode.EMPTY_ROLE_ADMIN_OR_FAN.getMessage());
         if(!role.equals("ADMIN") && !role.equals("USER"))
@@ -143,8 +145,8 @@ public class UserController {
 
         try {
             if (role.equals("ADMIN"))
-                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(token)));
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(token)));
+                return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleAdminInfo(loginUserId)));
+            return ResponseEntity.ok(new ResponseDTO<>(userService.getRoleUserInfo(loginUserId)));
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
@@ -161,7 +163,9 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         try {
-            return ResponseEntity.ok(new ResponseDTO<>(userService.getUserInfo(token)));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>(userService.getUserInfo(jwtTokenProvider.getUserIdFromToken(token)))
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
@@ -180,7 +184,14 @@ public class UserController {
             @RequestBody @Valid UserRequest.UpdateUserInfoDTO updateUserInfoDTO
     ) {
         try {
-            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserInfo(updateUserInfoDTO, token)));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>(
+                            userService.updateUserInfo(
+                                    updateUserInfoDTO,
+                                    jwtTokenProvider.getUserIdFromToken(token)
+                            )
+                    )
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
@@ -198,10 +209,13 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token,
             @RequestParam("file") MultipartFile file
     ) {
+        Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+
         // 이미지 파일을 넣지 않았을경우 디폴트 이미지로 변경 필요.
         if (file.isEmpty()) {
             String defaultNameURL = "https://miniproject12storage.s3.ap-northeast-2.amazonaws.com/default.jpg";
-            User user = userService.findById(token);
+            User user = userService.findById(loginUserId);
+
             user.updateUserProfileImage(defaultNameURL);
             return ResponseEntity.ok(new ResponseDTO<>(user));
         }
@@ -209,10 +223,9 @@ public class UserController {
         if(file.getSize() > 10000000)
             throw new Exception413(String.valueOf(file.getSize()), ErrorCode.FILE_CAPACITY_EXCEEDED.getMessage());
 
-
         try {
             // user 객체를 이용한 작업 수행
-            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserProfileImage(file, token)));
+            return ResponseEntity.ok(new ResponseDTO<>(userService.updateUserProfileImage(file, loginUserId)));
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
@@ -231,7 +244,9 @@ public class UserController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         try {
-            return ResponseEntity.ok(new ResponseDTO<>(userService.deleteUserProfileImage(token)));
+            return ResponseEntity.ok(
+                    new ResponseDTO<>(userService.deleteUserProfileImage(jwtTokenProvider.getUserIdFromToken(token)))
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }

@@ -59,14 +59,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     )
     UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgressByAdminId(@Param("id") Long id);
 
-//    @Query(value =
-//            "SELECT SUM(T.WAITING) AS WAITING, SUM(T.ACCEPTED) AS ACCEPTED, SUM(T.REFUSED) AS REFUSED " +
-//                    "FROM (SELECT " +
-//                    "CASE WHEN su.progress = 'WAITING' THEN COUNT(su.progress) END AS WAITING, " +
-//                    "CASE WHEN su.progress = 'ACCEPT' THEN COUNT(su.progress) END AS ACCEPTED, " +
-//                    "CASE WHEN su.progress = 'REFUSE' THEN COUNT(su.progress) END AS REFUSED " +
-//                    "FROM scheduler_user_tb AS su WHERE su.scheduler_admin_id = :id GROUP BY su.progress) AS T",
-//            nativeQuery = true
-//    )
-//    UserResponse.GetRoleAdminCountProgressDTO countAllScheduleUserProgressByAdminId(@Param("id") Long id);
 }

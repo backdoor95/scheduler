@@ -152,12 +152,12 @@ public class SchedulerUserService {
 
     /**
      * 사용자 티켓 수 확인
-     * @param userId
+     * @param loginUserId
      * @return sizeOfTicket
      */
-    public int getUserTicketCount(Long userId) {
+    public int getUserTicketCount(Long loginUserId) {
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다."));
 
         return user.getSizeOfTicket();
@@ -165,16 +165,16 @@ public class SchedulerUserService {
 
     /**
      * 한달에 한번만 신청할수 있게 사용자의 전체 신청내역 날짜와 비교함
-     * @param userId
+     * @param loginUserId
      * @param scheduleStart
      * @return boolean
      */
     public boolean existingSchedulerInCurrentMonth(
-            Long userId,
+            Long loginUserId,
             LocalDateTime scheduleStart
     ) {
 
-        List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(userId);
+        List<SchedulerUser> schedulerUsers = schedulerUserRepository.findByUserId(loginUserId);
         int year = scheduleStart.getYear();
         int month = scheduleStart.getMonthValue();
 
@@ -192,13 +192,13 @@ public class SchedulerUserService {
     /**
      * token으로 사용자를 찾고 schedule의 id로 작성한 스케줄의 userId와 비교해 권한확인을 함
      * 삭제되면 티켓수를 1개 다시 되돌려주고 삭제함
-     * @param id
+     * @param userSchedulerId
      * @param loginUserId
      */
-    public void cancel(Long id, Long loginUserId) throws GeneralSecurityException {
+    public void cancel(Long userSchedulerId, Long loginUserId) throws GeneralSecurityException {
         User user = userRepository.findById(loginUserId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 정보를 찾을 수 없습니다"));
-        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(id);
+        SchedulerUserResponseDto schedulerUserDto = getSchedulerById(userSchedulerId);
         if (!schedulerUserDto.getUser().getId().equals(loginUserId))
             throw new IllegalStateException("스케줄을 삭제할 권한이 없습니다.");
 
@@ -206,8 +206,7 @@ public class SchedulerUserService {
         int ticket = user.getSizeOfTicket() + 1;
         user.setSizeOfTicket(ticket);
 
-        schedulerUserRepository.deleteById(id);
-
+        schedulerUserRepository.deleteById(userSchedulerId);
     }
 
     /**
