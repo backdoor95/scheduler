@@ -9,6 +9,7 @@ import com.fastcampus.minischeduler.scheduleruser.Progress;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUser;
 import com.fastcampus.minischeduler.scheduleruser.SchedulerUserRepository;
 import com.fastcampus.minischeduler.user.User;
+import com.fastcampus.minischeduler.user.UserResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -86,7 +87,13 @@ public class SchedulerAdminController {
         if (month != null && (month < 1 || month > 12))
             throw new Exception400("month", ErrorCode.INVALID_MONTH.getMessage());
         try {
-            return ResponseEntity.ok(schedulerAdminService.getSchedulerListById(token, year, month));
+            return ResponseEntity.ok(
+                    schedulerAdminService.getSchedulerListById(
+                            jwtTokenProvider.getUserIdFromToken(token),
+                            year,
+                            month
+                    )
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
@@ -116,7 +123,13 @@ public class SchedulerAdminController {
             throw new Exception400("title", ErrorCode.EMPTY_TITLE.getMessage());
 
         try {
-            return ResponseEntity.ok(schedulerAdminService.createScheduler(schedulerAdminRequestDto, token, image));
+            return ResponseEntity.ok(
+                    schedulerAdminService.createScheduler(
+                            schedulerAdminRequestDto,
+                            jwtTokenProvider.getUserIdFromToken(token),
+                            image
+                    )
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         } catch (IOException ioe) {
@@ -245,7 +258,12 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         try {
-            return ResponseEntity.ok(new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(token)));
+            Long loginUserId = jwtTokenProvider.getUserIdFromToken(token);
+            UserResponse.UserDto userInfo = jwtTokenProvider.getUserInfo(token);
+
+            return ResponseEntity.ok(
+                    new ResponseDTO<>(schedulerAdminService.getAdminScheduleDetail(loginUserId, userInfo))
+            );
         } catch (GeneralSecurityException gse) {
             throw new Exception500(ErrorCode.FAIL_DECODING.getMessage());
         }
@@ -297,7 +315,11 @@ public class SchedulerAdminController {
         try {
             return ResponseEntity.ok(
                     new ResponseDTO<>(
-                            schedulerAdminService.updateUserSchedule(userSchedulerId, confirmProgress, token),
+                            schedulerAdminService.updateUserSchedule(
+                                    userSchedulerId,
+                                    confirmProgress,
+                                    jwtTokenProvider.getUserInfo(token)
+                            ),
                             message
                     )
             );
@@ -317,7 +339,7 @@ public class SchedulerAdminController {
             @RequestHeader(JwtTokenProvider.HEADER) String token
     ) {
         try {
-            schedulerAdminService.excelDownload(token);
+            schedulerAdminService.excelDownload(jwtTokenProvider.getUserIdFromToken(token));
 
             return ResponseEntity.ok("다운로드 완료");
         } catch (GeneralSecurityException gse) {
