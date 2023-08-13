@@ -42,7 +42,7 @@ public class ManagerService {
         if (role != null && !role.equals("ALL")) userPage =
                 managerRepository.findUsersByRole(Role.valueOf(role), pageable);
 
-        Page<UserResponse.UserDto> response = userPage.map(m -> {
+        return userPage.map(m -> {
             try {
                 return UserResponse.UserDto.builder()
                         .id(m.getId())
@@ -56,7 +56,6 @@ public class ManagerService {
                 throw new Exception500(FAIL_DECODING.getMessage());
             }
         });
-        return response;
     }
 
     public void updateRoleByUserId(Long userId, String role) {
