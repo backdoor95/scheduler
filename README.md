@@ -13,6 +13,7 @@
 미니 프로젝트 기간: 2023.07.24 ~ 2023.08.10<br>
 
 <h3>🔗 바로가기</h3>
+
 [![관리자페이지](https://img.shields.io/badge/관리자_페이지-F6C344.svg)](http://minischeduler-env.eba-m9yfe83y.ap-northeast-2.elasticbeanstalk.com/manager/)
 [![연간아이돌](https://img.shields.io/badge/연간_아이돌-E933A1.svg)](http://ec2-34-228-10-85.compute-1.amazonaws.com/login/)
 [![프론트엔드](https://img.shields.io/badge/프론트엔드_GitHub_Repository-white.svg)](https://github.com/MINI-FASTCAMPUS5/scheduler-front)
@@ -23,42 +24,47 @@ PASSWORD : alswns1!
 </h4>
 
 <h2>🛠️ 개발 환경 및 툴</h2>
-<img src="https://img.shields.io/badge/java 11-007396?style=flat&logo=java&logoColor=white">
-<img src="https://img.shields.io/badge/springboot-6DB33F?style=flat&logo=springboot&logoColor=white">
-<img src="https://img.shields.io/badge/spring Security-6DB33F?style=flat&logo=spring Security&logoColor=white">
-<img src="https://img.shields.io/badge/mysql-4479A1?style=flat&logo=mysql&logoColor=white">
-<img src="https://img.shields.io/badge/JPA-58FAD0?style=flat&logo=jpa&logoColor=white">
-<img src="https://img.shields.io/badge/gradle-02303A?style=flat&logo=gradle&logoColor=white">
-<img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=Git&logoColor=white"/>
-<img src="https://img.shields.io/badge/IntelliJ IDEA-000000?style=flat&logo=IntelliJ IDEA&logoColor=white">
+<span>
+    <img src="https://img.shields.io/badge/java 11-007396?style=flat&logo=java&logoColor=white">
+    <img src="https://img.shields.io/badge/springboot-6DB33F?style=flat&logo=springboot&logoColor=white"> 
+    <img src="https://img.shields.io/badge/spring Security-6DB33F?style=flat&logo=spring Security&logoColor=white"> 
+    <img src="https://img.shields.io/badge/mysql-4479A1?style=flat&logo=mysql&logoColor=white">
+    <img src="https://img.shields.io/badge/JPA-58FAD0?style=flat&logo=jpa&logoColor=white">
+    <img src="https://img.shields.io/badge/gradle-02303A?style=flat&logo=gradle&logoColor=white">
+    <img src="https://img.shields.io/badge/Git-F05032?style=flat&logo=Git&logoColor=white"/>
+    <img src="https://img.shields.io/badge/IntelliJ IDEA-000000?style=flat&logo=IntelliJ IDEA&logoColor=white">
+</span>
 <h2>📢 배포</h2>
-<img src="https://img.shields.io/badge/aws-F19E38?style=flat&logo=amazonec2&logoColor=white">
-<img src="https://img.shields.io/badge/aws-4560E2?style=flat&logo=amazonrds&logoColor=white">
-<img src="https://img.shields.io/badge/aws-3F8624?style=flat&logo=amazons3&logoColor=white">
+<span>
+    <img src="https://img.shields.io/badge/aws-F19E38?style=flat&logo=amazonec2&logoColor=white">
+    <img src="https://img.shields.io/badge/aws-4560E2?style=flat&logo=amazonrds&logoColor=white">
+    <img src="https://img.shields.io/badge/aws-3F8624?style=flat&logo=amazons3&logoColor=white">
+</span>
 <h2>💬 협업</h2>
-<img src="https://img.shields.io/badge/github-181717?style=flat&logo=github&logoColor=white">
-<img src="https://img.shields.io/badge/Slack-4A154B?style=flat&logo=Slack&logoColor=white">
-<img src="https://img.shields.io/badge/notion-000000?style=flat&logo=notion&logoColor=white">
-<img src="https://img.shields.io/badge/Zoom-2D8CFF?style=flat&logo=Zoom&logoColor=white">
-
+<span>
+    <img src="https://img.shields.io/badge/github-181717?style=flat&logo=github&logoColor=white">
+    <img src="https://img.shields.io/badge/Slack-4A154B?style=flat&logo=Slack&logoColor=white">
+    <img src="https://img.shields.io/badge/notion-000000?style=flat&logo=notion&logoColor=white">
+    <img src="https://img.shields.io/badge/Zoom-2D8CFF?style=flat&logo=Zoom&logoColor=white">
+</span>
 ---
 <h2>👨‍👩‍👧‍👦 프론트엔드 팀</h2>
 <div align=center>
     <table>
         <tr>
-            <td align="center" width="150">
+            <td align="center" width="170">
                 <a href="https://github.com/peacepiece7"><img src=https://avatars.githubusercontent.com/u/73880776?v=4" width="100px;" alt="Pildrum"/><br />
                 <sub><b>정태욱(FE-리더)</b><br></sub></a>
             </td>
-            <td align="center" width="150"><a href="https://github.com/DICEPT">
+            <td align="center" width="170"><a href="https://github.com/DICEPT">
                 <img src="https://avatars.githubusercontent.com/u/106785596?v=4" width="100px;" alt="Eunjii"/><br />
                 <sub><b>박철민</b><br></sub></a>
             </td>
-            <td align="center" width="150"><a href="https://github.com/0299bang">
+            <td align="center" width="170"><a href="https://github.com/0299bang">
                 <img src="https://avatars.githubusercontent.com/u/128245462?v=4" width="100px;" alt="Bang Misun"/><br />
                 <sub><b>방미선</b><br></sub></a>
             </td>
-            <td align="center" width="150"><a href="https://github.com/beakjiuk">
+            <td align="center" width="170"><a href="https://github.com/beakjiuk">
                 <img src="https://avatars.githubusercontent.com/u/83908991?v=4" width="100px;" alt="Lim Seung-Yi"/><br />
                 <sub><b>백지욱</b><br></sub></a>
             </td>
@@ -68,7 +74,7 @@ PASSWORD : alswns1!
                 캘린더(유저/매니저),<br>캘린더 부가기능 전체,<br>프로젝트 셋팅,<br>로딩 애니메이션,<br>깃허브 관리,<br>사용자 마이페이지,<br>매니저 행사 등록/수정
             </font></td>
             <td ><font size=1>
-                매니저(기획사) 페이지,<br>매니저 대시보드,<br>디자인-1,<br>css 전역 스타일,<br>와이어프레임,<br>로그인 배경화면,<br>캐릭터 디자인
+                기획사 페이지,<br>매니저 대시보드,<br>디자인-1,<br>css 전역 스타일,<br>와이어프레임,<br>로그인 배경화면,<br>캐릭터 디자인
             </font></td>
             <td ><font size=1>
                 사용자 페이지,<br>회원정보 수정,<br>디자인-2,<br>와이어프레임,<br>유저 플로우
@@ -83,17 +89,17 @@ PASSWORD : alswns1!
 <div align=center>
     <table>
         <tr>
-            <td align="center" width="250"><a href="https://github.com/a07224">
+            <td align="center" width="230"><a href="https://github.com/a07224">
                 <img src="https://avatars.githubusercontent.com/u/69192549?v=4" width="100px;" alt=""/>
                 <br />
                 <sub><b>강주희</b></sub></a><br />
             </td>
-            <td align="center" width="250"><a href="https://github.com/k1m2njun">
+            <td align="center" width="230"><a href="https://github.com/k1m2njun">
                 <img src="https://avatars.githubusercontent.com/u/68175311?v=4" width="100px;" alt=""/>
                 <br />
                 <sub><b>길민준 (BE-리더)</b></sub></a><br />
             </td>
-            <td align="center" width="250"><a href="https://github.com/backdoor95">
+            <td align="center" width="230"><a href="https://github.com/backdoor95">
                 <img src="https://avatars.githubusercontent.com/u/68419785?v=4" width="100px;" alt=""/>
                 <br />
                 <sub><b>문준호</b></sub></a><br />
@@ -110,7 +116,7 @@ PASSWORD : alswns1!
                 관리자 페이지
             </font></td>
             <td width="180"><font size=1>
-                유저&기획사 마이페이지 <br />이미지 업로드용 AWS S3 서버 연결 <br />이미지 업로드&삭제 기능 <br />회원정보 수정<br />
+                유저&기획사 마이페이지 <br />AWS S3 서버 연결 <br />이미지 업로드&삭제 기능 <br />회원정보 수정<br />
             </font></td>
         </tr>
     </table>
